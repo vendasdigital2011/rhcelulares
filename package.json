@@ -1,0 +1,28 @@
+{
+  "name": "hiago-iphones-saas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma SaaS de CRM, Aceleração Comercial e Reativação para Lojas de Celulares",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "dev": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "build:server": "npm --prefix server run build",
+    "test:server": "npm --prefix server run test",
+    "test": "npm --prefix server run test"
+  },
+  "keywords": [
+    "crm",
+    "whatsapp",
+    "smartphones",
+    "saas",
+    "retail"
+  ],
+  "author": "",
+  "license": "ISC"
+}
