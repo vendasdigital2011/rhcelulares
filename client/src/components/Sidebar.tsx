@@ -9,22 +9,26 @@ import {
   Barcode,
   ShieldCheck,
   Receipt,
-  Plus,
-  Store,
+  Users,
+  Sparkles,
   ChevronLeft,
   ChevronRight,
   CircleDot,
   CheckCircle2,
+  Store,
+  Plus,
 } from 'lucide-react';
 
 export type ERPNavTab =
   | 'dashboard'
   | 'checkout'
   | 'sales_history'
+  | 'cash'
+  | 'customers'
+  | 'after_sales'
   | 'inventory'
   | 'labels'
   | 'service_order'
-  | 'cash'
   | 'showcase'
   | 'warranty';
 
@@ -56,33 +60,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
       group: 'OPERAÇÃO',
       items: [
         { id: 'dashboard' as ERPNavTab, label: 'Painel Operacional', icon: LayoutDashboard },
-        { id: 'checkout' as ERPNavTab, label: 'Checkout Rápido (PDV)', icon: ShoppingCart },
-        { id: 'sales_history' as ERPNavTab, label: 'Histórico de Vendas', icon: Receipt },
       ],
     },
     {
-      group: 'ESTOQUE & PRODUTOS',
+      group: 'VENDAS',
+      items: [
+        { id: 'checkout' as ERPNavTab, label: 'PDV - Nova Venda', icon: ShoppingCart },
+        { id: 'sales_history' as ERPNavTab, label: 'Caixa e Vendas', icon: Receipt },
+        { id: 'cash' as ERPNavTab, label: 'Fluxo de Caixa', icon: Wallet },
+        { id: 'customers' as ERPNavTab, label: 'Clientes', icon: Users },
+        { id: 'after_sales' as ERPNavTab, label: 'Pós-Venda', icon: Sparkles },
+      ],
+    },
+    {
+      group: 'ESTOQUE & VITRINE',
       items: [
         { id: 'inventory' as ERPNavTab, label: 'Aparelhos (IMEI)', icon: Smartphone },
         { id: 'labels' as ERPNavTab, label: 'Etiquetas & Barcode', icon: Barcode },
+        { id: 'showcase' as ERPNavTab, label: 'Vitrine Online', icon: Globe },
       ],
     },
     {
       group: 'ASSISTÊNCIA TÉCNICA',
       items: [
         { id: 'service_order' as ERPNavTab, label: 'Ordens de Serviço (O.S.)', icon: Wrench },
-      ],
-    },
-    {
-      group: 'FINANCEIRO & CAIXA',
-      items: [
-        { id: 'cash' as ERPNavTab, label: 'Controle de Caixa', icon: Wallet },
-      ],
-    },
-    {
-      group: 'CANAIS & CATÁLOGO',
-      items: [
-        { id: 'showcase' as ERPNavTab, label: 'Vitrine Online', icon: Globe },
       ],
     },
     {

@@ -9,12 +9,16 @@ import { ShowcaseView } from './components/ShowcaseView.js';
 import { LabelPrintView } from './components/LabelPrintView.js';
 import { WarrantyView } from './components/WarrantyView.js';
 import { SalesHistoryView } from './components/SalesHistoryView.js';
+import { CustomersView } from './components/CustomersView.js';
+import { AfterSalesView } from './components/AfterSalesView.js';
 import { 
   INITIAL_DEVICES, 
   INITIAL_ACCESSORIES, 
   INITIAL_SERVICE_ORDERS, 
   INITIAL_CASH, 
-  INITIAL_SALES 
+  INITIAL_SALES,
+  INITIAL_CUSTOMERS,
+  INITIAL_AFTER_SALES_TRIGGERS
 } from './data/erpData.js';
 import { 
   fetchDevices, 
@@ -26,7 +30,7 @@ import {
   fetchCashRegister, 
   toggleCashApi 
 } from './api/erpApi.js';
-import type { Device, Accessory, ServiceOrder, CashRegister, Sale } from './types.js';
+import type { Device, Accessory, ServiceOrder, CashRegister, Sale, Customer, AfterSalesTrigger } from './types.js';
 import { Store, Bell, ShieldCheck } from 'lucide-react';
 
 export function App() {
@@ -37,6 +41,8 @@ export function App() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrder[]>(INITIAL_SERVICE_ORDERS);
   const [sales, setSales] = useState<Sale[]>(INITIAL_SALES);
   const [cashRegister, setCashRegister] = useState<CashRegister>(INITIAL_CASH);
+  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+  const [afterSalesTriggers, setAfterSalesTriggers] = useState<AfterSalesTrigger[]>(INITIAL_AFTER_SALES_TRIGGERS);
 
   // Carrega dados iniciais do backend com fallback resiliente
   useEffect(() => {
@@ -137,6 +143,11 @@ export function App() {
   const handleAddServiceOrder = async (os: ServiceOrder) => {
     await createServiceOrderApi(os);
     setServiceOrders(prev => [os, ...prev]);
+  };
+
+  // Adicionar novo Cliente
+  const handleAddCustomer = (customer: Customer) => {
+    setCustomers(prev => [customer, ...prev]);
   };
 
   return (
@@ -262,6 +273,27 @@ export function App() {
               sales={sales}
               onOpenWarranty={() => {
                 setActiveTab('warranty');
+              }}
+            />
+          )}
+
+          {activeTab === 'customers' && (
+            <CustomersView
+              customers={customers}
+              onAddCustomer={handleAddCustomer}
+              onNavigateToPOS={(_customerName) => {
+                setActiveTab('checkout');
+              }}
+            />
+          )}
+
+          {activeTab === 'after_sales' && (
+            <AfterSalesView
+              triggers={afterSalesTriggers}
+              onTriggerAction={(id, newStatus) => {
+                setAfterSalesTriggers(prev =>
+                  prev.map(t => (t.id === id ? { ...t, status: newStatus } : t))
+                );
               }}
             />
           )}

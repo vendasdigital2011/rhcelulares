@@ -104,3 +104,39 @@ export interface CashRegister {
     other: number;
   };
 }
+
+export interface CustomerDevice {
+  model: string;
+  imei?: string;
+  purchaseDate: string;
+  batteryHealth?: number;
+  value: number;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  cpf?: string;
+  email?: string;
+  purchasedDevices: CustomerDevice[];
+  totalSpent: number;
+  lastPurchaseDate: string;
+  notes?: string;
+  birthday?: string;
+}
+
+export interface AfterSalesTrigger {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  deviceModel: string;
+  type: 'birthday' | 'upgrade_d360' | 'checkup_d180' | 'accessory_d15' | 'referral';
+  title: string;
+  description: string;
+  discountOffered?: string;
+  suggestedMessage: string;
+  status: 'pending' | 'sent' | 'converted';
+  date: string;
+}
+

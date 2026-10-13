@@ -1,4 +1,4 @@
-import type { Device, Accessory, ServiceOrder, CashRegister, Sale } from '../types.js';
+import type { Device, Accessory, ServiceOrder, CashRegister, Sale, Customer, AfterSalesTrigger } from '../types.js';
 
 export const INITIAL_DEVICES: Device[] = [
   {
@@ -177,3 +177,153 @@ export const INITIAL_SALES: Sale[] = [
     installments: 12,
   },
 ];
+
+export const INITIAL_CUSTOMERS: Customer[] = [
+  {
+    id: 'cust-1',
+    name: 'Mariana Duarte',
+    phone: '+55 77 98844-1234',
+    cpf: '042.819.390-12',
+    email: 'mariana.duarte@email.com',
+    purchasedDevices: [
+      {
+        model: 'iPhone 15 Pro 128GB Titânio Natural',
+        imei: '358923019283741',
+        purchaseDate: '08/10/2026',
+        batteryHealth: 100,
+        value: 5690,
+      },
+    ],
+    totalSpent: 5839,
+    lastPurchaseDate: '08/10/2026',
+    notes: 'Cliente VIP, prefere contato por WhatsApp. Deu iPhone 11 na troca.',
+    birthday: '19/11',
+  },
+  {
+    id: 'cust-2',
+    name: 'Rodrigo Santoro',
+    phone: '+55 77 98144-7719',
+    cpf: '592.102.481-90',
+    email: 'rodrigo.s@gmail.com',
+    purchasedDevices: [
+      {
+        model: 'iPhone 14 128GB Estelar',
+        imei: '354819203948572',
+        purchaseDate: '13/10/2025',
+        batteryHealth: 84,
+        value: 3990,
+      },
+    ],
+    totalSpent: 4190,
+    lastPurchaseDate: '13/10/2025',
+    notes: 'Faz aniversário hoje! Comprou há exatamente 12 meses (ideal para upgrade).',
+    birthday: '13/10',
+  },
+  {
+    id: 'cust-3',
+    name: 'Lucas Ferreira',
+    phone: '+55 77 98822-1122',
+    cpf: '819.301.293-44',
+    purchasedDevices: [
+      {
+        model: 'iPhone 13 128GB Meia-Noite',
+        imei: '359182736451029',
+        purchaseDate: '15/04/2026',
+        batteryHealth: 89,
+        value: 3190,
+      },
+    ],
+    totalSpent: 3840,
+    lastPurchaseDate: '15/04/2026',
+    notes: 'Cliente de assistência técnica e compra de aparelhos.',
+    birthday: '05/03',
+  },
+  {
+    id: 'cust-4',
+    name: 'Juliana Paes',
+    phone: '+55 77 99933-4455',
+    cpf: '301.928.374-88',
+    purchasedDevices: [
+      {
+        model: 'iPhone 11 64GB Branco',
+        imei: '352910293847561',
+        purchaseDate: '28/09/2026',
+        batteryHealth: 74,
+        value: 1990,
+      },
+    ],
+    totalSpent: 2270,
+    lastPurchaseDate: '28/09/2026',
+    notes: 'Troca de bateria realizada recentemente.',
+    birthday: '22/07',
+  },
+];
+
+export const INITIAL_AFTER_SALES_TRIGGERS: AfterSalesTrigger[] = [
+  {
+    id: 'trig-1',
+    customerName: 'Rodrigo Santoro',
+    customerPhone: '+55 77 98144-7719',
+    deviceModel: 'iPhone 14 128GB',
+    type: 'birthday',
+    title: 'Aniversariante do Dia 🎂',
+    description: 'Parabéns e cupom exclusivo de presente para troca de aparelho ou acessórios.',
+    discountOffered: 'R$ 150 OFF',
+    suggestedMessage: 'Fala Rodrigo, tudo bem? Aqui é o Hiago da Hiago iPhones!\nPassando para te desejar um Feliz Aniversário! Muita saúde, sucesso e realizações!\nComo presente especial, separamos R$ 150 OFF de desconto em qualquer iPhone novo ou acessório hoje aqui na loja. Te esperamos!',
+    status: 'pending',
+    date: '13/10/2026',
+  },
+  {
+    id: 'trig-2',
+    customerName: 'Rodrigo Santoro',
+    customerPhone: '+55 77 98144-7719',
+    deviceModel: 'iPhone 14 (Comprado há 12 meses - Bateria 84%)',
+    type: 'upgrade_d360',
+    title: 'Ciclo de Troca / Upgrade D+360 🔄',
+    description: 'Completou 1 ano de compra. Momento perfeito de máxima valorização do usado na troca por iPhone 15 Pro.',
+    discountOffered: 'Avaliação VIP do Usado',
+    suggestedMessage: 'Fala Rodrigo! Seu iPhone 14 completou 1 ano de uso essa semana. Sabia que esse é o momento onde ele tem a maior valorização de troca aqui na loja? Pagamos até R$ 2.400 no seu aparelho usado na troca por um iPhone 15 Pro! Quer que eu reserve um modelo para você testar no balcão?',
+    status: 'pending',
+    date: '13/10/2026',
+  },
+  {
+    id: 'trig-3',
+    customerName: 'Lucas Ferreira',
+    customerPhone: '+55 77 98822-1122',
+    deviceModel: 'iPhone 13 (Comprado há 6 meses)',
+    type: 'checkup_d180',
+    title: 'Checkup Semestral Gratuito D+180 🛠️',
+    description: 'Convite para limpeza de alto-falantes, diagnóstico de bateria e troca de película gratuita.',
+    discountOffered: 'Checkup + Película Grátis',
+    suggestedMessage: 'Olá Lucas, tudo bem? Faz 6 meses que você retirou seu iPhone 13 aqui na Hiago iPhones. Como cortesia da nossa garantia, você tem direito a uma revisão gratuita preventiva (limpeza dos conectores, teste de bateria e alinhamento). Passa aqui hoje ou amanhã para tomar um café conosco!',
+    status: 'pending',
+    date: '13/10/2026',
+  },
+  {
+    id: 'trig-4',
+    customerName: 'Mariana Duarte',
+    customerPhone: '+55 77 98844-1234',
+    deviceModel: 'iPhone 15 Pro (Comprado há 5 dias)',
+    type: 'accessory_d15',
+    title: 'Kit de Proteção & Acessórios D+15 🎧',
+    description: 'Oferta pós-compra de Carregador 20W Original e Capa MagSafe com 20% OFF.',
+    discountOffered: '20% OFF em Acessórios',
+    suggestedMessage: 'Oi Mariana! Tudo bem? Como está a experiência com o iPhone 15 Pro Titânio? Passando para avisar que liberamos 20% de desconto para você em qualquer cabo, carregador Apple 20W ou capa MagSafe pelos próximos 7 dias!',
+    status: 'pending',
+    date: '13/10/2026',
+  },
+  {
+    id: 'trig-5',
+    customerName: 'Mariana Duarte',
+    customerPhone: '+55 77 98844-1234',
+    deviceModel: 'iPhone 15 Pro',
+    type: 'referral',
+    title: 'Programa de Indicação Lite 🤝',
+    description: 'Link exclusivo de embaixadora: Ganhe R$ 100 no Pix para cada amigo que comprar iPhone.',
+    discountOffered: 'R$ 100 no Pix por Indicação',
+    suggestedMessage: 'Mariana, sabia que você pode ganhar R$ 100 no Pix indicando um amigo para comprar iPhone aqui na Hiago iPhones? Basta compartilhar este link: https://hiago-iphones.vercel.app/indicar/MARI100',
+    status: 'pending',
+    date: '13/10/2026',
+  },
+];
+
