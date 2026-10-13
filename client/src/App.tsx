@@ -353,6 +353,9 @@ export function App() {
             'commissions',
             'timecard',
             'users',
+            'subscription',
+            'support',
+            'migration',
           ].includes(activeTab) && (
             <ExtendedModulesView
               tab={activeTab}

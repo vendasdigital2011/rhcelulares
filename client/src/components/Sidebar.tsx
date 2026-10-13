@@ -29,6 +29,9 @@ import {
   Percent,
   Clock,
   Sliders,
+  CreditCard,
+  LifeBuoy,
+  Database,
 } from 'lucide-react';
 
 export type ERPNavTab =
@@ -58,7 +61,11 @@ export type ERPNavTab =
   | 'reports'
   | 'commissions'
   | 'timecard'
-  | 'users';
+  | 'users'
+  // Sistema e Suporte
+  | 'subscription'
+  | 'support'
+  | 'migration';
 
 interface SidebarProps {
   activeTab: ERPNavTab;
@@ -542,6 +549,93 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </React.Fragment>
           );
         })}
+
+        {/* ITENS DE SISTEMA & SUPORTE */}
+        <div
+          style={{
+            marginTop: 10,
+            paddingTop: 8,
+            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <button
+            onClick={() => setActiveTab('subscription')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              width: '100%',
+              padding: collapsed ? '9px 0' : '8px 12px',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              borderRadius: 7,
+              border: 'none',
+              background: activeTab === 'subscription' ? 'rgba(249, 115, 22, 0.14)' : 'transparent',
+              color: activeTab === 'subscription' ? '#f97316' : '#94a3b8',
+              fontSize: '0.8rem',
+              fontWeight: activeTab === 'subscription' ? 700 : 500,
+              cursor: 'pointer',
+              borderLeft: activeTab === 'subscription' ? '3px solid #f97316' : '3px solid transparent',
+              transition: 'all 0.15s ease',
+            }}
+            title="Assinatura"
+          >
+            <CreditCard size={15} color={activeTab === 'subscription' ? '#f97316' : '#64748b'} />
+            {!collapsed && <span>Assinatura</span>}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('support')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              width: '100%',
+              padding: collapsed ? '9px 0' : '8px 12px',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              borderRadius: 7,
+              border: 'none',
+              background: activeTab === 'support' ? 'rgba(249, 115, 22, 0.14)' : 'transparent',
+              color: activeTab === 'support' ? '#f97316' : '#94a3b8',
+              fontSize: '0.8rem',
+              fontWeight: activeTab === 'support' ? 700 : 500,
+              cursor: 'pointer',
+              borderLeft: activeTab === 'support' ? '3px solid #f97316' : '3px solid transparent',
+              transition: 'all 0.15s ease',
+            }}
+            title="Suporte"
+          >
+            <LifeBuoy size={15} color={activeTab === 'support' ? '#f97316' : '#64748b'} />
+            {!collapsed && <span>Suporte</span>}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('migration')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              width: '100%',
+              padding: collapsed ? '9px 0' : '8px 12px',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              borderRadius: 7,
+              border: 'none',
+              background: activeTab === 'migration' ? 'rgba(249, 115, 22, 0.14)' : 'transparent',
+              color: activeTab === 'migration' ? '#f97316' : '#94a3b8',
+              fontSize: '0.8rem',
+              fontWeight: activeTab === 'migration' ? 700 : 500,
+              cursor: 'pointer',
+              borderLeft: activeTab === 'migration' ? '3px solid #f97316' : '3px solid transparent',
+              transition: 'all 0.15s ease',
+            }}
+            title="Migração de Dados"
+          >
+            <Database size={15} color={activeTab === 'migration' ? '#f97316' : '#64748b'} />
+            {!collapsed && <span>Migração de Dados</span>}
+          </button>
+        </div>
       </nav>
 
       {/* RODAPÉ DO MENU COM USUÁRIO E VERSÃO */}

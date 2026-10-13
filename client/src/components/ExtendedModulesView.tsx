@@ -5,6 +5,12 @@ import {
   ShieldAlert,
   FileText,
   ArrowUpRight,
+  CreditCard,
+  LifeBuoy,
+  CheckCircle2,
+  MessageSquare,
+  UploadCloud,
+  DownloadCloud,
 } from 'lucide-react';
 import type { ERPNavTab } from './Sidebar.js';
 import type { Accessory, Device } from '../types.js';
@@ -448,7 +454,226 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
     );
   }
 
-  // 6. GESTÃO: FINANCEIRO, RELATÓRIOS, COMISSÕES, PONTO, USUÁRIOS
+  // 6. ASSINATURA
+  if (tab === 'subscription') {
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            SISTEMA & PLANO
+          </div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+            Assinatura & Licenciamento
+          </h1>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+            Gestão do plano ativo, recursos liberados e histórico de faturas do sistema Balcão Phones.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+          <div style={{ background: '#0d121f', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: 12, padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', background: 'rgba(249, 115, 22, 0.12)', padding: '4px 10px', borderRadius: 20 }}>
+                Plano Pro Balcão
+              </span>
+              <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <CheckCircle2 size={13} />
+                <span>Ativo</span>
+              </span>
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#f8fafc', marginTop: 14 }}>
+              R$ 149<span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 500 }}>/mês</span>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 6 }}>
+              Aparelhos ilimitados por IMEI • Módulo O.S. com Checklist • Gerador de Etiquetas Térmicas • Pós-venda Preditivo
+            </p>
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginTop: 16, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8' }}>
+              <span>Próxima renovação:</span>
+              <strong style={{ color: '#f8fafc' }}>15/11/2026</strong>
+            </div>
+          </div>
+
+          <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <CreditCard size={16} color="#f97316" />
+                <span>Forma de Pagamento Cadastrada</span>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 8 }}>
+                Cartão de crédito com final •••• 8842 (Mastercard). Cobrança automática recorrente com emissão de nota fiscal direta.
+              </p>
+            </div>
+            <button
+              onClick={() => alert('Direcionando para portal seguro de cobrança!')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: '#f8fafc',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '10px 14px',
+                borderRadius: 8,
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginTop: 16,
+              }}
+            >
+              Atualizar Cartão ou Trocar Plano
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 7. SUPORTE
+  if (tab === 'support') {
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            CENTRAL DE AJUDA
+          </div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+            Suporte ao Lojista
+          </h1>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+            Fale com a equipe de especialistas Balcão Phones para tirar dúvidas de fluxo, impressoras ou bugs.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+          <div style={{ background: '#0d121f', border: '1px solid rgba(37, 211, 102, 0.25)', borderRadius: 12, padding: 22 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#25d366' }}>
+              <MessageSquare size={20} />
+              <strong style={{ fontSize: '0.95rem' }}>WhatsApp Direto do Suporte</strong>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 10 }}>
+              Atendimento ágil de segunda a sábado das 08h às 20h para resolver dúvidas operacionais no balcão.
+            </p>
+            <button
+              onClick={() => window.open('https://wa.me/5511999999999?text=Preciso+de+suporte+no+sistema+Balcao+Phones', '_blank')}
+              style={{
+                background: '#25d366',
+                color: '#06260f',
+                border: 'none',
+                padding: '9px 16px',
+                borderRadius: 8,
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                marginTop: 16,
+              }}
+            >
+              Chamar no WhatsApp →
+            </button>
+          </div>
+
+          <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 22 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#38bdf8' }}>
+              <LifeBuoy size={20} />
+              <strong style={{ fontSize: '0.95rem' }}>Central de Documentação</strong>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 10 }}>
+              Vídeos passo a passo: como configurar impressora térmica Elgin/Zebra, checklist de O.S. e cadastro de IMEI.
+            </p>
+            <button
+              onClick={() => alert('Abrindo tutoriais em vídeo')}
+              style={{
+                background: 'rgba(56, 189, 248, 0.1)',
+                color: '#38bdf8',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                padding: '9px 16px',
+                borderRadius: 8,
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                marginTop: 16,
+              }}
+            >
+              Ver Tutoriais em Vídeo
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 8. MIGRAÇÃO DE DADOS
+  if (tab === 'migration') {
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            UTILITÁRIOS
+          </div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+            Migração de Dados
+          </h1>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+            Importe seu estoque de iPhones e lista de clientes vindos de planilhas Excel ou de outros sistemas.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+          <div style={{ background: '#0d121f', border: '1px dashed rgba(249, 115, 22, 0.4)', borderRadius: 12, padding: 26, textAlign: 'center' }}>
+            <div style={{ display: 'inline-flex', padding: 14, borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', color: '#f97316', marginBottom: 12 }}>
+              <UploadCloud size={30} />
+            </div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#f8fafc' }}>Importar Planilha (Excel / CSV)</h3>
+            <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 6, maxWidth: 360, margin: '6px auto 16px' }}>
+              Faça o upload do seu arquivo de estoque com colunas: Modelo, IMEI, Capacidade, Cor, Saúde da Bateria e Valor.
+            </p>
+            <input type="file" accept=".csv, .xlsx, .xls" style={{ display: 'none' }} id="file-migrate" onChange={() => alert('Planilha recebida com sucesso! 24 aparelhos validados para importação.')} />
+            <label
+              htmlFor="file-migrate"
+              style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                color: '#fff',
+                padding: '9px 18px',
+                borderRadius: 8,
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-block',
+              }}
+            >
+              Selecionar Arquivo .CSV ou .XLSX
+            </label>
+          </div>
+
+          <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 26, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#f8fafc', fontWeight: 800 }}>
+                <DownloadCloud size={18} color="#f97316" />
+                <span>Exportar Backup Completo</span>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 8 }}>
+                Exporte todo o banco de dados da loja em um clique: aparelhos, clientes, histórico de vendas e ordens de serviço.
+              </p>
+            </div>
+            <button
+              onClick={() => alert('Download do backup gerado em JSON/Excel iniciado.')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: '#f8fafc',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '10px 14px',
+                borderRadius: 8,
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginTop: 16,
+              }}
+            >
+              Baixar Backup do Sistema
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 9. GESTÃO: FINANCEIRO, RELATÓRIOS, COMISSÕES, PONTO, USUÁRIOS
   return (
     <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div>
