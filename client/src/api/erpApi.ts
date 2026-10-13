@@ -1,7 +1,9 @@
 import type { Device, Sale, ServiceOrder, CashRegister } from '../types.js';
 import { INITIAL_DEVICES, INITIAL_SALES, INITIAL_SERVICE_ORDERS, INITIAL_CASH } from '../data/erpData.js';
 
-const API_BASE = 'http://localhost:3001/api/erp';
+const API_BASE = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/erp` 
+  : '/api/erp';
 
 export async function fetchDevices(): Promise<Device[]> {
   try {
@@ -112,3 +114,16 @@ export async function toggleCashApi(): Promise<CashRegister> {
     return INITIAL_CASH;
   }
 }
+
+export async function fetchDashboardMetrics(period: string = 'month'): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE}/metrics?period=${period}`);
+    if (!res.ok) throw new Error('Erro ao carregar métricas');
+    const json = await res.json();
+    return json.data;
+  } catch (err) {
+    console.warn('Backend offline para métricas, fallback para cálculo local:', err);
+    return null;
+  }
+}
+

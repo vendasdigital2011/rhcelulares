@@ -1,0 +1,64 @@
++----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| nav                                                                                                                                                            |
+| [ico:logo] [t1: RH] [t2: Gestão de loja]                                                           [btn3: [ico:filter]] [btn3: [ico:play]] [btn2: [av:RO] Robson] [btn3: [ico:exit] Sair] |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| rail: sidebar                                | section: header-action-bar                                                                                      |
+| [ico:rh] [t1: RH] [t2: BALCAO PHONES]        | [t2: ● VENDAS E RESULTADOS]                                                                                     |
+| [in: [ico:search] Buscar...]                 | [h1: Painel Operacional] [t2: ● Ao Vivo]   [btn3: ● Caixa: Fechado] [btn3: Hoje] [btn3: 7 Dias] [btn: Este Mês] [btn3: Ano] [btn3: [ico:tune] Personalizar] |
+| [btn: [ico:dashboard] Dashboard]             | [t2: Bom dia, Robson • Acompanhe somente os indicadores liberados para o seu perfil.]  [btn: + Nova Venda] [btn2: [ico:tool] Nova O.S.] [btn2: [ico:barcode] + IMEI] |
+| [lnk: [ico:cart] Vendas v]                   |-----------------------------------------------------------------------------------------------------------------|
+| [lnk: [ico:box] Estoque e vitrine v]         | banner: trial                                                                                                   |
+| [lnk: [ico:tag] Etiquetas]                   | [ico:calendar] [t1: Você está no teste grátis. Restam 7 dias para aproveitar o sistema.]                        |
+| [lnk: [ico:wrench] Assistência técnica]      | [t2: Aproveite todos os recursos liberados durante o período de teste.]                         [btn: Ver planos] |
+| [lnk: [ico:settings] Gestão v]               |-----------------------------------------------------------------------------------------------------------------|
+| [lnk: [ico:card] Assinatura]                 | card: onboarding                                                                                                |
+|                                              | [ico:sparkle] [t2: ATIVE SUA LOJA]                                                                              |
+|                                              | [h2: O que você quer organizar primeiro?]                                                                       |
+|                                              | [t2: Escolha seu objetivo e mostraremos somente a próxima ação para você começar.]                              |
+|                                              | [btn2: [ico:cart] Vendas e estoque] [btn2: [ico:wrench] Assistência técnica]                                    |
+|                                              | [ico:instagram] [t3: Participe da comunidade oficial no Instagram para dicas de operação e suporte:] [btn3: Seguir @balcaophones ^] |
+|                                              |-----------------------------------------------------------------------------------------------------------------|
+|                                              | kpi-grid                                                                                                        |
+|                                              | +-------------------+ +-------------------+ +-------------------+ +-------------------+                         |
+|                                              | | card: kpi-1       | | card: kpi-2       | | card: kpi-3       | | card: kpi-4       |                         |
+|                                              | | [t2: [ico:trend] Faturamento Bruto]   | | [t2: [ico:dollar] Lucro Líquido Real] | | [t2: [ico:phone] Aparelhos em Estoque] | | [t2: [ico:wrench] O.S. em Bancada]   |                         |
+|                                              | | [h1: R$ 0,00]     | | [h1: R$ 0,00]     | | [h1: 0 Aparelhos] | | [h1: 0 O.S. Ativas] |                         |
+|                                              | | [t2: ^ +0% vs. mês anterior]         | | [t2: Margem Líquida: 0% Margem]       | | [t2: Patrimônio: R$ 0,00 Bateria: 91%]  | | [t2: 0 prontas p/ entrega Previsto: R$ 0,00] |           |
+|                                              | +-------------------+ +-------------------+ +-------------------+ +-------------------+                         |
+|                                              |-----------------------------------------------------------------------------------------------------------------|
+|                                              | widget-row-1                                                                                                    |
+|                                              | +-------------------------------------------------------+ +-----------------------------------------------------+ |
+|                                              | | card: birthdays                                       | | card: operational-alerts                            | |
+|                                              | | [ico:cake] [t2: RELACIONAMENTO DE HOJE]               | | [ico:alert] [t2: ATENÇÃO NECESSÁRIA]                | |
+|                                              | | [h2: Aniversariantes do dia] [btn3: 0 para felicitar] [lnk: Abrir Pós-venda ->] | [h2: Pendências da operação]                         | |
+|                                              | | +---------------------------------------------------+ | | [lnk: ● Nenhuma O.S. pronta aguardando pagamento ->]  | |
+|                                              | | | empty-state: birthday                             | | | [lnk: ● Estoque de acessórios sem alertas ->]        | |
+|                                              | | | [ico:cake] [t2: Nenhum cliente faz aniversário hoje. Datas consultadas automaticamente no cadastro dos clientes.] | | | [lnk: ● Nenhuma garantia vencendo nos próximos 15 dias ->] | |
+|                                              | | +---------------------------------------------------+ | +-----------------------------------------------------+ |
+|                                              | +-------------------------------------------------------+                                                         |
+|                                              |-----------------------------------------------------------------------------------------------------------------|
+|                                              | widget-row-2: charts                                                                                            |
+|                                              | +-------------------------------------------------------+ +-----------------------------------------------------+ |
+|                                              | | card: financial-evolution                             | | card: revenue-distribution                          | |
+|                                              | | [h2: Evolução Financeira (Faturamento vs. Lucro Real)]| | [h2: Distribuição de Receita] [t3: OUTUBRO]         | |
+|                                              | | [t3: Demonstrativo visual com dedução automática de custo de aparelhos, peças e taxas.] | [t2: iPhones Seminovos & Lacrados] [t2: R$ 0,00 (60%)] |
+|                                              | | [t2: ● Faturamento] [t2: ● Lucro Líquido]             | | [t2: Assistência Técnica & Reparos] [t2: R$ 0,00 (25%)] |
+|                                              | | [chart: line-chart 01 08 15 22 Hoje]                  | | [t2: Acessórios & Películas] [t2: R$ 0,00 (15%)]     |
+|                                              | |                                                       | | [t2: Meta de Faturamento] [t2: 0% Atingida]         | |
+|                                              | |                                                       | | [h2: R$ 0,00 / R$ 70.000,00]                        | |
+|                                              | |                                                       | | [t3: Faltam apenas R$ 70.000,00 nos próximos 18 dias] | |
+|                                              | +-------------------------------------------------------+ +-----------------------------------------------------+ |
+|                                              |-----------------------------------------------------------------------------------------------------------------|
+|                                              | widget-row-3: operations                                                                                        |
+|                                              | +-------------------------------------------------------+ +-----------------------------------------------------+ |
+|                                              | | card: os-bench                                        | | card: latest-sales                                  | |
+|                                              | | [ico:wrench] [h2: Bancada de O.S. (Tempo Real)] [lnk: + Nova O.S.] | [ico:bag] [h2: Últimas Vendas & Lucro por Item] [lnk: + Venda Rápida] |
+|                                              | | [t3: Panorama das O.S. • 0 ordens ativas]             | | [t3: Vendas do dia • Rastreabilidade de IMEI com lucro líquido descontado] |
+|                                              | | [btn3: Em análise 0] [btn3: Aguard. peça/aprovação 0] [btn3: Sem serviço / canceladas 0] | | +---------------------------------------------------+ | |
+|                                              | | +---------------------------------------------------+ | | | empty-state: sales                                | | |
+|                                              | | | empty-state: os                                   | | | | [ico:doc] [t2: Nenhuma venda recente cadastrada.] | | |
+|                                              | | | [ico:wrench] [t2: Nenhuma ordem de serviço ativa no momento.] | | | +---------------------------------------------------+ | |
+|                                              | | +---------------------------------------------------+ | | [lnk: Ver relatório completo de vendas do mês ->]   | |
+|                                              | | [lnk: Ver todas as Ordens de Serviço ->]              | +-----------------------------------------------------+ |
+|                                              | +-------------------------------------------------------+                                                         |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------+

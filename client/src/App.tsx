@@ -239,8 +239,12 @@ export function App() {
               devices={devices}
               serviceOrders={serviceOrders}
               sales={sales}
+              isCashOpen={cashRegister.isOpen}
+              onToggleCash={handleToggleCash}
               onNavigate={(tab) => setActiveTab(tab as ERPNavTab)}
               onOpenNewDevice={() => setActiveTab('inventory')}
+              onQuickNewSale={() => setActiveTab('checkout')}
+              onQuickNewOS={() => setActiveTab('service_order')}
             />
           )}
 
