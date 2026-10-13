@@ -13,24 +13,52 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   CircleDot,
   CheckCircle2,
   Store,
   Plus,
+  PhoneIncoming,
+  Package,
+  Cpu,
+  Truck,
+  Cog,
+  TrendingUp,
+  User,
+  BarChart3,
+  Percent,
+  Clock,
+  Sliders,
 } from 'lucide-react';
 
 export type ERPNavTab =
   | 'dashboard'
+  // Vendas
   | 'checkout'
-  | 'sales_history'
   | 'cash'
+  | 'sales_history'
   | 'customers'
   | 'after_sales'
+  // Estoque e vitrine
   | 'inventory'
-  | 'labels'
-  | 'service_order'
+  | 'phone_purchases'
+  | 'products'
+  | 'parts'
+  | 'suppliers'
   | 'showcase'
-  | 'warranty';
+  // Etiquetas
+  | 'labels'
+  // Assistência técnica
+  | 'service_order'
+  | 'services'
+  | 'warranty'
+  // Gestão
+  | 'financial'
+  | 'profile'
+  | 'reports'
+  | 'commissions'
+  | 'timecard'
+  | 'users';
 
 interface SidebarProps {
   activeTab: ERPNavTab;
@@ -41,6 +69,19 @@ interface SidebarProps {
   onQuickNewSale: () => void;
   onQuickNewOS: () => void;
   onQuickNewDevice: () => void;
+}
+
+interface NavItem {
+  id: ERPNavTab;
+  label: string;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+}
+
+interface NavCategory {
+  key: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  children: NavItem[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -55,41 +96,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false);
 
-  const navGroups = [
+  // Controle de expansão de cada categoria Pai (abertas por padrão)
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
+    vendas: true,
+    estoque: true,
+    assistencia: true,
+    gestao: false,
+  });
+
+  const toggleCategory = (key: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  // Estrutura Completa de Menus: Pais e Filhos
+  const categories: NavCategory[] = [
     {
-      group: 'OPERAÇÃO',
-      items: [
-        { id: 'dashboard' as ERPNavTab, label: 'Painel Operacional', icon: LayoutDashboard },
+      key: 'vendas',
+      label: 'Vendas',
+      icon: ShoppingCart,
+      children: [
+        { id: 'checkout', label: 'PDV - Nova venda', icon: ShoppingCart },
+        { id: 'cash', label: 'Fluxo de Caixa', icon: Wallet },
+        { id: 'sales_history', label: 'Caixa e vendas', icon: Receipt },
+        { id: 'customers', label: 'Clientes', icon: Users },
+        { id: 'after_sales', label: 'Pós-venda', icon: Sparkles },
       ],
     },
     {
-      group: 'VENDAS',
-      items: [
-        { id: 'checkout' as ERPNavTab, label: 'PDV - Nova Venda', icon: ShoppingCart },
-        { id: 'sales_history' as ERPNavTab, label: 'Caixa e Vendas', icon: Receipt },
-        { id: 'cash' as ERPNavTab, label: 'Fluxo de Caixa', icon: Wallet },
-        { id: 'customers' as ERPNavTab, label: 'Clientes', icon: Users },
-        { id: 'after_sales' as ERPNavTab, label: 'Pós-Venda', icon: Sparkles },
+      key: 'estoque',
+      label: 'Estoque e vitrine',
+      icon: Smartphone,
+      children: [
+        { id: 'inventory', label: 'Estoque Celulares', icon: Smartphone },
+        { id: 'phone_purchases', label: 'Compra de Telefone', icon: PhoneIncoming },
+        { id: 'products', label: 'Produtos', icon: Package },
+        { id: 'parts', label: 'Peças', icon: Cpu },
+        { id: 'suppliers', label: 'Fornecedores', icon: Truck },
+        { id: 'showcase', label: 'Vitrine', icon: Globe },
       ],
     },
     {
-      group: 'ESTOQUE & VITRINE',
-      items: [
-        { id: 'inventory' as ERPNavTab, label: 'Aparelhos (IMEI)', icon: Smartphone },
-        { id: 'labels' as ERPNavTab, label: 'Etiquetas & Barcode', icon: Barcode },
-        { id: 'showcase' as ERPNavTab, label: 'Vitrine Online', icon: Globe },
+      key: 'assistencia',
+      label: 'Assistência técnica',
+      icon: Wrench,
+      children: [
+        { id: 'service_order', label: 'Ordens de serviço', icon: Wrench },
+        { id: 'services', label: 'Serviços', icon: Cog },
+        { id: 'warranty', label: 'Garantias', icon: ShieldCheck },
       ],
     },
     {
-      group: 'ASSISTÊNCIA TÉCNICA',
-      items: [
-        { id: 'service_order' as ERPNavTab, label: 'Ordens de Serviço (O.S.)', icon: Wrench },
-      ],
-    },
-    {
-      group: 'JURÍDICO & DOCUMENTOS',
-      items: [
-        { id: 'warranty' as ERPNavTab, label: 'Termos de Garantia', icon: ShieldCheck },
+      key: 'gestao',
+      label: 'Gestão',
+      icon: Sliders,
+      children: [
+        { id: 'financial', label: 'Financeiro', icon: TrendingUp },
+        { id: 'profile', label: 'Meu Perfil', icon: User },
+        { id: 'reports', label: 'Relatórios', icon: BarChart3 },
+        { id: 'commissions', label: 'Comissões', icon: Percent },
+        { id: 'timecard', label: 'Ponto', icon: Clock },
+        { id: 'users', label: 'Usuários', icon: Users },
       ],
     },
   ];
@@ -299,33 +368,153 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* NAVEGAÇÃO VERTICAL POR GRUPOS */}
-      <nav style={{ flex: 1, padding: collapsed ? '10px 8px' : '10px 14px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {navGroups.map((grp) => (
-          <div key={grp.group}>
-            {!collapsed && (
-              <div
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 800,
-                  color: '#64748b',
-                  letterSpacing: '0.6px',
-                  padding: '0 8px 6px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {grp.group}
-              </div>
-            )}
+      {/* NAVEGAÇÃO VERTICAL EM ÁRVORE (PAI E FILHOS) */}
+      <nav style={{ flex: 1, padding: collapsed ? '10px 8px' : '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* ITEM RAIZ: PAINEL OPERACIONAL / DASHBOARD */}
+        <div>
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              width: '100%',
+              padding: collapsed ? '10px 0' : '9px 12px',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              borderRadius: 8,
+              border: 'none',
+              background: activeTab === 'dashboard' ? 'rgba(249, 115, 22, 0.14)' : 'transparent',
+              color: activeTab === 'dashboard' ? '#f97316' : '#94a3b8',
+              fontSize: '0.82rem',
+              fontWeight: activeTab === 'dashboard' ? 700 : 500,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              borderLeft: activeTab === 'dashboard' ? '3px solid #f97316' : '3px solid transparent',
+            }}
+            title="Dashboard"
+          >
+            <LayoutDashboard size={16} color={activeTab === 'dashboard' ? '#f97316' : '#94a3b8'} />
+            {!collapsed && <span>Dashboard</span>}
+          </button>
+        </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {grp.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
+        {/* 1. CATEGORIA PAI: VENDAS */}
+        {categories.map((cat, idx) => {
+          const ParentIcon = cat.icon;
+          const isCategoryOpen = !!openCategories[cat.key];
+          const hasActiveChild = cat.children.some(child => child.id === activeTab);
+
+          return (
+            <React.Fragment key={cat.key}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {/* BOTÃO DA CATEGORIA PAI */}
+                <button
+                  onClick={() => {
+                    if (collapsed) {
+                      setCollapsed(false);
+                      setOpenCategories(prev => ({ ...prev, [cat.key]: true }));
+                    } else {
+                      toggleCategory(cat.key);
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'space-between',
+                    width: '100%',
+                    padding: collapsed ? '10px 0' : '9px 12px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: hasActiveChild && !isCategoryOpen ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                    color: hasActiveChild ? '#f8fafc' : '#94a3b8',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title={cat.label}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <ParentIcon size={16} color={hasActiveChild ? '#f97316' : '#64748b'} />
+                    {!collapsed && (
+                      <span style={{ color: hasActiveChild ? '#f8fafc' : '#cbd5e1' }}>
+                        {cat.label}
+                      </span>
+                    )}
+                  </div>
+
+                  {!collapsed && (
+                    <div
+                      style={{
+                        transform: isCategoryOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                        transition: 'transform 0.2s ease',
+                        color: '#64748b',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <ChevronDown size={14} />
+                    </div>
+                  )}
+                </button>
+
+                {/* LISTA DE FILHOS (SUBMENU COM LINHA GUIA VERTICAL) */}
+                {(!collapsed && isCategoryOpen) && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                      marginLeft: 14,
+                      paddingLeft: 10,
+                      borderLeft: '1.5px solid rgba(255, 255, 255, 0.08)',
+                      marginTop: 2,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {cat.children.map((child) => {
+                      const ChildIcon = child.icon;
+                      const isChildActive = activeTab === child.id;
+
+                      return (
+                        <button
+                          key={child.id}
+                          onClick={() => setActiveTab(child.id)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            width: '100%',
+                            padding: '7px 10px',
+                            borderRadius: 6,
+                            border: 'none',
+                            background: isChildActive ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                            color: isChildActive ? '#f97316' : '#94a3b8',
+                            fontSize: '0.78rem',
+                            fontWeight: isChildActive ? 700 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            textAlign: 'left',
+                            position: 'relative',
+                          }}
+                          title={child.label}
+                        >
+                          <ChildIcon size={14} color={isChildActive ? '#f97316' : '#64748b'} />
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {child.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* ITEM DIRETO: ETIQUETAS (fica entre Estoque e Assistência no Balcão Phones) */}
+              {idx === 1 && (
+                <div>
                   <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => setActiveTab('labels')}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -335,24 +524,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       justifyContent: collapsed ? 'center' : 'flex-start',
                       borderRadius: 8,
                       border: 'none',
-                      background: isActive ? 'rgba(249, 115, 22, 0.14)' : 'transparent',
-                      color: isActive ? '#f97316' : '#94a3b8',
+                      background: activeTab === 'labels' ? 'rgba(249, 115, 22, 0.14)' : 'transparent',
+                      color: activeTab === 'labels' ? '#f97316' : '#94a3b8',
                       fontSize: '0.82rem',
-                      fontWeight: isActive ? 700 : 500,
+                      fontWeight: activeTab === 'labels' ? 700 : 500,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
-                      borderLeft: isActive ? '3px solid #f97316' : '3px solid transparent',
+                      borderLeft: activeTab === 'labels' ? '3px solid #f97316' : '3px solid transparent',
                     }}
-                    title={item.label}
+                    title="Etiquetas"
                   >
-                    <Icon size={16} color={isActive ? '#f97316' : '#94a3b8'} />
-                    {!collapsed && <span>{item.label}</span>}
+                    <Barcode size={16} color={activeTab === 'labels' ? '#f97316' : '#64748b'} />
+                    {!collapsed && <span>Etiquetas</span>}
                   </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </nav>
 
       {/* RODAPÉ DO MENU COM USUÁRIO E VERSÃO */}

@@ -1,0 +1,495 @@
+import React from 'react';
+import {
+  Truck,
+  Plus,
+  ShieldAlert,
+  FileText,
+  ArrowUpRight,
+} from 'lucide-react';
+import type { ERPNavTab } from './Sidebar.js';
+import type { Accessory, Device } from '../types.js';
+
+interface ExtendedModulesViewProps {
+  tab: ERPNavTab;
+  accessories: Accessory[];
+  devices: Device[];
+  onNavigateToPOS?: () => void;
+  onOpenNewDevice?: () => void;
+}
+
+export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
+  tab,
+  accessories,
+}) => {
+
+  // 1. COMPRA DE TELEFONE (TRADE-IN & USADOS)
+  if (tab === 'phone_purchases') {
+    const mockPurchases = [
+      { id: 'cp-1', date: '12/10/2026', customer: 'Marcos Vinicius', model: 'iPhone 13 128GB', imei: '358920192837482', battery: 86, evaluation: 2200, status: 'approved', hasContract: true },
+      { id: 'cp-2', date: '10/10/2026', customer: 'Ana Beatriz Souza', model: 'iPhone 12 64GB', imei: '354819203948192', battery: 82, evaluation: 1550, status: 'approved', hasContract: true },
+      { id: 'cp-3', date: '08/10/2026', customer: 'Felipe Santana', model: 'iPhone 14 Pro 128GB', imei: '351928374650123', battery: 91, evaluation: 3600, status: 'in_review', hasContract: false },
+    ];
+
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              ESTOQUE & VITRINE
+            </div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+              Compra de Telefone
+            </h1>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+              Avaliação de aparelhos usados, compra de seminovos de clientes no balcão e emissão do termo de compra e venda.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => window.open('https://consultaserialaparelho.com.br/', '_blank')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                padding: '8px 14px',
+                borderRadius: 8,
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <ShieldAlert size={14} />
+              <span>Consultar Restrição IMEI (Anatel)</span>
+            </button>
+
+            <button
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+              }}
+            >
+              <Plus size={15} />
+              <span>+ Nova Compra de Telefone</span>
+            </button>
+          </div>
+        </div>
+
+        {/* TABELA DE COMPRAS */}
+        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+            <thead>
+              <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Data</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Cliente</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Aparelho</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>IMEI</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Bateria</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Valor Pago</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Status</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700, textAlign: 'right' }}>Termo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockPurchases.map((cp) => (
+                <tr key={cp.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
+                  <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{cp.date}</td>
+                  <td style={{ padding: '14px 18px', fontWeight: 600 }}>{cp.customer}</td>
+                  <td style={{ padding: '14px 18px', fontWeight: 700, color: '#f97316' }}>{cp.model}</td>
+                  <td style={{ padding: '14px 18px', fontFamily: 'monospace', color: '#94a3b8' }}>{cp.imei}</td>
+                  <td style={{ padding: '14px 18px' }}>
+                    <span style={{ padding: '2px 8px', borderRadius: 12, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontWeight: 700, fontSize: '0.75rem' }}>
+                      {cp.battery}%
+                    </span>
+                  </td>
+                  <td style={{ padding: '14px 18px', fontWeight: 800 }}>R$ {cp.evaluation.toLocaleString('pt-BR')}</td>
+                  <td style={{ padding: '14px 18px' }}>
+                    <span style={{
+                      padding: '3px 8px',
+                      borderRadius: 6,
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      background: cp.status === 'approved' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                      color: cp.status === 'approved' ? '#10b981' : '#eab308',
+                    }}>
+                      {cp.status === 'approved' ? 'Entrou no Estoque' : 'Em Avaliação'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                    <button style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#38bdf8', padding: '5px 10px', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.72rem' }}>
+                      <FileText size={12} />
+                      <span>Termo de Compra</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. PRODUTOS & ACESSÓRIOS
+  if (tab === 'products') {
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              ESTOQUE & VITRINE
+            </div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+              Produtos & Acessórios
+            </h1>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+              Controle de estoque de capas, películas, carregadores homologados e periféricos da loja.
+            </p>
+          </div>
+
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+              color: '#fff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+            }}
+          >
+            <Plus size={15} />
+            <span>+ Novo Produto</span>
+          </button>
+        </div>
+
+        {/* TABELA DE PRODUTOS */}
+        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+            <thead>
+              <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Nome do Produto</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Categoria</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Estoque</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Preço de Custo</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Preço de Venda</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Margem de Lucro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {accessories.map((acc) => {
+                const profit = acc.sellPrice - acc.costPrice;
+                const margin = Math.round((profit / acc.sellPrice) * 100);
+                return (
+                  <tr key={acc.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
+                    <td style={{ padding: '14px 18px', fontWeight: 700 }}>{acc.name}</td>
+                    <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{acc.category}</td>
+                    <td style={{ padding: '14px 18px' }}>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: 12,
+                        background: acc.stock < 15 ? 'rgba(234, 179, 8, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                        color: acc.stock < 15 ? '#eab308' : '#10b981',
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                      }}>
+                        {acc.stock} unid.
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 18px', color: '#94a3b8' }}>R$ {acc.costPrice.toFixed(2)}</td>
+                    <td style={{ padding: '14px 18px', fontWeight: 800, color: '#f97316' }}>R$ {acc.sellPrice.toFixed(2)}</td>
+                    <td style={{ padding: '14px 18px' }}>
+                      <span style={{ color: '#10b981', fontWeight: 700 }}>
+                        +R$ {profit.toFixed(2)} ({margin}%)
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. PEÇAS DE REPARO
+  if (tab === 'parts') {
+    const mockParts = [
+      { id: 'pc-1', name: 'Tela Frontal OLED iPhone 13 (True Tone)', category: 'Display', stock: 6, minStock: 2, cost: 240, sale: 650 },
+      { id: 'pc-2', name: 'Tela Frontal Incell iPhone 11', category: 'Display', stock: 8, minStock: 3, cost: 95, sale: 320 },
+      { id: 'pc-3', name: 'Bateria Foxconn c/ Flex iPhone 12 (100% Saúde)', category: 'Bateria', stock: 12, minStock: 4, cost: 65, sale: 280 },
+      { id: 'pc-4', name: 'Bateria Foxconn c/ Flex iPhone 13', category: 'Bateria', stock: 5, minStock: 3, cost: 85, sale: 320 },
+      { id: 'pc-5', name: 'Conector de Carga Lightning iPhone 13 Pro', category: 'Conector', stock: 4, minStock: 2, cost: 45, sale: 250 },
+      { id: 'pc-6', name: 'Módulo Câmera Traseira iPhone 14', category: 'Câmera', stock: 2, minStock: 2, cost: 280, sale: 750 },
+    ];
+
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              ASSISTÊNCIA & BANCADA
+            </div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+              Peças de Reparo
+            </h1>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+              Estoque de peças técnicas para ordens de serviço. Ao inserir a peça na O.S., a baixa de estoque ocorre automaticamente.
+            </p>
+          </div>
+
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+              color: '#fff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+            }}
+          >
+            <Plus size={15} />
+            <span>+ Nova Peça</span>
+          </button>
+        </div>
+
+        {/* TABELA DE PEÇAS */}
+        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+            <thead>
+              <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Nome da Peça</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Tipo</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Estoque</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Custo da Peça</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Preço c/ Mão de Obra</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockParts.map((pc) => (
+                <tr key={pc.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
+                  <td style={{ padding: '14px 18px', fontWeight: 700 }}>{pc.name}</td>
+                  <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{pc.category}</td>
+                  <td style={{ padding: '14px 18px', fontWeight: 800 }}>{pc.stock} unid.</td>
+                  <td style={{ padding: '14px 18px', color: '#94a3b8' }}>R$ {pc.cost.toFixed(2)}</td>
+                  <td style={{ padding: '14px 18px', fontWeight: 800, color: '#f97316' }}>R$ {pc.sale.toFixed(2)}</td>
+                  <td style={{ padding: '14px 18px' }}>
+                    <span style={{
+                      padding: '3px 8px',
+                      borderRadius: 6,
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      background: pc.stock <= pc.minStock ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                      color: pc.stock <= pc.minStock ? '#ef4444' : '#10b981',
+                    }}>
+                      {pc.stock <= pc.minStock ? 'Estoque Crítico' : 'Normal'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. FORNECEDORES
+  if (tab === 'suppliers') {
+    const mockSuppliers = [
+      { id: 'forn-1', name: 'Distribuidora Alpha SP', contact: 'Rodrigo Vendas', phone: '+55 11 98765-4321', type: 'iPhones Novos e Lacrados', city: 'São Paulo - SP' },
+      { id: 'forn-2', name: 'Miami Tech Importadora', contact: 'Carlos Import', phone: '+55 11 99123-9876', type: 'Seminovos Grade A / Swap', city: 'Campinas - SP' },
+      { id: 'forn-3', name: 'Fox Parts Distribuição', contact: 'Julio Peças', phone: '+55 11 97654-1234', type: 'Telas e Baterias Originais', city: 'São Paulo - SP' },
+    ];
+
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              GESTÃO DE PARCEIROS
+            </div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+              Fornecedores
+            </h1>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+              Fornecedores de iPhones lacrados, seminovos de atacado, telas e peças de bancada.
+            </p>
+          </div>
+
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+              color: '#fff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+            }}
+          >
+            <Plus size={15} />
+            <span>+ Novo Fornecedor</span>
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+          {mockSuppliers.map((forn) => (
+            <div key={forn.id} style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(249, 115, 22, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}>
+                  <Truck size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#f8fafc' }}>{forn.name}</div>
+                  <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{forn.city}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.78rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                  <span>Especialidade:</span>
+                  <span style={{ color: '#f8fafc', fontWeight: 600 }}>{forn.type}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                  <span>Contato comercial:</span>
+                  <span style={{ color: '#f8fafc', fontWeight: 600 }}>{forn.contact}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                  <span>WhatsApp:</span>
+                  <span style={{ color: '#10b981', fontWeight: 700 }}>{forn.phone}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 5. SERVIÇOS TÉCNICOS TABELADOS
+  if (tab === 'services') {
+    const mockServices = [
+      { id: 'srv-1', name: 'Troca de Tela OLED + True Tone', time: '40 min', warranty: '90 dias', price: 650 },
+      { id: 'srv-2', name: 'Troca de Bateria Foxconn c/ Flex Original', time: '30 min', warranty: '90 dias', price: 280 },
+      { id: 'srv-3', name: 'Reparo de Face ID (Troca de Prisma / Flex)', time: '3 horas', warranty: '90 dias', price: 450 },
+      { id: 'srv-4', name: 'Troca de Vidro Traseiro a Laser', time: '2 horas', warranty: '90 dias', price: 380 },
+      { id: 'srv-5', name: 'Desoxidação / Limpeza Química de Placa', time: '4 horas', warranty: '30 dias', price: 200 },
+    ];
+
+    return (
+      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            ASSISTÊNCIA TÉCNICA
+          </div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+            Tabela de Serviços
+          </h1>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+            Serviços pré-cadastrados para inserção em 1 clique durante a abertura de Ordem de Serviço ou no checkout do balcão.
+          </p>
+        </div>
+
+        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+            <thead>
+              <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Serviço</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Tempo Médio</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Garantia</th>
+                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Valor Tabelado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockServices.map((srv) => (
+                <tr key={srv.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
+                  <td style={{ padding: '14px 18px', fontWeight: 700 }}>{srv.name}</td>
+                  <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{srv.time}</td>
+                  <td style={{ padding: '14px 18px', color: '#10b981', fontWeight: 600 }}>{srv.warranty}</td>
+                  <td style={{ padding: '14px 18px', fontWeight: 800, color: '#f97316' }}>R$ {srv.price.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // 6. GESTÃO: FINANCEIRO, RELATÓRIOS, COMISSÕES, PONTO, USUÁRIOS
+  return (
+    <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div>
+        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          GESTÃO DA LOJA
+        </div>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
+          {tab === 'financial' && 'Gestão Financeira & DRE'}
+          {tab === 'reports' && 'Relatórios Operacionais'}
+          {tab === 'commissions' && 'Comissões de Vendedores & Técnicos'}
+          {tab === 'timecard' && 'Controle de Ponto Eletrônico'}
+          {tab === 'users' && 'Equipe & Permissões'}
+          {tab === 'profile' && 'Meu Perfil & Loja'}
+        </h1>
+        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
+          Controle centralizado dos indicadores de desempenho, equipe e conformidade da Hiago iPhones.
+        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 20 }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>Faturamento do Mês</div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f8fafc', marginTop: 6 }}>R$ 18.490,00</div>
+          <div style={{ fontSize: '0.72rem', color: '#10b981', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <ArrowUpRight size={14} />
+            <span>+14% em relação ao mês anterior</span>
+          </div>
+        </div>
+
+        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 20 }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>Lucro Líquido Real</div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#10b981', marginTop: 6 }}>R$ 4.280,00</div>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>Margem líquida apurada: 23,1%</div>
+        </div>
+
+        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 20 }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>Comissões Calculadas</div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f97316', marginTop: 6 }}>R$ 820,00</div>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>2 vendedores + 1 técnico</div>
+        </div>
+      </div>
+    </div>
+  );
+};

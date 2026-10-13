@@ -11,6 +11,7 @@ import { WarrantyView } from './components/WarrantyView.js';
 import { SalesHistoryView } from './components/SalesHistoryView.js';
 import { CustomersView } from './components/CustomersView.js';
 import { AfterSalesView } from './components/AfterSalesView.js';
+import { ExtendedModulesView } from './components/ExtendedModulesView.js';
 import { 
   INITIAL_DEVICES, 
   INITIAL_ACCESSORIES, 
@@ -337,6 +338,28 @@ export function App() {
             <WarrantyView
               sales={sales}
               devices={devices}
+            />
+          )}
+
+          {[
+            'phone_purchases',
+            'products',
+            'parts',
+            'suppliers',
+            'services',
+            'financial',
+            'profile',
+            'reports',
+            'commissions',
+            'timecard',
+            'users',
+          ].includes(activeTab) && (
+            <ExtendedModulesView
+              tab={activeTab}
+              accessories={accessories}
+              devices={devices}
+              onNavigateToPOS={() => setActiveTab('checkout')}
+              onOpenNewDevice={() => setActiveTab('inventory')}
             />
           )}
         </main>
