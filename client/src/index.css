@@ -171,7 +171,8 @@ button, input, select, textarea {
     page-break-after: always;
   }
 
-  #print-warranty-target {
+  #print-warranty-target,
+  #print-purchase-contract-target {
     position: absolute;
     top: 0;
     left: 0;

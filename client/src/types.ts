@@ -140,3 +140,25 @@ export interface AfterSalesTrigger {
   date: string;
 }
 
+export type PurchaseSituation = 'todas' | 'em_orcamento' | 'em_manutencao' | 'aguardando_peca' | 'finalizada';
+
+export interface PhonePurchase {
+  id: string;
+  date: string;
+  customer: string;
+  cpf: string;
+  phone: string;
+  address?: string;
+  seller: string;
+  model: string;
+  imei: string;
+  color: string;
+  battery: number;
+  condition: 'seminovo' | 'vitrine' | 'lacrado';
+  evaluation: number;
+  paymentMethod: string;
+  status: 'em_orcamento' | 'em_manutencao' | 'aguardando_peca' | 'finalizada';
+  notes?: string;
+  hasContract: boolean;
+}
+

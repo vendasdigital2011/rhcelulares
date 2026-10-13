@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { Device, ServiceOrder, Sale } from '../types.js';
 import { fetchDashboardMetrics } from '../api/erpApi.js';
+import { GrowthDashboardView } from './GrowthDashboardView.js';
 
 interface DashboardViewProps {
   devices: Device[];
@@ -41,6 +42,7 @@ export const DashboardView = ({
   onQuickNewSale,
   onQuickNewOS,
 }: DashboardViewProps) => {
+  const [dashboardMode, setDashboardMode] = useState<'growth' | 'operational'>('growth');
   const [period, setPeriod] = useState<'today' | '7days' | 'month' | 'year'>('month');
   const [osFilter, setOsFilter] = useState<'all' | 'diagnosing' | 'waiting_parts' | 'delivered'>('all');
   const [, setServerMetrics] = useState<any>(null);
@@ -117,7 +119,80 @@ export const DashboardView = ({
       flexDirection: 'column',
       gap: 20,
     }}>
-      {/* 1. SUB-HEADER / ACTION BAR PRINCIPAL (IDÊNTICO À REFERÊNCIA) */}
+      {/* SELETOR DE MODO DO DASHBOARD: CRESCIMENTO COMERCIAL VS PAINEL OPERACIONAL */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
+        background: 'rgba(255, 255, 255, 0.03)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: 14,
+        padding: '8px 14px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={() => setDashboardMode('growth')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: dashboardMode === 'growth' ? 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)' : 'transparent',
+              color: dashboardMode === 'growth' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: dashboardMode === 'growth' ? '0 2px 10px rgba(56, 189, 248, 0.35)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Sparkles size={14} />
+            Crescimento Comercial & IA
+          </button>
+
+          <button
+            onClick={() => setDashboardMode('operational')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: dashboardMode === 'operational' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
+              color: dashboardMode === 'operational' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: dashboardMode === 'operational' ? '0 2px 10px rgba(16, 185, 129, 0.35)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Smartphone size={14} />
+            Painel Operacional Balcão
+          </button>
+        </div>
+
+        <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: dashboardMode === 'growth' ? '#38bdf8' : '#10b981' }} />
+          <span>Visão {dashboardMode === 'growth' ? 'Crescimento Comercial & Retenção' : 'Operação Balcão Phones'} Ativa</span>
+        </div>
+      </div>
+
+      {dashboardMode === 'growth' ? (
+        <GrowthDashboardView
+          devices={devices}
+          serviceOrders={serviceOrders}
+          sales={sales}
+          onNavigate={onNavigate}
+        />
+      ) : (
+        <>
+          {/* 1. SUB-HEADER / ACTION BAR PRINCIPAL (IDÊNTICO À REFERÊNCIA) */}
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -1334,6 +1409,8 @@ export const DashboardView = ({
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };
