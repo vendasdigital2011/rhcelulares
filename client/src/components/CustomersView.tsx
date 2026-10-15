@@ -13,6 +13,7 @@ import {
   Phone,
 } from 'lucide-react';
 import type { Customer } from '../types.js';
+import { validatePhoneBR } from '../utils/validators.js';
 
 interface CustomersViewProps {
   customers: Customer[];
@@ -58,19 +59,35 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
   const handleSaveCustomer = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone) return;
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      alert('Preencha os campos obrigatórios: Nome e Telefone/WhatsApp.');
+      return;
+    }
+
+    const phoneCheck = validatePhoneBR(formData.phone);
+    if (!phoneCheck.isValid) {
+      alert(`Atenção: ${phoneCheck.error}`);
+      return;
+    }
+
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    const alreadyExists = customers.some(c => c.phone.replace(/\D/g, '') === cleanPhone);
+    if (alreadyExists) {
+      alert('Já existe um cliente cadastrado com este telefone.');
+      return;
+    }
 
     const newCustomer: Customer = {
       id: `cust-${Date.now()}`,
-      name: formData.name,
-      phone: formData.phone,
-      cpf: formData.cpf,
-      email: formData.email,
+      name: formData.name.trim(),
+      phone: formData.phone.trim(),
+      cpf: formData.cpf.trim() || undefined,
+      email: formData.email.trim() || undefined,
       purchasedDevices: [],
       totalSpent: 0,
       lastPurchaseDate: new Date().toLocaleDateString('pt-BR'),
-      notes: formData.notes,
-      birthday: formData.birthday,
+      notes: formData.notes.trim() || undefined,
+      birthday: formData.birthday || undefined,
     };
 
     onAddCustomer(newCustomer);

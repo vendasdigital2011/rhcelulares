@@ -2,27 +2,43 @@ import { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Smartphone, Package, Wrench, 
-  Trash2, CheckCircle2, User 
+  Trash2, CheckCircle2, User, AlertTriangle, Printer, MessageSquare, Unlock
 } from 'lucide-react';
-import type { Device, Accessory, ServiceOrder, SaleItem, TradeInEntry } from '../types.js';
+import type { Device, Accessory, ServiceOrder, SaleItem, TradeInEntry, Customer } from '../types.js';
+import { validatePhoneBR } from '../utils/validators.js';
 
 interface CheckoutViewProps {
   devices: Device[];
   accessories: Accessory[];
   serviceOrders: ServiceOrder[];
-  onCompleteSale: (saleData: any) => void;
+  customers?: Customer[];
+  isCashOpen?: boolean;
+  onOpenCash?: () => void;
+  onCompleteSale: (saleData: any) => Promise<void> | void;
+  onNavigateToWarranty?: () => void;
 }
 
 export const CheckoutView = ({
   devices,
   accessories,
   serviceOrders,
+  customers = [],
+  isCashOpen = true,
+  onOpenCash,
   onCompleteSale,
+  onNavigateToWarranty,
 }: CheckoutViewProps) => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [customerSearchDropdown, setCustomerSearchDropdown] = useState(false);
   const [sellerName, setSellerName] = useState('Hiago (Responsável)');
-  const [saleDate, setSaleDate] = useState('12/10/2026');
+  const [saleDate, setSaleDate] = useState(new Date().toLocaleDateString('pt-BR'));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [completedSaleModal, setCompletedSaleModal] = useState<any | null>(null);
+
+  // Pagamento em Dinheiro & Troco
+  const [cashReceived, setCashReceived] = useState<number>(0);
 
   // Aba ativa: 'devices' | 'accessories' | 'services'
   const [activeItemType, setActiveItemType] = useState<'devices' | 'accessories' | 'services'>('devices');
@@ -89,47 +105,90 @@ export const CheckoutView = ({
   // Totais
   const subtotal = cartItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
   const total = Math.max(0, subtotal - (hasTradeIn ? tradeInValue : 0) - discount);
+  const changeAmount = paymentMethod === 'Dinheiro' && cashReceived > total ? cashReceived - total : 0;
 
-  const handleFinishSale = () => {
-    if (cartItems.length === 0) {
-      alert('Adicione ao menos um item à venda.');
+  const handleFinishSale = async () => {
+    if (isSubmitting) return;
+
+    if (!isCashOpen) {
+      alert('⚠️ O caixa da loja está FECHADO. Abra o caixa antes de faturar a venda para garantir o registro financeiro correto.');
       return;
     }
 
-    confetti({
-      particleCount: 120,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
+    if (cartItems.length === 0) {
+      alert('Adicione ao menos um item à venda antes de prosseguir.');
+      return;
+    }
 
-    const tradeInData: TradeInEntry | undefined = hasTradeIn && tradeInModel ? {
-      model: tradeInModel,
-      imei: tradeInImei || undefined,
-      batteryHealth: tradeInBattery,
-      evaluatedValue: tradeInValue,
-    } : undefined;
+    if (customerPhone && customerPhone.trim().length > 0) {
+      const phoneValidation = validatePhoneBR(customerPhone);
+      if (!phoneValidation.isValid) {
+        if (!confirm(`Aviso: ${phoneValidation.error}. Deseja prosseguir mesmo assim?`)) {
+          return;
+        }
+      }
+    }
 
-    onCompleteSale({
-      customerName: customerName || 'Consumidor Final',
-      customerPhone,
-      sellerName,
-      date: saleDate,
-      items: cartItems,
-      tradeIn: tradeInData,
-      subtotal,
-      discount,
-      total,
-      paymentMethod,
-      installments: paymentMethod.includes('Cartão') ? installments : undefined,
-    });
+    if (paymentMethod === 'Dinheiro' && cashReceived > 0 && cashReceived < total) {
+      alert(`O valor entregue em dinheiro (R$ ${cashReceived.toFixed(2)}) é menor que o total da venda (R$ ${total.toFixed(2)}).`);
+      return;
+    }
 
-    // Limpa formulário
-    setCartItems([]);
-    setCustomerName('');
-    setHasTradeIn(false);
-    setTradeInModel('');
-    setTradeInValue(0);
-    setDiscount(0);
+    setIsSubmitting(true);
+
+    try {
+      confetti({
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+
+      const tradeInData: TradeInEntry | undefined = hasTradeIn && tradeInModel ? {
+        model: tradeInModel,
+        imei: tradeInImei || undefined,
+        batteryHealth: tradeInBattery,
+        evaluatedValue: tradeInValue,
+      } : undefined;
+
+      const salePayload = {
+        customerId: selectedCustomerId || undefined,
+        customerName: customerName.trim() || 'Consumidor Final',
+        customerPhone: customerPhone.trim(),
+        sellerName,
+        date: saleDate,
+        items: cartItems,
+        tradeIn: tradeInData,
+        subtotal,
+        discount,
+        total,
+        paymentMethod,
+        installments: paymentMethod.includes('Cartão') ? installments : undefined,
+      };
+
+      await onCompleteSale(salePayload);
+
+      // Abre modal com comprovante e ações
+      setCompletedSaleModal({
+        ...salePayload,
+        changeAmount,
+        cashReceived: paymentMethod === 'Dinheiro' ? cashReceived : undefined,
+      });
+
+      // Limpa formulário
+      setCartItems([]);
+      setCustomerName('');
+      setCustomerPhone('');
+      setSelectedCustomerId(null);
+      setHasTradeIn(false);
+      setTradeInModel('');
+      setTradeInValue(0);
+      setDiscount(0);
+      setCashReceived(0);
+    } catch (err: any) {
+      alert('Erro ao processar venda: ' + (err.message || 'Falha de comunicação'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const availableDevices = devices.filter(d => 
@@ -169,6 +228,52 @@ export const CheckoutView = ({
         </p>
       </div>
 
+      {/* Alerta de Caixa Fechado */}
+      {!isCashOpen && (
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.35)',
+          borderRadius: 12,
+          padding: '12px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <AlertTriangle size={18} color="#ef4444" />
+            <div>
+              <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#f87171' }}>
+                Atenção: O Caixa da Loja está Fechado
+              </div>
+              <div style={{ fontSize: '0.74rem', color: '#cbd5e1' }}>
+                Para conformidade fiscal e auditoria de sangrias, abra o caixa antes de faturar a venda.
+              </div>
+            </div>
+          </div>
+          {onOpenCash && (
+            <button
+              onClick={onOpenCash}
+              style={{
+                background: '#10b981',
+                color: '#fff',
+                border: 'none',
+                padding: '7px 14px',
+                borderRadius: 8,
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Unlock size={14} />
+              Abrir Caixa Agora
+            </button>
+          )}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24, alignItems: 'flex-start' }}>
         {/* COLUNA ESQUERDA: CLIENTE, ITENS E TRADE-IN */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -177,30 +282,96 @@ export const CheckoutView = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <User size={14} color="#f97316" />
-                Cliente da venda (Opcional para venda de acessórios)
+                Cliente da venda
               </label>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Se não informado, vincula ao Consumidor Final</span>
+              <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                {customers.length > 0 ? `${customers.length} clientes na base` : 'Consumidor Final'}
+              </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 12, marginTop: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 12, marginTop: 10, position: 'relative' }}>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Buscar ou digitar nome do cliente..."
+                  value={customerName}
+                  onFocus={() => setCustomerSearchDropdown(true)}
+                  onChange={(e) => {
+                    setCustomerName(e.target.value);
+                    setCustomerSearchDropdown(true);
+                    setSelectedCustomerId(null);
+                  }}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(255, 255, 255, 0.09)',
+                    borderRadius: 8,
+                    padding: '9px 12px',
+                    color: '#fff',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                  }}
+                />
+
+                {/* Dropdown de sugestão de clientes existentes */}
+                {customerSearchDropdown && customerName.trim().length > 1 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: 4,
+                    background: '#0d1322',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: 8,
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+                    zIndex: 50,
+                    maxHeight: 180,
+                    overflowY: 'auto',
+                  }}>
+                    {customers
+                      .filter(c => c.name.toLowerCase().includes(customerName.toLowerCase()) || c.phone.includes(customerName))
+                      .slice(0, 5)
+                      .map(c => (
+                        <div
+                          key={c.id}
+                          onClick={() => {
+                            setCustomerName(c.name);
+                            setCustomerPhone(c.phone);
+                            setSelectedCustomerId(c.id);
+                            setCustomerSearchDropdown(false);
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <div>
+                            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f8fafc' }}>{c.name}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{c.phone}</div>
+                          </div>
+                          <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 700 }}>Selecionar</span>
+                        </div>
+                      ))}
+                    <div
+                      onClick={() => setCustomerSearchDropdown(false)}
+                      style={{ padding: '6px 12px', fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', cursor: 'pointer', background: 'rgba(255,255,255,0.02)' }}
+                    >
+                      Fechar sugestões
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <input
                 type="text"
-                placeholder="Digite nome do cliente ou CPF..."
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Telefone / WhatsApp (ex: 77 98844-1234)..."
+                placeholder="WhatsApp (ex: 77 98844-2211)..."
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 style={{
@@ -768,37 +939,313 @@ export const CheckoutView = ({
               <option value="Cartão de Crédito 12x">Cartão de Crédito 12x (com taxa da máquina)</option>
               <option value="Cartão de Crédito 18x">Cartão de Crédito 18x</option>
               <option value="Pix">Pix à vista</option>
-              <option value="Dinheiro">Dinheiro físico</option>
+              <option value="Dinheiro">Dinheiro físico (Gaveta)</option>
               <option value="Cartão de Débito">Cartão de Débito</option>
               <option value="Financiamento">Financiamento / Boleto</option>
             </select>
           </div>
 
-          {/* Botão Finalizar Venda */}
+          {/* Seletor de Troco para Dinheiro Físico */}
+          {paymentMethod === 'Dinheiro' && (
+            <div style={{
+              background: 'rgba(245, 158, 11, 0.06)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              borderRadius: 10,
+              padding: 12,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 700 }}>
+                  Valor Entregue pelo Cliente (R$):
+                </label>
+                <input
+                  type="number"
+                  placeholder={`Mín. ${total}`}
+                  value={cashReceived || ''}
+                  onChange={(e) => setCashReceived(Number(e.target.value))}
+                  style={{
+                    width: 100,
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                    borderRadius: 6,
+                    padding: '4px 8px',
+                    color: '#fff',
+                    textAlign: 'right',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              {cashReceived > total && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6, borderTop: '1px dashed rgba(245, 158, 11, 0.3)' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700 }}>Troco a Devolver:</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 900, color: '#10b981' }}>
+                    R$ {changeAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Botão Finalizar Venda com Prevenção de Múltiplos Cliques */}
           <button
             onClick={handleFinishSale}
+            disabled={isSubmitting || cartItems.length === 0}
             style={{
               marginTop: 10,
-              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-              color: '#ffffff',
+              background: isSubmitting || cartItems.length === 0 
+                ? 'rgba(255, 255, 255, 0.1)' 
+                : 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+              color: isSubmitting || cartItems.length === 0 ? '#64748b' : '#ffffff',
               border: 'none',
               padding: '14px',
               borderRadius: 10,
               fontSize: '0.95rem',
               fontWeight: 800,
-              cursor: 'pointer',
+              cursor: isSubmitting || cartItems.length === 0 ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              boxShadow: '0 4px 15px rgba(249, 115, 22, 0.4)',
+              boxShadow: isSubmitting || cartItems.length === 0 ? 'none' : '0 4px 15px rgba(249, 115, 22, 0.4)',
+              transition: 'all 0.2s ease',
             }}
           >
             <CheckCircle2 size={18} />
-            Finalizar venda
+            {isSubmitting ? 'Gravando Venda no Banco...' : 'Finalizar e Faturar Venda'}
           </button>
         </div>
       </div>
+
+      {/* MODAL DE COMPROVANTE & CONFIRMAÇÃO DA VENDA */}
+      {completedSaleModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: 20,
+        }}>
+          <div style={{
+            background: '#0d1322',
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            borderRadius: 16,
+            maxWidth: 480,
+            width: '100%',
+            padding: 24,
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: 'rgba(16, 185, 129, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#10b981',
+              }}>
+                <CheckCircle2 size={24} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#f8fafc' }}>
+                  Venda Concluída com Sucesso!
+                </h3>
+                <p style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                  Estoque baixado e movimentação gravada em nuvem.
+                </p>
+              </div>
+            </div>
+
+            {/* Cupom / Comprovante Visual Térmico */}
+            <div style={{
+              background: '#070a12',
+              border: '1px dashed rgba(255, 255, 255, 0.2)',
+              borderRadius: 8,
+              padding: 16,
+              fontFamily: 'monospace',
+              fontSize: '0.75rem',
+              color: '#cbd5e1',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+            }}>
+              <div style={{ textAlign: 'center', fontWeight: 'bold', color: '#f8fafc', fontSize: '0.85rem' }}>
+                HIAGO IPHONES • COMPROVANTE DE VENDA
+              </div>
+              <div style={{ textAlign: 'center', color: '#64748b', fontSize: '0.7rem' }}>
+                Vitória da Conquista - BA • {completedSaleModal.date}
+              </div>
+              <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.15)', margin: '4px 0' }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Cliente:</span>
+                <span style={{ fontWeight: 'bold', color: '#fff' }}>{completedSaleModal.customerName}</span>
+              </div>
+              {completedSaleModal.customerPhone && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>WhatsApp:</span>
+                  <span>{completedSaleModal.customerPhone}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Vendedor:</span>
+                <span>{completedSaleModal.sellerName}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Pagamento:</span>
+                <span>{completedSaleModal.paymentMethod}</span>
+              </div>
+
+              <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.15)', margin: '4px 0' }} />
+              <div style={{ fontWeight: 'bold', color: '#f97316' }}>ITENS FATURADOS:</div>
+              {completedSaleModal.items?.map((item: any, idx: number) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{item.quantity}x {item.name}</span>
+                  <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              ))}
+
+              {completedSaleModal.tradeIn && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
+                  <span>Trade-In ({completedSaleModal.tradeIn.model}):</span>
+                  <span>- R$ {Number(completedSaleModal.tradeIn.evaluatedValue).toFixed(2)}</span>
+                </div>
+              )}
+
+              {completedSaleModal.discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
+                  <span>Desconto:</span>
+                  <span>- R$ {Number(completedSaleModal.discount).toFixed(2)}</span>
+                </div>
+              )}
+
+              <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.15)', margin: '4px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 'bold', color: '#10b981' }}>
+                <span>TOTAL PAGO:</span>
+                <span>R$ {Number(completedSaleModal.total).toFixed(2)}</span>
+              </div>
+
+              {completedSaleModal.changeAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#38bdf8' }}>
+                  <span>Troco entregue:</span>
+                  <span>R$ {completedSaleModal.changeAmount.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Ações pós-venda */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => window.print()}
+                style={{
+                  flex: 1,
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  padding: '9px 12px',
+                  borderRadius: 8,
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                <Printer size={14} />
+                Imprimir Cupom
+              </button>
+
+              {completedSaleModal.customerPhone && (
+                <button
+                  onClick={() => {
+                    const clean = completedSaleModal.customerPhone.replace(/\D/g, '');
+                    const text = encodeURIComponent(
+                      `Olá ${completedSaleModal.customerName}! Muito obrigado pela preferência na Hiago iPhones! Segue o comprovante da sua compra no valor total de R$ ${Number(completedSaleModal.total).toFixed(2)}. Conte conosco para qualquer suporte! 🍏`
+                    );
+                    window.open(`https://wa.me/${clean.startsWith('55') ? clean : `55${clean}`}?text=${text}`, '_blank');
+                  }}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    color: '#10b981',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    padding: '9px 12px',
+                    borderRadius: 8,
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <MessageSquare size={14} />
+                  Enviar WhatsApp
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              {onNavigateToWarranty && (
+                <button
+                  onClick={() => {
+                    setCompletedSaleModal(null);
+                    onNavigateToWarranty();
+                  }}
+                  style={{
+                    flex: 1,
+                    background: '#f97316',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '10px 14px',
+                    borderRadius: 8,
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Emitir Termo de Garantia
+                </button>
+              )}
+              <button
+                onClick={() => setCompletedSaleModal(null)}
+                style={{
+                  flex: 1,
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: '#cbd5e1',
+                  border: 'none',
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Concluir & Nova Venda
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

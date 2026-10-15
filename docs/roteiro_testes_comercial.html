@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Roteiro de Testes — Módulo Comercial — CRM Hiago</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    @page {
+      size: A4;
+      margin: 14mm 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #0f172a;
+      background: #ffffff;
+      font-size: 9.5pt;
+      line-height: 1.45;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* HEADER */
+    .header {
+      border-bottom: 2px solid #0284c7;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand h1 {
+      font-size: 16pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .brand .subtitle {
+      font-size: 9.5pt;
+      color: #0284c7;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .meta-box {
+      text-align: right;
+      font-size: 8pt;
+      color: #475569;
+    }
+
+    .badge-online {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #86efac;
+      margin-bottom: 4px;
+      font-size: 8pt;
+    }
+
+    /* CARDS DE SEÇÃO */
+    .section-card {
+      margin-bottom: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      page-break-inside: avoid;
+      background: #ffffff;
+    }
+
+    .section-title {
+      font-size: 10.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title span.step-num {
+      background: #0284c7;
+      color: #ffffff;
+      font-size: 8pt;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+
+    /* ETAPAS & PASSOS */
+    .step-item {
+      margin-bottom: 8px;
+      padding-left: 8px;
+      border-left: 2.5px solid #cbd5e1;
+    }
+
+    .step-item.highlight {
+      border-left-color: #0284c7;
+    }
+
+    .step-name {
+      font-weight: 700;
+      font-size: 9pt;
+      color: #1e293b;
+    }
+
+    .step-desc {
+      font-size: 8.5pt;
+      color: #334155;
+      margin: 2px 0;
+    }
+
+    .step-expected {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 8pt;
+      color: #047857;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    /* BOX ALERTA */
+    .alert-box {
+      background: #fef3c7;
+      border-left: 3px solid #f59e0b;
+      padding: 6px 10px;
+      font-size: 8pt;
+      color: #92400e;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    /* TABELA CHECKLIST */
+    table.checklist-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 8pt;
+      page-break-inside: avoid;
+    }
+
+    table.checklist-table th {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 8pt;
+    }
+
+    table.checklist-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #1e293b;
+    }
+
+    table.checklist-table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .checkbox-box {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid #64748b;
+      border-radius: 3px;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
+    .footer {
+      margin-top: 14px;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7.5pt;
+      color: #64748b;
+    }
+
+    .signature-area {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      page-break-inside: avoid;
+    }
+
+    .sig-block {
+      width: 45%;
+      border-top: 1px solid #94a3b8;
+      padding-top: 4px;
+      text-align: center;
+      font-size: 8pt;
+      color: #475569;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <div class="brand">
+      <h1>CRM HIAGO IPHONES</h1>
+      <div class="subtitle">Roteiro Oficial de Homologação e Testes Operacionais</div>
+    </div>
+    <div class="meta-box">
+      <div><span class="badge-online">● SUPABASE CONECTADO</span></div>
+      <div><strong>Data da Auditoria:</strong> 14/10/2026</div>
+      <div><strong>Ambiente:</strong> Produção Homologada</div>
+      <div><strong>URL Local:</strong> http://localhost:5173</div>
+    </div>
+  </div>
+
+  <div class="alert-box">
+    <strong>INSTRUÇÃO AO TESTADOR:</strong> Siga a sequência cronológica deste roteiro para validar o fluxo comercial integrado. Marque os quadros de validação conforme a conclusão de cada etapa.
+  </div>
+
+  <!-- ETAPA 1 -->
+  <div class="section-card">
+    <div class="section-title">
+      <span class="step-num">ETAPA 1</span> Caixa e Operações (Abertura, Suprimento e Sangria)
+    </div>
+
+    <div class="step-item highlight">
+      <div class="step-name">1.1 Conferência do Caixa Aberto</div>
+      <div class="step-desc">Acesse a aba <strong>Caixa e vendas</strong>. Verifique o cabeçalho com o nome do operador, status <em>"Aberto"</em> e Fundo de Troco inicial (ex: R$ 300,00).</div>
+      <div class="step-expected">✔ Esperado: Resumo inicial exibe Fundo + Entradas - Saídas = Saldo Atual em Gaveta.</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">1.2 Adicionar Suprimento (Reforço de Troco)</div>
+      <div class="step-desc">Clique no botão <strong>+ Suprimento</strong>. Digite <code>R$ 150,00</code> e justificativa: <em>"Troco adicional início de semana"</em>. Clique em confirmar.</div>
+      <div class="step-expected">✔ Esperado: Saldo em dinheiro aumenta R$ 150,00 e linha de Entrada (Suprimento) surge no extrato.</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">1.3 Realizar Sangria (Retirada de Dinheiro)</div>
+      <div class="step-desc">Clique no botão <strong>- Sangria</strong>. Digite <code>R$ 100,00</code> e justificativa: <em>"Pagamento entrega motoboy"</em>. Clique em confirmar.</div>
+      <div class="step-expected">✔ Esperado: Saldo em dinheiro diminui R$ 100,00 e linha de Saída (Sangria) aparece registrada.</div>
+    </div>
+  </div>
+
+  <!-- ETAPA 2 -->
+  <div class="section-card">
+    <div class="section-title">
+      <span class="step-num">ETAPA 2</span> Cadastro e Validação de Clientes
+    </div>
+
+    <div class="step-item highlight">
+      <div class="step-name">2.1 Teste de Bloqueio por Telefone Inválido</div>
+      <div class="step-desc">Acesse a aba <strong>Clientes</strong> e clique em <strong>+ Novo Cliente</strong>. Digite nome <em>"Carlos Teste"</em> e telefone <code>123456</code> (sem DDD). Clique em Salvar.</div>
+      <div class="step-expected">✔ Esperado: Sistema bloqueia o salvamento e exige número com DDD (10 ou 11 dígitos).</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">2.2 Cadastro Válido da Cliente de Teste</div>
+      <div class="step-desc">Preencha: Nome: <strong>Juliana Souza Rocha</strong>, Telefone: <code>(77) 99876-5432</code>, CPF: <code>123.456.789-00</code>. Clique em Salvar.</div>
+      <div class="step-expected">✔ Esperado: Cliente salva no Supabase. LTV inicial = R$ 0,00 e Última Compra = "Nenhuma compra registrada".</div>
+    </div>
+  </div>
+
+  <!-- ETAPA 3 -->
+  <div class="section-card">
+    <div class="section-title">
+      <span class="step-num">ETAPA 3</span> PDV — Nova Venda (Checkout e Troco)
+    </div>
+
+    <div class="step-item highlight">
+      <div class="step-name">3.1 Autocomplete de Cliente e Seleção de Aparelho</div>
+      <div class="step-desc">Acesse a aba <strong>PDV / Checkout</strong>. No campo de busca do cliente, digite <em>"Juliana"</em> e selecione no dropdown. Adicione um iPhone disponível no catálogo (ex: iPhone 13 128GB).</div>
+      <div class="step-expected">✔ Esperado: Nome e telefone vinculados; IMEI e valor unitário carregados no carrinho.</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">3.2 Desconto e Cálculo de Troco em Dinheiro</div>
+      <div class="step-desc">Aplique um desconto de <code>R$ 50,00</code>. Selecione a forma de pagamento <strong>Dinheiro</strong>. No campo "Valor Recebido", digite <code>R$ 3.000,00</code>.</div>
+      <div class="step-expected">✔ Esperado: Destaque visual exibe <em>"Troco a Devolver: R$ 160,00"</em> calculado em tempo real.</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">3.3 Finalização e Emissão de Comprovante</div>
+      <div class="step-desc">Clique em <strong>Finalizar Venda</strong>. Observe o botão (deve exibir <em>"Processando..."</em> impedindo duplo clique).</div>
+      <div class="step-expected">✔ Esperado: Modal de Comprovante abre com número do pedido (VD-XXXX), botões de Imprimir e Enviar WhatsApp.</div>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ETAPA 4 -->
+  <div class="section-card">
+    <div class="section-title">
+      <span class="step-num">ETAPA 4</span> Verificação Cruzada de Integridade Multi-Módulo
+    </div>
+
+    <div class="step-item highlight">
+      <div class="step-name">4.1 Baixa no Estoque Real</div>
+      <div class="step-desc">Acesse a aba <strong>Estoque</strong> e busque pelo IMEI do aparelho vendido.</div>
+      <div class="step-expected">✔ Esperado: O status do aparelho mudou imediatamente de "Disponível" para "Vendido" (sold).</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">4.2 Lançamento Automático no Fluxo de Caixa</div>
+      <div class="step-desc">Acesse a aba <strong>Caixa e vendas</strong> / <strong>Fluxo de Caixa</strong>.</div>
+      <div class="step-expected">✔ Esperado: Saldo em dinheiro aumentou e o extrato exibe a venda vinculada à Juliana Souza Rocha.</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">4.3 Atualização de LTV no Cadastro de Clientes</div>
+      <div class="step-desc">Acesse a aba <strong>Clientes</strong> e localize Juliana Souza Rocha.</div>
+      <div class="step-expected">✔ Esperado: Campo Total Comprado (LTV) atualizado para o valor líquido da venda e data de hoje registrada.</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">4.4 Gatilhos Automáticos no Pós-Venda</div>
+      <div class="step-desc">Acesse a aba <strong>Pós-venda</strong>.</div>
+      <div class="step-expected">✔ Esperado: Tarefas automáticas criadas (D+15 Acessórios, D+180 Bateria, D+360 Upgrade) com botão de WhatsApp.</div>
+    </div>
+  </div>
+
+  <!-- ETAPA 5 -->
+  <div class="section-card">
+    <div class="section-title">
+      <span class="step-num">ETAPA 5</span> Vendas: Histórico e Cancelamento com Estorno
+    </div>
+
+    <div class="step-item highlight">
+      <div class="step-name">5.1 Filtros e Espelho da Venda</div>
+      <div class="step-desc">Acesse <strong>Histórico de Vendas</strong>. Teste os filtros de período e localize a venda de Juliana. Clique no ícone de olho para abrir os detalhes.</div>
+      <div class="step-expected">✔ Esperado: Modal exibe detalhamento completo de itens, desconto, vendedor, data e status Concluída.</div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-name">5.2 Estorno e Cancelamento da Venda</div>
+      <div class="step-desc">Clique no botão <strong>Estornar</strong>. Digite a justificativa: <em>"Desistência da cliente no prazo legal"</em> e confirme.</div>
+      <div class="step-expected">✔ Esperado: Venda fica com a tag vermelha "Cancelada". O aparelho volta para "Disponível" no estoque, o caixa registra saída de estorno e o LTV da cliente é deduzido.</div>
+    </div>
+  </div>
+
+  <!-- ETAPA 6 -->
+  <div class="section-card">
+    <div class="section-title">
+      <span class="step-num">ETAPA 6</span> Fechamento de Caixa com Conferência Cega
+    </div>
+
+    <div class="step-item highlight">
+      <div class="step-name">6.1 Encerramento de Turno e Apuração</div>
+      <div class="step-desc">Acesse <strong>Caixa e vendas</strong> e clique no botão <strong>Encerrar / Fechar Caixa</strong>. Digite o valor real contado em dinheiro físico na gaveta.</div>
+      <div class="step-expected">✔ Esperado: Sistema compara Saldo Esperado vs. Contado e apura se houve "Falta", "Sobra" ou "Caixa Conciliado". O status muda para Fechado.</div>
+    </div>
+  </div>
+
+  <!-- TABELA DE CONFERÊNCIA -->
+  <div class="section-card">
+    <div class="section-title">Checklist Resumido de Aprovação Operacional</div>
+    <table class="checklist-table">
+      <thead>
+        <tr>
+          <th style="width: 30px;">#</th>
+          <th>Cenário de Teste</th>
+          <th>Ação do Operador</th>
+          <th style="width: 90px; text-align: center;">Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>01</td>
+          <td>Suprimento & Sangria</td>
+          <td>Lançar entrada e retirada com justificativa obrigatória</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>02</td>
+          <td>Validação de Cliente</td>
+          <td>Bloquear telefone sem DDD e salvar com máscara válida</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>03</td>
+          <td>Calculadora de Troco</td>
+          <td>Receber valor superior e calcular troco em dinheiro</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>04</td>
+          <td>Finalização e Comprovante</td>
+          <td>Impedir clique duplo e exibir comprovante térmico/WhatsApp</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>05</td>
+          <td>Baixa no Estoque</td>
+          <td>Mudar status do aparelho vendido para 'sold' no Supabase</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>06</td>
+          <td>LTV e Histórico</td>
+          <td>Acumular valor comprado e atualizar data da última compra</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>07</td>
+          <td>Gatilhos Pós-Venda</td>
+          <td>Criar tarefas D+15, D+180 e D+360 no módulo pós-venda</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>08</td>
+          <td>Estorno Multi-Módulo</td>
+          <td>Reverter venda, devolver aparelho ao estoque e estornar caixa</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+        <tr>
+          <td>09</td>
+          <td>Fechamento de Caixa</td>
+          <td>Conferência cega com apuração de sobra ou falta</td>
+          <td style="text-align: center;"><span class="checkbox-box"></span> Aprovado</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="signature-area">
+      <div class="sig-block">
+        <strong>Assinatura do Testador / Responsável QA</strong><br>
+        Nome legível: ____________________________
+      </div>
+      <div class="sig-block">
+        <strong>Assinatura do Gestor da Loja / Hiago</strong><br>
+        Data da homologação: _____ / _____ / 2026
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>CRM Hiago Iphones — Documento Oficial de Homologação Comercial</div>
+    <div>Página 2 de 2 — Gerado em 14/10/2026</div>
+  </div>
+
+</body>
+</html>

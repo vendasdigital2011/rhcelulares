@@ -25,14 +25,23 @@ export const AfterSalesView: React.FC<AfterSalesViewProps> = ({
 }) => {
   const [triggers, setTriggers] = useState<AfterSalesTrigger[]>(initialTriggers);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'birthday' | 'upgrade_d360' | 'checkup_d180' | 'accessory_d15' | 'referral'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'sent' | 'converted'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Sincroniza com as props quando o backend carregar novas tarefas
+  React.useEffect(() => {
+    if (initialTriggers && initialTriggers.length > 0) {
+      setTriggers(initialTriggers);
+    }
+  }, [initialTriggers]);
 
   const filteredTriggers = triggers.filter(t => {
     const matchesFilter = selectedFilter === 'all' || t.type === selectedFilter;
+    const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
     const matchesSearch = t.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           t.deviceModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           t.customerPhone.includes(searchTerm);
-    return matchesFilter && matchesSearch;
+    return matchesFilter && matchesStatus && matchesSearch;
   });
 
   const pendingCount = triggers.filter(t => t.status === 'pending').length;
@@ -219,6 +228,42 @@ export const AfterSalesView: React.FC<AfterSalesViewProps> = ({
               }}
             >
               {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* FILTRO DE SITUAÇÃO */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          background: 'rgba(255, 255, 255, 0.03)',
+          padding: 4,
+          borderRadius: 10,
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+        }}>
+          {[
+            { id: 'all', label: 'Todas' },
+            { id: 'pending', label: 'Pendentes' },
+            { id: 'sent', label: 'Enviadas' },
+            { id: 'converted', label: 'Convertidas' },
+          ].map((st) => (
+            <button
+              key={st.id}
+              onClick={() => setStatusFilter(st.id as any)}
+              style={{
+                padding: '5px 10px',
+                borderRadius: 6,
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                border: 'none',
+                background: statusFilter === st.id ? '#f97316' : 'transparent',
+                color: statusFilter === st.id ? '#ffffff' : '#94a3b8',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {st.label}
             </button>
           ))}
         </div>

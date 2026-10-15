@@ -2,16 +2,15 @@ import { useState, useEffect } from 'react';
 import { Sidebar, type ERPNavTab } from './components/Sidebar.js';
 import { DashboardView } from './components/DashboardView.js';
 import { CheckoutView } from './components/CheckoutView.js';
-import { DeviceInventoryView } from './components/DeviceInventoryView.js';
 import { ServiceOrderView } from './components/ServiceOrderView.js';
 import { CashControlView } from './components/CashControlView.js';
-import { ShowcaseView } from './components/ShowcaseView.js';
 import { LabelPrintView } from './components/LabelPrintView.js';
 import { WarrantyView } from './components/WarrantyView.js';
 import { SalesHistoryView } from './components/SalesHistoryView.js';
 import { CustomersView } from './components/CustomersView.js';
 import { AfterSalesView } from './components/AfterSalesView.js';
 import { ExtendedModulesView } from './components/ExtendedModulesView.js';
+import { StockShowcaseHub, type StockSubmoduleTab } from './components/StockShowcaseHub.js';
 import { 
   INITIAL_DEVICES, 
   INITIAL_ACCESSORIES, 
@@ -24,15 +23,58 @@ import {
 import { 
   fetchDevices, 
   createDeviceApi, 
+  updateDeviceApi,
+  deleteDeviceApi,
   fetchSales, 
   createSaleApi, 
+  cancelSaleApi,
   fetchServiceOrders, 
   createServiceOrderApi, 
   fetchCashRegister, 
-  toggleCashApi 
+  openCashRegisterApi,
+  closeCashRegisterApi,
+  addCashTransactionApi,
+  toggleCashApi,
+  fetchCustomers,
+  createCustomerApi,
+  fetchAfterSalesTriggers,
+  updateAfterSalesStatusApi,
+  fetchSuppliers,
+  createSupplierApi,
+  updateSupplierApi,
+  deleteSupplierApi,
+  fetchProducts,
+  createProductApi,
+  updateProductApi,
+  adjustProductStockApi,
+  deleteProductApi,
+  fetchParts,
+  createPartApi,
+  updatePartApi,
+  adjustPartStockApi,
+  deletePartApi,
+  fetchPhonePurchases,
+  createPhonePurchaseApi,
+  confirmPhonePurchaseApi,
+  fetchInventoryMovements,
+  getDatabaseConnectionHealth 
 } from './api/erpApi.js';
-import type { Device, Accessory, ServiceOrder, CashRegister, Sale, Customer, AfterSalesTrigger } from './types.js';
-import { Store, Bell, ShieldCheck } from 'lucide-react';
+import type { 
+  Device, 
+  Accessory, 
+  ServiceOrder, 
+  CashRegister, 
+  Sale, 
+  Customer, 
+  AfterSalesTrigger, 
+  TransactionCategory,
+  Product,
+  Part,
+  Supplier,
+  PhonePurchase,
+  InventoryMovement 
+} from './types.js';
+import { Store, Bell, ShieldCheck, Database } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<ERPNavTab>('dashboard');
@@ -45,20 +87,67 @@ export function App() {
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [afterSalesTriggers, setAfterSalesTriggers] = useState<AfterSalesTrigger[]>(INITIAL_AFTER_SALES_TRIGGERS);
 
+  // Estados do Módulo de Estoque e Vitrine
+  const [products, setProducts] = useState<Product[]>([]);
+  const [parts, setParts] = useState<Part[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [purchases, setPurchases] = useState<PhonePurchase[]>([]);
+  const [movements, setMovements] = useState<InventoryMovement[]>([]);
+
+  const [dbHealth, setDbHealth] = useState<{ online: boolean; tablesCreated: boolean; error?: string }>({ 
+    online: false, 
+    tablesCreated: false 
+  });
+
   // Carrega dados iniciais do backend com fallback resiliente
   useEffect(() => {
     async function loadData() {
+      // 1. Checa status da conexão com o Supabase
       try {
-        const [loadedDevices, loadedSales, loadedOS, loadedCash] = await Promise.all([
+        const health = await getDatabaseConnectionHealth();
+        setDbHealth(health);
+      } catch (e) {
+        console.warn('Erro ao checar Supabase health:', e);
+      }
+
+      // 2. Carrega todas as entidades do ERP e Estoque
+      try {
+        const [
+          loadedDevices, 
+          loadedSales, 
+          loadedOS, 
+          loadedCash,
+          loadedCustomers,
+          loadedTriggers,
+          loadedProducts,
+          loadedParts,
+          loadedSuppliers,
+          loadedPurchases,
+          loadedMovements
+        ] = await Promise.all([
           fetchDevices(),
           fetchSales(),
           fetchServiceOrders(),
           fetchCashRegister(),
+          fetchCustomers(),
+          fetchAfterSalesTriggers(),
+          fetchProducts(),
+          fetchParts(),
+          fetchSuppliers(),
+          fetchPhonePurchases(),
+          fetchInventoryMovements()
         ]);
-        if (loadedDevices?.length) setDevices(loadedDevices);
-        if (loadedSales?.length) setSales(loadedSales);
-        if (loadedOS?.length) setServiceOrders(loadedOS);
+        if (loadedDevices) setDevices(loadedDevices);
+        if (loadedSales) setSales(loadedSales);
+        if (loadedOS) setServiceOrders(loadedOS);
         if (loadedCash) setCashRegister(loadedCash);
+        if (loadedCustomers) setCustomers(loadedCustomers);
+        if (loadedTriggers) setAfterSalesTriggers(loadedTriggers);
+        if (loadedProducts) setProducts(loadedProducts);
+        if (loadedParts) setParts(loadedParts);
+        if (loadedSuppliers) setSuppliers(loadedSuppliers);
+        if (loadedPurchases) setPurchases(loadedPurchases);
+        if (loadedMovements) setMovements(loadedMovements);
       } catch (err) {
         console.warn('Usando dados mockados de inicialização:', err);
       }
@@ -66,10 +155,10 @@ export function App() {
     loadData();
   }, []);
 
-  // Alternar Abertura / Fechamento de Caixa
+  // Alternar Abertura / Fechamento de Caixa Rápido
   const handleToggleCash = async () => {
     try {
-      const updated = await toggleCashApi();
+      const updated = await toggleCashApi(cashRegister.isOpen);
       setCashRegister(updated);
     } catch {
       setCashRegister(prev => ({
@@ -80,11 +169,38 @@ export function App() {
     }
   };
 
-  // Concluir Venda no PDV (Checkout Rápido)
+  // Abertura com Fundo de Troco
+  const handleOpenCash = async (initialFloat: number, operatorName: string) => {
+    const updated = await openCashRegisterApi(initialFloat, operatorName);
+    setCashRegister(updated);
+  };
+
+  // Fechamento com Conferência Cega
+  const handleCloseCash = async (cashCounted: number, notes?: string) => {
+    const res = await closeCashRegisterApi(cashCounted, notes);
+    if (res.register) setCashRegister(res.register);
+    return res;
+  };
+
+  // Movimentação Manual (Sangria ou Suprimento)
+  const handleAddCashTransaction = async (
+    type: 'inflow' | 'outflow',
+    category: TransactionCategory,
+    amount: number,
+    description: string,
+    paymentMethod: string = 'Dinheiro'
+  ) => {
+    await addCashTransactionApi(type, category, amount, description, paymentMethod);
+    const updated = await fetchCashRegister();
+    if (updated) setCashRegister(updated);
+  };
+
+  // Concluir Venda no PDV (Checkout Rápido com Fluxo Integrado)
   const handleCompleteSale = async (saleData: any) => {
     const newSalePayload: Sale = {
-      id: `sale-${Date.now()}`,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `sale-${Date.now()}`,
       saleNumber: `VD-${2092 + sales.length}`,
+      customerId: saleData.customerId,
       customerName: saleData.customerName,
       customerPhone: saleData.customerPhone,
       sellerName: saleData.sellerName,
@@ -96,48 +212,167 @@ export function App() {
       total: saleData.total,
       paymentMethod: saleData.paymentMethod,
       installments: saleData.installments,
+      status: 'completed',
     };
 
-    // Salva no backend e atualiza estado local
+    // Salva no banco e dispara sincronização em cadeia
     await createSaleApi(newSalePayload);
     setSales(prev => [newSalePayload, ...prev]);
 
-    // Atualiza status dos aparelhos vendidos
-    saleData.items.forEach((item: any) => {
-      if (item.type === 'device' && item.imei) {
-        setDevices(prev => prev.map(d => d.imei === item.imei ? { ...d, status: 'sold' } : d));
-      }
-    });
-
-    // Se houve Trade-In, cadastra o aparelho usado de entrada
-    if (saleData.tradeIn && saleData.tradeIn.model) {
-      const tradeInDev: Device = {
-        id: `dev-tradein-${Date.now()}`,
-        brand: 'Apple',
-        model: saleData.tradeIn.model,
-        storage: 'Entrada',
-        color: 'Usado',
-        condition: 'certified_pre_owned',
-        batteryHealth: saleData.tradeIn.batteryHealth || 80,
-        imei: saleData.tradeIn.imei || '',
-        purchasePrice: saleData.tradeIn.evaluatedValue,
-        sellPrice: Math.round(saleData.tradeIn.evaluatedValue * 1.3),
-        supplier: `Trade-in (${saleData.customerName})`,
-        status: 'available',
-        isShowcasePublic: false,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setDevices(prev => [tradeInDev, ...prev]);
+    // Recarrega estoque, caixa, clientes e pós-venda sincronizados
+    try {
+      const [updatedDevs, updatedCash, updatedCusts, updatedTrigs] = await Promise.all([
+        fetchDevices(),
+        fetchCashRegister(),
+        fetchCustomers(),
+        fetchAfterSalesTriggers(),
+      ]);
+      if (updatedDevs) setDevices(updatedDevs);
+      if (updatedCash) setCashRegister(updatedCash);
+      if (updatedCusts) setCustomers(updatedCusts);
+      if (updatedTrigs) setAfterSalesTriggers(updatedTrigs);
+    } catch {
+      // Fallback local se rede oscilar
+      saleData.items.forEach((item: any) => {
+        if (item.type === 'device' && item.imei) {
+          setDevices(prev => prev.map(d => d.imei === item.imei ? { ...d, status: 'sold' } : d));
+        }
+      });
     }
-
-    // Abre a tela de emissão de Termo de Garantia da venda recém-feita
-    setActiveTab('warranty');
   };
 
-  // Adicionar novo aparelho ao estoque
+  // Cancelar / Estornar Venda com Reversão Multi-Módulo
+  const handleCancelSale = async (sale: Sale, reason: string) => {
+    await cancelSaleApi(sale, reason);
+    setSales(prev => prev.map(s => s.id === sale.id ? { ...s, status: 'cancelled', cancellationReason: reason } : s));
+
+    // Recarrega estoque e caixa refletindo a devolução
+    const [updatedDevs, updatedCash, updatedCusts] = await Promise.all([
+      fetchDevices(),
+      fetchCashRegister(),
+      fetchCustomers(),
+    ]);
+    if (updatedDevs) setDevices(updatedDevs);
+    if (updatedCash) setCashRegister(updatedCash);
+    if (updatedCusts) setCustomers(updatedCusts);
+  };
+
+  // Handlers de Estoque de Aparelhos (Celulares)
   const handleAddDevice = async (device: Device) => {
     await createDeviceApi(device);
-    setDevices(prev => [device, ...prev]);
+    const updated = await fetchDevices();
+    if (updated) setDevices(updated);
+  };
+
+  const handleUpdateDevice = async (imei: string, updates: Partial<Device>) => {
+    await updateDeviceApi(imei, updates);
+    const updated = await fetchDevices();
+    if (updated) setDevices(updated);
+  };
+
+  const handleDeleteDevice = async (imei: string) => {
+    await deleteDeviceApi(imei);
+    const updated = await fetchDevices();
+    if (updated) setDevices(updated);
+  };
+
+  // Handlers de Produtos
+  const handleCreateProduct = async (prod: Omit<Product, 'id' | 'createdAt'>) => {
+    await createProductApi(prod);
+    const [updatedProds, updatedMoves] = await Promise.all([fetchProducts(), fetchInventoryMovements()]);
+    if (updatedProds) setProducts(updatedProds);
+    if (updatedMoves) setMovements(updatedMoves);
+  };
+
+  const handleUpdateProduct = async (id: string, updates: Partial<Product>) => {
+    await updateProductApi(id, updates);
+    const updated = await fetchProducts();
+    if (updated) setProducts(updated);
+  };
+
+  const handleAdjustProductStock = async (id: string, delta: number, reason: string) => {
+    await adjustProductStockApi(id, delta, reason);
+    const [updatedProds, updatedMoves] = await Promise.all([fetchProducts(), fetchInventoryMovements()]);
+    if (updatedProds) setProducts(updatedProds);
+    if (updatedMoves) setMovements(updatedMoves);
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    await deleteProductApi(id);
+    const updated = await fetchProducts();
+    if (updated) setProducts(updated);
+  };
+
+  // Handlers de Peças
+  const handleCreatePart = async (part: Omit<Part, 'id' | 'createdAt'>) => {
+    await createPartApi(part);
+    const [updatedParts, updatedMoves] = await Promise.all([fetchParts(), fetchInventoryMovements()]);
+    if (updatedParts) setParts(updatedParts);
+    if (updatedMoves) setMovements(updatedMoves);
+  };
+
+  const handleUpdatePart = async (id: string, updates: Partial<Part>) => {
+    await updatePartApi(id, updates);
+    const updated = await fetchParts();
+    if (updated) setParts(updated);
+  };
+
+  const handleAdjustPartStock = async (id: string, delta: number, reason: string) => {
+    await adjustPartStockApi(id, delta, reason);
+    const [updatedParts, updatedMoves] = await Promise.all([fetchParts(), fetchInventoryMovements()]);
+    if (updatedParts) setParts(updatedParts);
+    if (updatedMoves) setMovements(updatedMoves);
+  };
+
+  const handleDeletePart = async (id: string) => {
+    await deletePartApi(id);
+    const updated = await fetchParts();
+    if (updated) setParts(updated);
+  };
+
+  // Handlers de Fornecedores
+  const handleCreateSupplier = async (supplier: Omit<Supplier, 'id' | 'createdAt'>) => {
+    await createSupplierApi(supplier);
+    const updated = await fetchSuppliers();
+    if (updated) setSuppliers(updated);
+  };
+
+  const handleUpdateSupplier = async (id: string, updates: Partial<Supplier>) => {
+    await updateSupplierApi(id, updates);
+    const updated = await fetchSuppliers();
+    if (updated) setSuppliers(updated);
+  };
+
+  const handleDeleteSupplier = async (id: string) => {
+    await deleteSupplierApi(id);
+    const updated = await fetchSuppliers();
+    if (updated) setSuppliers(updated);
+  };
+
+  // Handlers de Compras de Telefones
+  const handleCreatePurchase = async (purchase: Omit<PhonePurchase, 'id' | 'createdAt'>) => {
+    await createPhonePurchaseApi(purchase);
+    const updated = await fetchPhonePurchases();
+    if (updated) setPurchases(updated);
+  };
+
+  const handleConfirmPurchase = async (id: string) => {
+    await confirmPhonePurchaseApi(id);
+    const [updatedPurchases, updatedDevices, updatedCash, updatedMoves] = await Promise.all([
+      fetchPhonePurchases(),
+      fetchDevices(),
+      fetchCashRegister(),
+      fetchInventoryMovements()
+    ]);
+    if (updatedPurchases) setPurchases(updatedPurchases);
+    if (updatedDevices) setDevices(updatedDevices);
+    if (updatedCash) setCashRegister(updatedCash);
+    if (updatedMoves) setMovements(updatedMoves);
+  };
+
+  // Iniciar Venda no PDV a partir da Vitrine / Estoque
+  const handleStartSaleInPOS = (_device?: Device) => {
+    setActiveTab('checkout');
   };
 
   // Adicionar nova Ordem de Serviço
@@ -146,9 +381,16 @@ export function App() {
     setServiceOrders(prev => [os, ...prev]);
   };
 
-  // Adicionar novo Cliente
-  const handleAddCustomer = (customer: Customer) => {
-    setCustomers(prev => [customer, ...prev]);
+  // Adicionar novo Cliente com Persistência em Banco
+  const handleAddCustomer = async (customer: Customer) => {
+    const created = await createCustomerApi(customer);
+    setCustomers(prev => [created, ...prev.filter(c => c.id !== created.id)]);
+  };
+
+  // Ação de Pós-Venda (Marcar Enviado / Convertido)
+  const handleTriggerAction = async (id: string, newStatus: 'sent' | 'converted') => {
+    await updateAfterSalesStatusApi(id, newStatus);
+    setAfterSalesTriggers(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
   };
 
   return (
@@ -207,14 +449,55 @@ export function App() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* Status do Banco de Dados Supabase Cloud */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                background: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
-                color: '#10b981',
+                background: dbHealth.online && dbHealth.tablesCreated 
+                  ? 'rgba(16, 185, 129, 0.1)' 
+                  : dbHealth.online 
+                    ? 'rgba(245, 158, 11, 0.12)' 
+                    : 'rgba(239, 68, 68, 0.12)',
+                border: `1px solid ${
+                  dbHealth.online && dbHealth.tablesCreated 
+                    ? 'rgba(16, 185, 129, 0.3)' 
+                    : dbHealth.online 
+                      ? 'rgba(245, 158, 11, 0.35)' 
+                      : 'rgba(239, 68, 68, 0.3)'
+                }`,
+                color: dbHealth.online && dbHealth.tablesCreated 
+                  ? '#10b981' 
+                  : dbHealth.online 
+                    ? '#f59e0b' 
+                    : '#ef4444',
+                padding: '4px 12px',
+                borderRadius: 20,
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+              }}
+              title={dbHealth.error || (dbHealth.tablesCreated ? 'Conectado diretamente ao Supabase PostgreSQL' : 'Execute o script DDL no SQL Editor do Supabase')}
+            >
+              <Database size={13} />
+              <span>
+                {dbHealth.online && dbHealth.tablesCreated 
+                  ? 'Supabase Cloud Ativo' 
+                  : dbHealth.online 
+                    ? 'Supabase Conectado (Aguardando DDL)' 
+                    : 'Modo Offline (Cache Local)'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                color: '#60a5fa',
                 padding: '4px 10px',
                 borderRadius: 20,
                 fontSize: '0.72rem',
@@ -222,7 +505,7 @@ export function App() {
               }}
             >
               <ShieldCheck size={13} />
-              <span>Sistema Conectado & Operacional</span>
+              <span>Dados Reais Protegidos</span>
             </div>
 
             <div
@@ -265,7 +548,11 @@ export function App() {
               devices={devices}
               accessories={accessories}
               serviceOrders={serviceOrders}
+              customers={customers}
+              isCashOpen={cashRegister.isOpen}
+              onOpenCash={() => setActiveTab('cash')}
               onCompleteSale={handleCompleteSale}
+              onNavigateToWarranty={() => setActiveTab('warranty')}
             />
           )}
 
@@ -275,6 +562,7 @@ export function App() {
               onOpenWarranty={() => {
                 setActiveTab('warranty');
               }}
+              onCancelSale={handleCancelSale}
             />
           )}
 
@@ -291,24 +579,52 @@ export function App() {
           {activeTab === 'after_sales' && (
             <AfterSalesView
               triggers={afterSalesTriggers}
-              onTriggerAction={(id, newStatus) => {
-                setAfterSalesTriggers(prev =>
-                  prev.map(t => (t.id === id ? { ...t, status: newStatus } : t))
-                );
-              }}
+              onTriggerAction={handleTriggerAction}
             />
           )}
 
-          {activeTab === 'inventory' && (
-            <DeviceInventoryView
+          {[
+            'stock_dashboard',
+            'inventory',
+            'phone_purchases',
+            'products',
+            'parts',
+            'suppliers',
+            'showcase'
+          ].includes(activeTab) && (
+            <StockShowcaseHub
+              initialSubmodule={activeTab as StockSubmoduleTab}
               devices={devices}
+              products={products}
+              parts={parts}
+              suppliers={suppliers}
+              purchases={purchases}
+              movements={movements}
               onAddDevice={handleAddDevice}
+              onUpdateDevice={handleUpdateDevice}
+              onDeleteDevice={handleDeleteDevice}
+              onCreateProduct={handleCreateProduct}
+              onUpdateProduct={handleUpdateProduct}
+              onAdjustProductStock={handleAdjustProductStock}
+              onDeleteProduct={handleDeleteProduct}
+              onCreatePart={handleCreatePart}
+              onUpdatePart={handleUpdatePart}
+              onAdjustPartStock={handleAdjustPartStock}
+              onDeletePart={handleDeletePart}
+              onCreateSupplier={handleCreateSupplier}
+              onUpdateSupplier={handleUpdateSupplier}
+              onDeleteSupplier={handleDeleteSupplier}
+              onCreatePurchase={handleCreatePurchase}
+              onConfirmPurchase={handleConfirmPurchase}
+              onStartSaleInPOS={handleStartSaleInPOS}
             />
           )}
 
           {activeTab === 'labels' && (
             <LabelPrintView
               devices={devices}
+              products={products}
+              onNavigateToStock={() => setActiveTab('stock_dashboard')}
             />
           )}
 
@@ -324,13 +640,9 @@ export function App() {
               cashRegister={cashRegister}
               sales={sales}
               onToggleCash={handleToggleCash}
-            />
-          )}
-
-          {activeTab === 'showcase' && (
-            <ShowcaseView
-              devices={devices}
-              onOpenNewDevice={() => setActiveTab('inventory')}
+              onOpenCash={handleOpenCash}
+              onCloseCash={handleCloseCash}
+              onAddTransaction={handleAddCashTransaction}
             />
           )}
 
@@ -342,10 +654,6 @@ export function App() {
           )}
 
           {[
-            'phone_purchases',
-            'products',
-            'parts',
-            'suppliers',
             'services',
             'financial',
             'profile',

@@ -43,6 +43,7 @@ export type ERPNavTab =
   | 'customers'
   | 'after_sales'
   // Estoque e vitrine
+  | 'stock_dashboard'
   | 'inventory'
   | 'phone_purchases'
   | 'products'
@@ -137,12 +138,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Estoque e vitrine',
       icon: Smartphone,
       children: [
+        { id: 'stock_dashboard', label: 'Painel Geral Estoque', icon: BarChart3 },
         { id: 'inventory', label: 'Estoque Celulares', icon: Smartphone },
         { id: 'phone_purchases', label: 'Compra de Telefone', icon: PhoneIncoming },
         { id: 'products', label: 'Produtos', icon: Package },
         { id: 'parts', label: 'Peças', icon: Cpu },
         { id: 'suppliers', label: 'Fornecedores', icon: Truck },
         { id: 'showcase', label: 'Vitrine', icon: Globe },
+        { id: 'labels', label: 'Impressão de Etiquetas', icon: Barcode },
       ],
     },
     {

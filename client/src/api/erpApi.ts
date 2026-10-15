@@ -1,129 +1,345 @@
-import type { Device, Sale, ServiceOrder, CashRegister } from '../types.js';
-import { INITIAL_DEVICES, INITIAL_SALES, INITIAL_SERVICE_ORDERS, INITIAL_CASH } from '../data/erpData.js';
+import type { Device, Sale, ServiceOrder, CashRegister, Customer, AfterSalesTrigger, TransactionCategory } from '../types.js';
+import { 
+  INITIAL_DEVICES, 
+  INITIAL_SALES, 
+  INITIAL_SERVICE_ORDERS, 
+  INITIAL_CASH,
+  INITIAL_CUSTOMERS,
+  INITIAL_AFTER_SALES_TRIGGERS
+} from '../data/erpData.js';
+import { DeviceRepository } from '../repositories/deviceRepository.js';
+import { SaleRepository } from '../repositories/saleRepository.js';
+import { ServiceOrderRepository } from '../repositories/serviceOrderRepository.js';
+import { CashRepository } from '../repositories/cashRepository.js';
+import { CustomerRepository } from '../repositories/customerRepository.js';
+import { AfterSalesRepository } from '../repositories/afterSalesRepository.js';
+import { checkSupabaseHealth, isSupabaseConfigured } from '../services/supabaseClient.js';
 
-const API_BASE = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api/erp` 
-  : '/api/erp';
+const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'real';
+const USE_SUPABASE = DATA_SOURCE === 'real' && isSupabaseConfigured;
 
+// 1. APARELHOS / ESTOQUE
 export async function fetchDevices(): Promise<Device[]> {
-  try {
-    const res = await fetch(`${API_BASE}/devices`);
-    if (!res.ok) throw new Error('API offline');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend API offline, usando fallback local para aparelhos:', err);
-    return INITIAL_DEVICES;
+  if (USE_SUPABASE) {
+    try {
+      const devices = await DeviceRepository.getAll();
+      if (devices) return devices;
+    } catch (err) {
+      console.warn('Falha no DeviceRepository, caindo para fallback:', err);
+    }
   }
+  return INITIAL_DEVICES;
 }
 
 export async function createDeviceApi(device: Device): Promise<Device> {
-  try {
-    const res = await fetch(`${API_BASE}/devices`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(device),
-    });
-    if (!res.ok) throw new Error('Erro ao salvar no backend');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend offline, salvando localmente:', err);
-    return device;
+  if (USE_SUPABASE) {
+    try {
+      const res = await DeviceRepository.create(device);
+      if (res.data) return res.data;
+    } catch (err) {
+      console.warn('Falha ao cadastrar no Supabase, mantendo local:', err);
+    }
   }
+  return device;
 }
 
-export async function fetchSales(): Promise<Sale[]> {
-  try {
-    const res = await fetch(`${API_BASE}/sales`);
-    if (!res.ok) throw new Error('API offline');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend API offline, usando fallback local para vendas:', err);
-    return INITIAL_SALES;
+export async function reserveDeviceForCheckoutApi(imei: string, sellerName: string): Promise<{ success: boolean; message: string }> {
+  if (USE_SUPABASE) {
+    return await DeviceRepository.reserveDeviceForCheckout(imei, sellerName);
   }
+  return { success: true, message: 'Reserva local concedida' };
+}
+
+// 2. VENDAS (PDV)
+export async function fetchSales(): Promise<Sale[]> {
+  if (USE_SUPABASE) {
+    try {
+      const sales = await SaleRepository.getAll();
+      if (sales) return sales;
+    } catch (err) {
+      console.warn('Falha no SaleRepository, caindo para fallback:', err);
+    }
+  }
+  return INITIAL_SALES;
 }
 
 export async function createSaleApi(sale: any): Promise<Sale> {
-  try {
-    const res = await fetch(`${API_BASE}/sales`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sale),
-    });
-    if (!res.ok) throw new Error('Erro ao salvar no backend');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend offline, salvando venda localmente:', err);
-    return sale;
+  if (USE_SUPABASE) {
+    try {
+      const res = await SaleRepository.create(sale);
+      if (res.data) return res.data;
+    } catch (err) {
+      console.warn('Falha ao registrar venda no Supabase, mantendo local:', err);
+    }
   }
+  return sale;
 }
 
-export async function fetchServiceOrders(): Promise<ServiceOrder[]> {
-  try {
-    const res = await fetch(`${API_BASE}/service-orders`);
-    if (!res.ok) throw new Error('API offline');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend API offline, usando fallback local para O.S.:', err);
-    return INITIAL_SERVICE_ORDERS;
+export async function cancelSaleApi(sale: Sale, reason: string, cancelledBy?: string): Promise<{ success: boolean; message: string }> {
+  if (USE_SUPABASE) {
+    return await SaleRepository.cancelSale(sale, reason, cancelledBy);
   }
+  return { success: true, message: `Venda ${sale.saleNumber} cancelada localmente` };
+}
+
+// 3. ORDENS DE SERVIÇO
+export async function fetchServiceOrders(): Promise<ServiceOrder[]> {
+  if (USE_SUPABASE) {
+    try {
+      const osList = await ServiceOrderRepository.getAll();
+      if (osList) return osList;
+    } catch (err) {
+      console.warn('Falha no ServiceOrderRepository, caindo para fallback:', err);
+    }
+  }
+  return INITIAL_SERVICE_ORDERS;
 }
 
 export async function createServiceOrderApi(os: ServiceOrder): Promise<ServiceOrder> {
-  try {
-    const res = await fetch(`${API_BASE}/service-orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(os),
-    });
-    if (!res.ok) throw new Error('Erro ao salvar no backend');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend offline, salvando O.S. localmente:', err);
-    return os;
+  if (USE_SUPABASE) {
+    try {
+      const res = await ServiceOrderRepository.create(os);
+      if (res.data) return res.data;
+    } catch (err) {
+      console.warn('Falha ao registrar O.S. no Supabase, mantendo local:', err);
+    }
   }
+  return os;
 }
 
+export async function updateServiceOrderStatusApi(id: string, status: ServiceOrder['status'], diagnosis?: string): Promise<boolean> {
+  if (USE_SUPABASE) {
+    return await ServiceOrderRepository.updateStatus(id, status, diagnosis);
+  }
+  return true;
+}
+
+// 4. CAIXA & FLUXO DE CAIXA
 export async function fetchCashRegister(): Promise<CashRegister> {
-  try {
-    const res = await fetch(`${API_BASE}/cash`);
-    if (!res.ok) throw new Error('API offline');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend API offline, usando fallback local para caixa:', err);
-    return INITIAL_CASH;
+  if (USE_SUPABASE) {
+    try {
+      const cash = await CashRepository.getCurrent();
+      if (cash) return cash;
+    } catch (err) {
+      console.warn('Falha no CashRepository, caindo para fallback:', err);
+    }
   }
+  return INITIAL_CASH;
 }
 
-export async function toggleCashApi(): Promise<CashRegister> {
-  try {
-    const res = await fetch(`${API_BASE}/cash/toggle`, {
-      method: 'POST',
-    });
-    if (!res.ok) throw new Error('Erro ao alternar caixa no backend');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend offline, alternando caixa localmente:', err);
-    return INITIAL_CASH;
+export async function openCashRegisterApi(initialFloat: number = 300, operatorName?: string): Promise<CashRegister> {
+  if (USE_SUPABASE) {
+    return await CashRepository.openCash(initialFloat, operatorName);
   }
+  return {
+    ...INITIAL_CASH,
+    isOpen: true,
+    initialFloat,
+    openedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  };
 }
 
-export async function fetchDashboardMetrics(period: string = 'month'): Promise<any> {
-  try {
-    const res = await fetch(`${API_BASE}/metrics?period=${period}`);
-    if (!res.ok) throw new Error('Erro ao carregar métricas');
-    const json = await res.json();
-    return json.data;
-  } catch (err) {
-    console.warn('Backend offline para métricas, fallback para cálculo local:', err);
-    return null;
+export async function closeCashRegisterApi(cashCounted: number, notes?: string) {
+  if (USE_SUPABASE) {
+    return await CashRepository.closeCash(cashCounted, notes);
   }
+  return {
+    success: true,
+    expectedCash: 300,
+    difference: 0,
+    register: { ...INITIAL_CASH, isOpen: false },
+  };
 }
 
+export async function addCashTransactionApi(
+  type: 'inflow' | 'outflow',
+  category: TransactionCategory,
+  amount: number,
+  description: string,
+  paymentMethod: string = 'Dinheiro',
+  operatorName: string = 'Hiago'
+) {
+  if (USE_SUPABASE) {
+    return await CashRepository.addTransaction(type, category, amount, description, paymentMethod, operatorName);
+  }
+  return { success: true };
+}
+
+export async function toggleCashApi(currentStatus: boolean = true): Promise<CashRegister> {
+  if (USE_SUPABASE) {
+    try {
+      return await CashRepository.toggle(currentStatus);
+    } catch (err) {
+      console.warn('Falha ao alternar caixa no Supabase, mantendo local:', err);
+    }
+  }
+  return {
+    ...INITIAL_CASH,
+    isOpen: !currentStatus,
+    openedAt: !currentStatus ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+  };
+}
+
+// 5. CLIENTES (BASE & CICLO DE VIDA)
+export async function fetchCustomers(): Promise<Customer[]> {
+  if (USE_SUPABASE) {
+    try {
+      const customers = await CustomerRepository.getAll();
+      if (customers) return customers;
+    } catch (err) {
+      console.warn('Falha no CustomerRepository, usando fallback:', err);
+    }
+  }
+  return INITIAL_CUSTOMERS;
+}
+
+export async function createCustomerApi(customer: Customer): Promise<Customer> {
+  if (USE_SUPABASE) {
+    try {
+      const res = await CustomerRepository.create(customer);
+      if (res.data) return res.data;
+    } catch (err) {
+      console.warn('Falha ao salvar cliente no Supabase:', err);
+    }
+  }
+  return customer;
+}
+
+// 6. CENTRAL DE PÓS-VENDA PREDITIVO
+export async function fetchAfterSalesTriggers(): Promise<AfterSalesTrigger[]> {
+  if (USE_SUPABASE) {
+    try {
+      const triggers = await AfterSalesRepository.getAll();
+      if (triggers) return triggers;
+    } catch (err) {
+      console.warn('Falha no AfterSalesRepository:', err);
+    }
+  }
+  return INITIAL_AFTER_SALES_TRIGGERS;
+}
+
+export async function updateAfterSalesStatusApi(id: string, status: 'sent' | 'converted'): Promise<boolean> {
+  if (USE_SUPABASE) {
+    return await AfterSalesRepository.updateStatus(id, status);
+  }
+  return true;
+}
+
+// 7. FORNECEDORES
+export async function fetchSuppliers(): Promise<import('../types.js').Supplier[]> {
+  const { SupplierRepository } = await import('../repositories/supplierRepository.js');
+  return await SupplierRepository.getAll();
+}
+
+export async function createSupplierApi(supplier: Omit<import('../types.js').Supplier, 'id' | 'createdAt'>) {
+  const { SupplierRepository } = await import('../repositories/supplierRepository.js');
+  return await SupplierRepository.create(supplier);
+}
+
+export async function updateSupplierApi(id: string, updates: Partial<import('../types.js').Supplier>) {
+  const { SupplierRepository } = await import('../repositories/supplierRepository.js');
+  return await SupplierRepository.update(id, updates);
+}
+
+export async function deleteSupplierApi(id: string) {
+  const { SupplierRepository } = await import('../repositories/supplierRepository.js');
+  return await SupplierRepository.delete(id);
+}
+
+// 8. PRODUTOS & ACESSÓRIOS
+export async function fetchProducts(): Promise<import('../types.js').Product[]> {
+  const { ProductRepository } = await import('../repositories/productRepository.js');
+  return await ProductRepository.getAll();
+}
+
+export async function createProductApi(product: Omit<import('../types.js').Product, 'id' | 'createdAt'>) {
+  const { ProductRepository } = await import('../repositories/productRepository.js');
+  return await ProductRepository.create(product);
+}
+
+export async function updateProductApi(id: string, updates: Partial<import('../types.js').Product>) {
+  const { ProductRepository } = await import('../repositories/productRepository.js');
+  return await ProductRepository.update(id, updates);
+}
+
+export async function adjustProductStockApi(id: string, deltaQuantity: number, reason: string, operatorName?: string) {
+  const { ProductRepository } = await import('../repositories/productRepository.js');
+  return await ProductRepository.adjustStock(id, deltaQuantity, reason, operatorName);
+}
+
+export async function deleteProductApi(id: string) {
+  const { ProductRepository } = await import('../repositories/productRepository.js');
+  return await ProductRepository.delete(id);
+}
+
+// 9. PEÇAS DE REPARO & BANCADA
+export async function fetchParts(): Promise<import('../types.js').Part[]> {
+  const { PartRepository } = await import('../repositories/partRepository.js');
+  return await PartRepository.getAll();
+}
+
+export async function createPartApi(part: Omit<import('../types.js').Part, 'id' | 'createdAt'>) {
+  const { PartRepository } = await import('../repositories/partRepository.js');
+  return await PartRepository.create(part);
+}
+
+export async function updatePartApi(id: string, updates: Partial<import('../types.js').Part>) {
+  const { PartRepository } = await import('../repositories/partRepository.js');
+  return await PartRepository.update(id, updates);
+}
+
+export async function adjustPartStockApi(id: string, deltaQuantity: number, reason: string, operatorName?: string) {
+  const { PartRepository } = await import('../repositories/partRepository.js');
+  return await PartRepository.adjustStock(id, deltaQuantity, reason, operatorName);
+}
+
+export async function deletePartApi(id: string) {
+  const { PartRepository } = await import('../repositories/partRepository.js');
+  return await PartRepository.delete(id);
+}
+
+// 10. COMPRAS DE TELEFONE
+export async function fetchPhonePurchases(): Promise<import('../types.js').PhonePurchase[]> {
+  const { PurchaseRepository } = await import('../repositories/purchaseRepository.js');
+  return await PurchaseRepository.getAll();
+}
+
+export async function createPhonePurchaseApi(purchase: Omit<import('../types.js').PhonePurchase, 'id' | 'createdAt'>) {
+  const { PurchaseRepository } = await import('../repositories/purchaseRepository.js');
+  return await PurchaseRepository.create(purchase);
+}
+
+export async function confirmPhonePurchaseApi(id: string) {
+  const { PurchaseRepository } = await import('../repositories/purchaseRepository.js');
+  return await PurchaseRepository.confirmPurchase(id);
+}
+
+// 11. MOVIMENTAÇÕES DE ESTOQUE
+export async function fetchInventoryMovements(): Promise<import('../types.js').InventoryMovement[]> {
+  const { MovementRepository } = await import('../repositories/movementRepository.js');
+  return await MovementRepository.getAll();
+}
+
+export async function recordInventoryMovementApi(movement: Omit<import('../types.js').InventoryMovement, 'id' | 'createdAt'>) {
+  const { MovementRepository } = await import('../repositories/movementRepository.js');
+  return await MovementRepository.record(movement);
+}
+
+// 12. ATUALIZAÇÃO E EXCLUSÃO DE APARELHO
+export async function updateDeviceApi(imei: string, updates: Partial<Device>) {
+  return await DeviceRepository.update(imei, updates);
+}
+
+export async function deleteDeviceApi(imei: string) {
+  return await DeviceRepository.delete(imei);
+}
+
+// 13. STATUS DA CONEXÃO DO SUPABASE
+export async function getDatabaseConnectionHealth() {
+  return await checkSupabaseHealth();
+}
+
+// 14. MÉTRICAS CONSOLIDADAS DO DASHBOARD
+export async function fetchDashboardMetrics(_period: string = 'month'): Promise<any> {
+  return null;
+}

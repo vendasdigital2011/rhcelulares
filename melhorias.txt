@@ -1,0 +1,7 @@
+Adicionar o card de consulta de IMEI Anatel com verificação em tempo real.
+Adicionar os 5 botões de filtro por situação (Todas, Em orçamento, Em manutenção, Aguardando peça, Finalizada).
+Adicionar o campo de busca por IMEI/CPF/Vendedor/Modelo com contagem dinâmica.
+Implementar o modal de Nova Compra e o gerador de Termo de Responsabilidade pronto para impressão direta na impressora ou em PDF.
+
+NEXT_PUBLIC_SUPABASE_URL=https://bytmvqvydxealupmvlme.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xnG6KZJgB4jiRhMgyxSUFA_NbSPfsjX
