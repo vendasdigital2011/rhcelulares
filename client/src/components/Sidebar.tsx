@@ -53,6 +53,7 @@ export type ERPNavTab =
   // Etiquetas
   | 'labels'
   // Assistência técnica
+  | 'assistance_dashboard'
   | 'service_order'
   | 'services'
   | 'warranty'
@@ -153,6 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Assistência técnica',
       icon: Wrench,
       children: [
+        { id: 'assistance_dashboard', label: 'Painel Geral Assistência', icon: BarChart3 },
         { id: 'service_order', label: 'Ordens de serviço', icon: Wrench },
         { id: 'services', label: 'Serviços', icon: Cog },
         { id: 'warranty', label: 'Garantias', icon: ShieldCheck },

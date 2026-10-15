@@ -2,21 +2,20 @@ import { useState, useEffect } from 'react';
 import { Sidebar, type ERPNavTab } from './components/Sidebar.js';
 import { DashboardView } from './components/DashboardView.js';
 import { CheckoutView } from './components/CheckoutView.js';
-import { ServiceOrderView } from './components/ServiceOrderView.js';
 import { CashControlView } from './components/CashControlView.js';
 import { LabelPrintView } from './components/LabelPrintView.js';
-import { WarrantyView } from './components/WarrantyView.js';
 import { SalesHistoryView } from './components/SalesHistoryView.js';
 import { CustomersView } from './components/CustomersView.js';
 import { AfterSalesView } from './components/AfterSalesView.js';
 import { ExtendedModulesView } from './components/ExtendedModulesView.js';
 import { StockShowcaseHub, type StockSubmoduleTab } from './components/StockShowcaseHub.js';
+import { TechnicalAssistanceHub } from './components/TechnicalAssistanceHub.js';
 import { 
   INITIAL_DEVICES, 
   INITIAL_ACCESSORIES, 
   INITIAL_SERVICE_ORDERS, 
   INITIAL_CASH, 
-  INITIAL_SALES,
+  INITIAL_SALES, 
   INITIAL_CUSTOMERS,
   INITIAL_AFTER_SALES_TRIGGERS
 } from './data/erpData.js';
@@ -30,6 +29,17 @@ import {
   cancelSaleApi,
   fetchServiceOrders, 
   createServiceOrderApi, 
+  updateServiceOrderStatusApi,
+  updateServiceOrderQuoteApi,
+  recordServiceOrderApprovalApi,
+  fetchTechnicalServices,
+  createTechnicalServiceApi,
+  updateTechnicalServiceApi,
+  deleteTechnicalServiceApi,
+  fetchWarranties,
+  fetchWarrantyClaims,
+  createWarrantyClaimApi,
+  updateWarrantyClaimApi,
   fetchCashRegister, 
   openCashRegisterApi,
   closeCashRegisterApi,
@@ -72,7 +82,13 @@ import type {
   Part,
   Supplier,
   PhonePurchase,
-  InventoryMovement 
+  InventoryMovement,
+  TechnicalService,
+  WarrantyEntry,
+  WarrantyClaim,
+  OSStatus,
+  OSQuoteServiceItem,
+  OSQuotePartItem
 } from './types.js';
 import { Store, Bell, ShieldCheck, Database } from 'lucide-react';
 
@@ -94,6 +110,11 @@ export function App() {
   const [purchases, setPurchases] = useState<PhonePurchase[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
 
+  // Estados do Módulo de Assistência Técnica (Dados Reais)
+  const [technicalServices, setTechnicalServices] = useState<TechnicalService[]>([]);
+  const [warranties, setWarranties] = useState<WarrantyEntry[]>([]);
+  const [warrantyClaims, setWarrantyClaims] = useState<WarrantyClaim[]>([]);
+
   const [dbHealth, setDbHealth] = useState<{ online: boolean; tablesCreated: boolean; error?: string }>({ 
     online: false, 
     tablesCreated: false 
@@ -110,7 +131,7 @@ export function App() {
         console.warn('Erro ao checar Supabase health:', e);
       }
 
-      // 2. Carrega todas as entidades do ERP e Estoque
+      // 2. Carrega todas as entidades do ERP, Estoque e Assistência Técnica
       try {
         const [
           loadedDevices, 
@@ -123,7 +144,10 @@ export function App() {
           loadedParts,
           loadedSuppliers,
           loadedPurchases,
-          loadedMovements
+          loadedMovements,
+          loadedServices,
+          loadedWarranties,
+          loadedClaims
         ] = await Promise.all([
           fetchDevices(),
           fetchSales(),
@@ -135,7 +159,10 @@ export function App() {
           fetchParts(),
           fetchSuppliers(),
           fetchPhonePurchases(),
-          fetchInventoryMovements()
+          fetchInventoryMovements(),
+          fetchTechnicalServices(),
+          fetchWarranties(),
+          fetchWarrantyClaims()
         ]);
         if (loadedDevices) setDevices(loadedDevices);
         if (loadedSales) setSales(loadedSales);
@@ -148,6 +175,9 @@ export function App() {
         if (loadedSuppliers) setSuppliers(loadedSuppliers);
         if (loadedPurchases) setPurchases(loadedPurchases);
         if (loadedMovements) setMovements(loadedMovements);
+        if (loadedServices) setTechnicalServices(loadedServices);
+        if (loadedWarranties) setWarranties(loadedWarranties);
+        if (loadedClaims) setWarrantyClaims(loadedClaims);
       } catch (err) {
         console.warn('Usando dados mockados de inicialização:', err);
       }
@@ -375,10 +405,83 @@ export function App() {
     setActiveTab('checkout');
   };
 
-  // Adicionar nova Ordem de Serviço
-  const handleAddServiceOrder = async (os: ServiceOrder) => {
-    await createServiceOrderApi(os);
-    setServiceOrders(prev => [os, ...prev]);
+  // Handlers do Módulo de Assistência Técnica
+  const handleUpdateOSStatus = async (
+    id: string, 
+    status: OSStatus, 
+    notes?: string, 
+    operator?: string, 
+    extra?: Partial<ServiceOrder>
+  ) => {
+    const res = await updateServiceOrderStatusApi(id, status, notes, operator, extra);
+    if (res.success) {
+      const [updatedOS, updatedWarranties, updatedParts, updatedMovements] = await Promise.all([
+        fetchServiceOrders(),
+        fetchWarranties(),
+        fetchParts(),
+        fetchInventoryMovements()
+      ]);
+      if (updatedOS) setServiceOrders(updatedOS);
+      if (updatedWarranties) setWarranties(updatedWarranties);
+      if (updatedParts) setParts(updatedParts);
+      if (updatedMovements) setMovements(updatedMovements);
+    }
+    return res;
+  };
+
+  const handleUpdateOSQuote = async (
+    id: string,
+    services: OSQuoteServiceItem[],
+    partsItems: OSQuotePartItem[],
+    discount: number
+  ) => {
+    const res = await updateServiceOrderQuoteApi(id, services, partsItems, discount);
+    const updatedOS = await fetchServiceOrders();
+    if (updatedOS) setServiceOrders(updatedOS);
+    return res;
+  };
+
+  const handleRecordOSApproval = async (id: string, approval: any) => {
+    const res = await recordServiceOrderApprovalApi(id, approval);
+    const updatedOS = await fetchServiceOrders();
+    if (updatedOS) setServiceOrders(updatedOS);
+    return res;
+  };
+
+  const handleCreateTechnicalService = async (service: Omit<TechnicalService, 'id' | 'createdAt'>) => {
+    await createTechnicalServiceApi(service);
+    const updated = await fetchTechnicalServices();
+    if (updated) setTechnicalServices(updated);
+  };
+
+  const handleUpdateTechnicalService = async (id: string, updates: Partial<TechnicalService>) => {
+    await updateTechnicalServiceApi(id, updates);
+    const updated = await fetchTechnicalServices();
+    if (updated) setTechnicalServices(updated);
+  };
+
+  const handleDeleteTechnicalService = async (id: string) => {
+    await deleteTechnicalServiceApi(id);
+    const updated = await fetchTechnicalServices();
+    if (updated) setTechnicalServices(updated);
+  };
+
+  const handleCreateWarrantyClaim = async (claim: Omit<WarrantyClaim, 'id' | 'createdAt'>) => {
+    await createWarrantyClaimApi(claim);
+    const [updatedClaims, updatedWarranties, updatedOS] = await Promise.all([
+      fetchWarrantyClaims(),
+      fetchWarranties(),
+      fetchServiceOrders()
+    ]);
+    if (updatedClaims) setWarrantyClaims(updatedClaims);
+    if (updatedWarranties) setWarranties(updatedWarranties);
+    if (updatedOS) setServiceOrders(updatedOS);
+  };
+
+  const handleUpdateWarrantyClaim = async (id: string, updates: Partial<WarrantyClaim>) => {
+    await updateWarrantyClaimApi(id, updates);
+    const updated = await fetchWarrantyClaims();
+    if (updated) setWarrantyClaims(updated);
   };
 
   // Adicionar novo Cliente com Persistência em Banco
@@ -628,10 +731,40 @@ export function App() {
             />
           )}
 
-          {activeTab === 'service_order' && (
-            <ServiceOrderView
+          {[
+            'assistance_dashboard',
+            'service_order',
+            'services',
+            'warranty'
+          ].includes(activeTab) && (
+            <TechnicalAssistanceHub
+              initialSubmodule={
+                activeTab === 'assistance_dashboard' ? 'dashboard' :
+                activeTab === 'service_order' ? 'service_order' :
+                activeTab === 'services' ? 'services' :
+                'warranty'
+              }
               serviceOrders={serviceOrders}
-              onAddServiceOrder={handleAddServiceOrder}
+              warranties={warranties}
+              claims={warrantyClaims}
+              services={technicalServices}
+              parts={parts}
+              customers={customers}
+              devices={devices}
+              onAddServiceOrder={async (os) => {
+                await createServiceOrderApi(os);
+                const updated = await fetchServiceOrders();
+                if (updated) setServiceOrders(updated);
+              }}
+              onUpdateOSStatus={handleUpdateOSStatus}
+              onUpdateOSQuote={handleUpdateOSQuote}
+              onRecordOSApproval={handleRecordOSApproval}
+              onCreateService={handleCreateTechnicalService}
+              onUpdateService={handleUpdateTechnicalService}
+              onDeleteService={handleDeleteTechnicalService}
+              onCreateClaim={handleCreateWarrantyClaim}
+              onUpdateClaim={handleUpdateWarrantyClaim}
+              onAddCustomer={handleAddCustomer}
             />
           )}
 
@@ -646,15 +779,7 @@ export function App() {
             />
           )}
 
-          {activeTab === 'warranty' && (
-            <WarrantyView
-              sales={sales}
-              devices={devices}
-            />
-          )}
-
           {[
-            'services',
             'financial',
             'profile',
             'reports',

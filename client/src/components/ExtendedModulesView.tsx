@@ -404,55 +404,6 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
     );
   }
 
-  // 5. SERVIÇOS TÉCNICOS TABELADOS
-  if (tab === 'services') {
-    const mockServices = [
-      { id: 'srv-1', name: 'Troca de Tela OLED + True Tone', time: '40 min', warranty: '90 dias', price: 650 },
-      { id: 'srv-2', name: 'Troca de Bateria Foxconn c/ Flex Original', time: '30 min', warranty: '90 dias', price: 280 },
-      { id: 'srv-3', name: 'Reparo de Face ID (Troca de Prisma / Flex)', time: '3 horas', warranty: '90 dias', price: 450 },
-      { id: 'srv-4', name: 'Troca de Vidro Traseiro a Laser', time: '2 horas', warranty: '90 dias', price: 380 },
-      { id: 'srv-5', name: 'Desoxidação / Limpeza Química de Placa', time: '4 horas', warranty: '30 dias', price: 200 },
-    ];
-
-    return (
-      <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            ASSISTÊNCIA TÉCNICA
-          </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
-            Tabela de Serviços
-          </h1>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
-            Serviços pré-cadastrados para inserção em 1 clique durante a abertura de Ordem de Serviço ou no checkout do balcão.
-          </p>
-        </div>
-
-        <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Serviço</th>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Tempo Médio</th>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Garantia</th>
-                <th style={{ padding: '14px 18px', fontWeight: 700 }}>Valor Tabelado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockServices.map((srv) => (
-                <tr key={srv.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
-                  <td style={{ padding: '14px 18px', fontWeight: 700 }}>{srv.name}</td>
-                  <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{srv.time}</td>
-                  <td style={{ padding: '14px 18px', color: '#10b981', fontWeight: 600 }}>{srv.warranty}</td>
-                  <td style={{ padding: '14px 18px', fontWeight: 800, color: '#f97316' }}>R$ {srv.price.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
 
   // 6. ASSINATURA
   if (tab === 'subscription') {

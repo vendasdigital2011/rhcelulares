@@ -1,4 +1,19 @@
-import type { Device, Sale, ServiceOrder, CashRegister, Customer, AfterSalesTrigger, TransactionCategory } from '../types.js';
+import type { 
+  Device, 
+  Sale, 
+  ServiceOrder, 
+  CashRegister, 
+  Customer, 
+  AfterSalesTrigger, 
+  TransactionCategory,
+  TechnicalService,
+  WarrantyEntry,
+  WarrantyClaim,
+  OSStatus,
+  OSQuoteServiceItem,
+  OSQuotePartItem,
+  OSClientApproval
+} from '../types.js';
 import { 
   INITIAL_DEVICES, 
   INITIAL_SALES, 
@@ -10,6 +25,8 @@ import {
 import { DeviceRepository } from '../repositories/deviceRepository.js';
 import { SaleRepository } from '../repositories/saleRepository.js';
 import { ServiceOrderRepository } from '../repositories/serviceOrderRepository.js';
+import { TechnicalServiceRepository } from '../repositories/serviceRepository.js';
+import { WarrantyRepository } from '../repositories/warrantyRepository.js';
 import { CashRepository } from '../repositories/cashRepository.js';
 import { CustomerRepository } from '../repositories/customerRepository.js';
 import { AfterSalesRepository } from '../repositories/afterSalesRepository.js';
@@ -82,36 +99,94 @@ export async function cancelSaleApi(sale: Sale, reason: string, cancelledBy?: st
   return { success: true, message: `Venda ${sale.saleNumber} cancelada localmente` };
 }
 
-// 3. ORDENS DE SERVIÇO
+// 3. ORDENS DE SERVIÇO (ASSISTÊNCIA TÉCNICA)
 export async function fetchServiceOrders(): Promise<ServiceOrder[]> {
-  if (USE_SUPABASE) {
-    try {
-      const osList = await ServiceOrderRepository.getAll();
-      if (osList) return osList;
-    } catch (err) {
-      console.warn('Falha no ServiceOrderRepository, caindo para fallback:', err);
-    }
+  try {
+    return await ServiceOrderRepository.getAll();
+  } catch (err) {
+    console.warn('Falha no ServiceOrderRepository, caindo para fallback:', err);
+    return INITIAL_SERVICE_ORDERS;
   }
-  return INITIAL_SERVICE_ORDERS;
 }
 
 export async function createServiceOrderApi(os: ServiceOrder): Promise<ServiceOrder> {
-  if (USE_SUPABASE) {
-    try {
-      const res = await ServiceOrderRepository.create(os);
-      if (res.data) return res.data;
-    } catch (err) {
-      console.warn('Falha ao registrar O.S. no Supabase, mantendo local:', err);
-    }
+  try {
+    const res = await ServiceOrderRepository.create(os);
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn('Falha ao registrar O.S. no Supabase, mantendo local:', err);
   }
   return os;
 }
 
-export async function updateServiceOrderStatusApi(id: string, status: ServiceOrder['status'], diagnosis?: string): Promise<boolean> {
-  if (USE_SUPABASE) {
-    return await ServiceOrderRepository.updateStatus(id, status, diagnosis);
-  }
-  return true;
+export async function updateServiceOrderStatusApi(
+  id: string, 
+  status: OSStatus, 
+  notes?: string,
+  operatorName?: string,
+  extraData?: Partial<ServiceOrder>
+): Promise<{ success: boolean; error?: string }> {
+  return await ServiceOrderRepository.updateStatus(id, status, notes, operatorName, extraData);
+}
+
+export async function updateServiceOrderQuoteApi(
+  id: string,
+  services: OSQuoteServiceItem[],
+  parts: OSQuotePartItem[],
+  discount: number = 0,
+  operatorName?: string
+): Promise<boolean> {
+  return await ServiceOrderRepository.updateQuote(id, services, parts, discount, operatorName);
+}
+
+export async function recordServiceOrderApprovalApi(
+  id: string,
+  approval: OSClientApproval,
+  operatorName?: string
+): Promise<boolean> {
+  return await ServiceOrderRepository.recordApproval(id, approval, operatorName);
+}
+
+// 3.1. CATÁLOGO DE SERVIÇOS TÉCNICOS
+export async function fetchTechnicalServices(): Promise<TechnicalService[]> {
+  return await TechnicalServiceRepository.getAll();
+}
+
+export async function createTechnicalServiceApi(service: Omit<TechnicalService, 'id' | 'createdAt'>) {
+  return await TechnicalServiceRepository.create(service);
+}
+
+export async function updateTechnicalServiceApi(id: string, updates: Partial<TechnicalService>) {
+  return await TechnicalServiceRepository.update(id, updates);
+}
+
+export async function deleteTechnicalServiceApi(id: string) {
+  return await TechnicalServiceRepository.delete(id);
+}
+
+// 3.2. GESTÃO DE GARANTIAS & RETORNOS
+export async function fetchWarranties(): Promise<WarrantyEntry[]> {
+  return await WarrantyRepository.getAll();
+}
+
+export async function createWarrantyApi(warranty: Omit<WarrantyEntry, 'id' | 'createdAt'>) {
+  return await WarrantyRepository.create(warranty);
+}
+
+export async function updateWarrantyApi(id: string, updates: Partial<WarrantyEntry>) {
+  return await WarrantyRepository.update(id, updates);
+}
+
+export async function fetchWarrantyClaims(): Promise<WarrantyClaim[]> {
+  return await WarrantyRepository.getClaims();
+}
+
+export async function createWarrantyClaimApi(claim: Omit<WarrantyClaim, 'id' | 'createdAt'>) {
+  return await WarrantyRepository.createClaim(claim);
+}
+
+export async function updateWarrantyClaimApi(id: string, updates: Partial<WarrantyClaim>) {
+  return await WarrantyRepository.updateClaim(id, updates);
 }
 
 // 4. CAIXA & FLUXO DE CAIXA

@@ -41,31 +41,201 @@ export interface Accessory {
   sellPrice: number;
 }
 
+export type OSLifecycleStatus = 
+  | 'aberta' 
+  | 'aguardando_diagnostico' 
+  | 'em_diagnostico' 
+  | 'aguardando_orcamento' 
+  | 'aguardando_aprovacao' 
+  | 'aprovada' 
+  | 'reprovada' 
+  | 'aguardando_pecas' 
+  | 'em_reparo' 
+  | 'em_testes' 
+  | 'pronta' 
+  | 'entregue' 
+  | 'cancelada';
+
 export type OSStatus = 
   | 'received' 
   | 'diagnosing' 
   | 'waiting_parts' 
   | 'ready' 
-  | 'delivered';
+  | 'delivered'
+  | OSLifecycleStatus;
+
+export interface OSQuoteServiceItem {
+  id: string;
+  serviceId?: string;
+  name: string;
+  category?: string;
+  quantity: number;
+  unitPrice: number;
+  discount?: number;
+  subtotal: number;
+  estimatedMinutes?: number;
+  warrantyDays?: number;
+}
+
+export interface OSQuotePartItem {
+  id: string;
+  partId?: string;
+  name: string;
+  code?: string;
+  quantity: number;
+  unitCost: number;
+  unitPrice: number;
+  subtotal: number;
+  reserved?: boolean;
+  consumed?: boolean;
+}
+
+export interface OSChecklistItem {
+  item: string;
+  status: 'ok' | 'issue' | 'na' | 'untested';
+  notes?: string;
+}
+
+export interface OSStatusHistoryEntry {
+  id: string;
+  fromStatus?: string;
+  toStatus: string;
+  changedAt: string;
+  changedBy: string;
+  notes?: string;
+}
+
+export interface OSClientApproval {
+  status: 'pending' | 'approved' | 'rejected';
+  approvedAt?: string;
+  approvedByCustomerName?: string;
+  channel?: 'presencial' | 'whatsapp' | 'telefone' | 'outro';
+  valueApproved?: number;
+  notes?: string;
+  registeredBy?: string;
+}
 
 export interface ServiceOrder {
   id: string;
   osNumber: string;
+  customerId?: string;
+  customerName: string;
+  customerPhone: string;
+  customerCpf?: string;
+  deviceType?: string; // Smartphone, Tablet, Smartwatch, Notebook
+  brand?: string;
+  deviceModel: string;
+  imei?: string;
+  imei2?: string;
+  serialNumber?: string;
+  color?: string;
+  deviceOwnerType?: 'customer' | 'store_stock';
+  stockDeviceId?: string;
+  physicalCondition?: string;
+  reportedIssue: string;
+  accessoriesReceived?: string;
+  checklistCount: number;
+  checklistItems?: OSChecklistItem[];
+  technician: string;
+  status: OSStatus;
+  statusHistory?: OSStatusHistoryEntry[];
+  technicalDiagnosis?: string;
+  serviceExecuted?: string;
+  quoteServices?: OSQuoteServiceItem[];
+  quoteParts?: OSQuotePartItem[];
+  subtotalServices?: number;
+  subtotalParts?: number;
+  discount?: number;
+  estimatedValue: number;
+  finalValue?: number;
+  clientApproval?: OSClientApproval;
+  partsConsumed?: boolean;
+  finalTestsSummary?: string;
+  deliveryNotes?: string;
+  deliveredTo?: string;
+  deliveredBy?: string;
+  paymentMethod?: string;
+  paymentStatus?: 'paid' | 'pending' | 'partial';
+  entryDate: string;
+  estimatedDeliveryDate?: string;
+  readyDate?: string;
+  deliveredDate?: string;
+  warrantyDays?: number;
+  warrantyId?: string;
+  internalNotes?: string;
+  createdAt?: string;
+}
+
+export interface TechnicalService {
+  id: string;
+  name: string;
+  code: string;
+  category: string;
+  description?: string;
+  compatibleDevices?: string[];
+  compatibleModels?: string[];
+  defaultPrice: number;
+  estimatedCost?: number;
+  estimatedMinutes?: number;
+  defaultWarrantyDays: number;
+  notes?: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type WarrantyType = 'service' | 'part' | 'supplier' | 'commercial' | 'legal';
+export type WarrantyStatus = 'active' | 'expiring_soon' | 'expired' | 'claimed' | 'voided';
+
+export interface WarrantyEntry {
+  id: string;
+  warrantyNumber: string;
+  osId?: string;
+  osNumber?: string;
+  saleId?: string;
+  saleNumber?: string;
+  customerId?: string;
   customerName: string;
   customerPhone: string;
   deviceModel: string;
   imei?: string;
-  color?: string;
-  technician: string;
-  status: OSStatus;
-  checklistCount: number;
-  reportedIssue: string;
-  technicalDiagnosis?: string;
-  serviceExecuted?: string;
-  estimatedValue: number;
-  finalValue?: number;
-  entryDate: string;
-  deliveredDate?: string;
+  serialNumber?: string;
+  warrantyType: WarrantyType;
+  serviceName?: string;
+  partsCovered?: string[];
+  startDate: string;
+  endDate: string;
+  warrantyDays: number;
+  status: WarrantyStatus;
+  terms?: string;
+  notes?: string;
+  registeredBy?: string;
+  createdAt: string;
+}
+
+export type WarrantyClaimDecision = 'analyzing' | 'approved' | 'rejected' | 'in_repair' | 'resolved' | 'closed';
+
+export interface WarrantyClaim {
+  id: string;
+  claimNumber: string;
+  warrantyId: string;
+  warrantyNumber: string;
+  originalOsNumber?: string;
+  newOsNumber?: string;
+  customerId?: string;
+  customerName: string;
+  customerPhone: string;
+  deviceModel: string;
+  imei?: string;
+  reportedDefect: string;
+  entryCondition?: string;
+  technicalAssessment?: string;
+  decision: WarrantyClaimDecision;
+  decisionReason?: string;
+  isCovered: boolean;
+  resolutionDate?: string;
+  createdBy?: string;
+  createdAt: string;
 }
 
 export interface SaleItem {
