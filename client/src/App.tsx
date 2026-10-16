@@ -7,9 +7,12 @@ import { LabelPrintView } from './components/LabelPrintView.js';
 import { SalesHistoryView } from './components/SalesHistoryView.js';
 import { CustomersView } from './components/CustomersView.js';
 import { AfterSalesView } from './components/AfterSalesView.js';
+import { CrmKanbanView } from './components/crm/CrmKanbanView.js';
 import { ExtendedModulesView } from './components/ExtendedModulesView.js';
 import { StockShowcaseHub, type StockSubmoduleTab } from './components/StockShowcaseHub.js';
 import { TechnicalAssistanceHub } from './components/TechnicalAssistanceHub.js';
+import { ManagementHub, type ManagementSubmoduleTab } from './components/ManagementHub.js';
+import { FinancialRepository } from './repositories/financialRepository.js';
 import { 
   INITIAL_DEVICES, 
   INITIAL_ACCESSORIES, 
@@ -247,6 +250,11 @@ export function App() {
 
     // Salva no banco e dispara sincronização em cadeia
     await createSaleApi(newSalePayload);
+    try {
+      await FinancialRepository.syncFromSale(newSalePayload);
+    } catch (e) {
+      console.warn('Erro ao sincronizar venda com financeiro:', e);
+    }
     setSales(prev => [newSalePayload, ...prev]);
 
     // Recarrega estoque, caixa, clientes e pós-venda sincronizados
@@ -388,6 +396,14 @@ export function App() {
 
   const handleConfirmPurchase = async (id: string) => {
     await confirmPhonePurchaseApi(id);
+    const purchase = purchases.find(p => p.id === id);
+    if (purchase) {
+      try {
+        await FinancialRepository.syncFromPurchase(purchase);
+      } catch (e) {
+        console.warn('Erro ao sincronizar compra com financeiro:', e);
+      }
+    }
     const [updatedPurchases, updatedDevices, updatedCash, updatedMoves] = await Promise.all([
       fetchPhonePurchases(),
       fetchDevices(),
@@ -415,6 +431,16 @@ export function App() {
   ) => {
     const res = await updateServiceOrderStatusApi(id, status, notes, operator, extra);
     if (res.success) {
+      if (status === 'entregue' || status === 'delivered') {
+        const order = serviceOrders.find(o => o.id === id);
+        if (order) {
+          try {
+            await FinancialRepository.syncFromOSDelivery({ ...order, ...extra, status });
+          } catch (e) {
+            console.warn('Erro ao sincronizar OS com financeiro:', e);
+          }
+        }
+      }
       const [updatedOS, updatedWarranties, updatedParts, updatedMovements] = await Promise.all([
         fetchServiceOrders(),
         fetchWarranties(),
@@ -669,6 +695,10 @@ export function App() {
             />
           )}
 
+          {activeTab === 'crm_customers' && (
+            <CrmKanbanView />
+          )}
+
           {activeTab === 'customers' && (
             <CustomersView
               customers={customers}
@@ -786,6 +816,19 @@ export function App() {
             'commissions',
             'timecard',
             'users',
+            'settings',
+          ].includes(activeTab) && (
+            <ManagementHub
+              initialSubmodule={activeTab as ManagementSubmoduleTab}
+              sales={sales}
+              serviceOrders={serviceOrders}
+              devices={devices}
+              products={products}
+              customers={customers}
+            />
+          )}
+
+          {[
             'subscription',
             'support',
             'migration',

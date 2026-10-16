@@ -32,6 +32,7 @@ import {
   CreditCard,
   LifeBuoy,
   Database,
+  Target,
 } from 'lucide-react';
 
 export type ERPNavTab =
@@ -40,6 +41,7 @@ export type ERPNavTab =
   | 'checkout'
   | 'cash'
   | 'sales_history'
+  | 'crm_customers'
   | 'customers'
   | 'after_sales'
   // Estoque e vitrine
@@ -64,6 +66,7 @@ export type ERPNavTab =
   | 'commissions'
   | 'timecard'
   | 'users'
+  | 'settings'
   // Sistema e Suporte
   | 'subscription'
   | 'support'
@@ -130,6 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'checkout', label: 'PDV - Nova venda', icon: ShoppingCart },
         { id: 'cash', label: 'Fluxo de Caixa', icon: Wallet },
         { id: 'sales_history', label: 'Caixa e vendas', icon: Receipt },
+        { id: 'crm_customers', label: 'Prospecção (Kanban WhatsApp)', icon: Target },
         { id: 'customers', label: 'Clientes', icon: Users },
         { id: 'after_sales', label: 'Pós-venda', icon: Sparkles },
       ],
@@ -171,6 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'commissions', label: 'Comissões', icon: Percent },
         { id: 'timecard', label: 'Ponto', icon: Clock },
         { id: 'users', label: 'Usuários', icon: Users },
+        { id: 'settings', label: 'Configurações', icon: Cog },
       ],
     },
   ];

@@ -418,3 +418,232 @@ export async function getDatabaseConnectionHealth() {
 export async function fetchDashboardMetrics(_period: string = 'month'): Promise<any> {
   return null;
 }
+
+// ========================================================
+// 15. MÓDULO GESTÃO: FINANCEIRO, USUÁRIOS, COMISSÕES, PONTO, CONFIGURAÇÕES
+// ========================================================
+
+// FINANCEIRO
+export async function fetchFinancialAccounts() {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.getAccounts();
+}
+
+export async function createFinancialAccountApi(account: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.createAccount(account);
+}
+
+export async function updateFinancialAccountApi(id: string, updates: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.updateAccount(id, updates);
+}
+
+export async function fetchBillsToPay() {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.getBillsToPay();
+}
+
+export async function createBillToPayApi(bill: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.createBillToPay(bill);
+}
+
+export async function payBillApi(id: string, payment: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.payBill(id, payment);
+}
+
+export async function fetchBillsToReceive() {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.getBillsToReceive();
+}
+
+export async function createBillToReceiveApi(bill: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.createBillToReceive(bill);
+}
+
+export async function receiveBillApi(id: string, receive: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.receiveBill(id, receive);
+}
+
+export async function fetchFinancialTransactions() {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.getTransactions();
+}
+
+export async function createFinancialTransactionApi(tx: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.createTransaction(tx);
+}
+
+export async function transferBetweenAccountsApi(params: any) {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.transferBetweenAccounts(params);
+}
+
+export async function fetchFinancialDashboardSummary() {
+  const { FinancialRepository } = await import('../repositories/financialRepository.js');
+  return await FinancialRepository.getDashboardSummary();
+}
+
+// USUÁRIOS E PERMISSÕES
+export async function fetchAppUsers() {
+  const { UserRepository } = await import('../repositories/userRepository.js');
+  return await UserRepository.getUsers();
+}
+
+export async function fetchCurrentUser() {
+  const { UserRepository } = await import('../repositories/userRepository.js');
+  return await UserRepository.getCurrentUser();
+}
+
+export async function createAppUserApi(userData: any) {
+  const { UserRepository } = await import('../repositories/userRepository.js');
+  return await UserRepository.createUser(userData);
+}
+
+export async function updateAppUserApi(id: string, updates: any) {
+  const { UserRepository } = await import('../repositories/userRepository.js');
+  return await UserRepository.updateUser(id, updates);
+}
+
+export async function updateUserPinApi(id: string, pin: string) {
+  const { UserRepository } = await import('../repositories/userRepository.js');
+  return await UserRepository.updateUserPin(id, pin);
+}
+
+export async function updateUserPermissionsApi(id: string, permissions: any) {
+  const { UserRepository } = await import('../repositories/userRepository.js');
+  return await UserRepository.updateUserPermissions(id, permissions);
+}
+
+// COMISSÕES
+export async function fetchCommissionRules() {
+  const { CommissionRepository } = await import('../repositories/commissionRepository.js');
+  return await CommissionRepository.getRules();
+}
+
+export async function saveCommissionRuleApi(rule: any) {
+  const { CommissionRepository } = await import('../repositories/commissionRepository.js');
+  return await CommissionRepository.saveRule(rule);
+}
+
+export async function calculateCommissionsApi(sales: any[], startDate: string, endDate: string) {
+  const { CommissionRepository } = await import('../repositories/commissionRepository.js');
+  return await CommissionRepository.calculateCommissions(sales, startDate, endDate);
+}
+
+export async function payCommissionApi(params: any) {
+  const { CommissionRepository } = await import('../repositories/commissionRepository.js');
+  return await CommissionRepository.payCommission(params);
+}
+
+// PONTO ELETRÔNICO
+export async function fetchTimecardRecords(userId?: string, monthYear?: string) {
+  const { TimecardRepository } = await import('../repositories/timecardRepository.js');
+  return await TimecardRepository.getRecords(userId, monthYear);
+}
+
+export async function punchTimecardApi(userId: string, userName: string, type: any, coords?: any) {
+  const { TimecardRepository } = await import('../repositories/timecardRepository.js');
+  return await TimecardRepository.punchTimecard(userId, userName, type, coords);
+}
+
+export async function fetchNextAllowedPunch(userId: string) {
+  const { TimecardRepository } = await import('../repositories/timecardRepository.js');
+  return await TimecardRepository.getNextAllowedPunch(userId);
+}
+
+export async function fetchTimecardMonthlyMirror(userId: string, yearMonth: string) {
+  const { TimecardRepository } = await import('../repositories/timecardRepository.js');
+  return await TimecardRepository.getMonthlyMirror(userId, yearMonth);
+}
+
+export async function createTimecardAdjustmentApi(adjustment: any) {
+  const { TimecardRepository } = await import('../repositories/timecardRepository.js');
+  return await TimecardRepository.createAdjustment(adjustment);
+}
+
+export async function fetchStoreLocationConfig() {
+  const { TimecardRepository } = await import('../repositories/timecardRepository.js');
+  return await TimecardRepository.getLocationConfig();
+}
+
+export async function saveStoreLocationConfigApi(config: any) {
+  const { TimecardRepository } = await import('../repositories/timecardRepository.js');
+  return await TimecardRepository.saveLocationConfig(config);
+}
+
+// CONFIGURAÇÕES DA LOJA
+export async function fetchStoreSettings() {
+  const { StoreSettingsRepository } = await import('../repositories/storeSettingsRepository.js');
+  return await StoreSettingsRepository.getSettings();
+}
+
+export async function updateStoreSettingsApi(updates: any) {
+  const { StoreSettingsRepository } = await import('../repositories/storeSettingsRepository.js');
+  return await StoreSettingsRepository.updateSettings(updates);
+}
+
+// ----------------------------------------------------
+// CRM KANBAN E PROSPECÇÃO COMERCIAL (RM SAAS HARNESS)
+// ----------------------------------------------------
+
+export async function fetchLeadsApi(filters?: any) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.getLeads(filters);
+}
+
+export async function fetchLeadByIdApi(id: string) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.getLeadById(id);
+}
+
+export async function createLeadApi(data: any) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.createLead(data);
+}
+
+export async function updateLeadApi(id: string, updates: any) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.updateLead(id, updates);
+}
+
+export async function moveLeadStageApi(id: string, newStage: any, authorName?: string, reason?: string) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.moveLeadStage(id, newStage, authorName, reason);
+}
+
+export async function addLeadActivityApi(leadId: string, activity: any) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.addActivity(leadId, activity);
+}
+
+export async function addLeadTaskApi(leadId: string, task: any) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.addTask(leadId, task);
+}
+
+export async function toggleLeadTaskApi(leadId: string, taskId: string) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.toggleTask(leadId, taskId);
+}
+
+export async function checkLeadDuplicatesApi(phone: string, email?: string, excludeLeadId?: string) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return await LeadRepository.checkDuplicates(phone, email, excludeLeadId);
+}
+
+export async function fetchCommercialSummaryApi(leads: any[]) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return LeadRepository.getCommercialSummary(leads);
+}
+
+export async function fetchAIRecommendationsApi(leads: any[]) {
+  const { LeadRepository } = await import('../repositories/leadRepository.js');
+  return LeadRepository.getAIRecommendations(leads);
+}
+
