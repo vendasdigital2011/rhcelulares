@@ -16,6 +16,8 @@ const envSchema = z.object({
   META_WEBHOOK_VERIFY_TOKEN: z.string().default('hiago_meta_verify_token_dev'),
   META_APP_SECRET: z.string().default('meta_app_secret_here_for_hmac_sha256'),
   META_GRAPH_API_VERSION: z.string().default('v20.0'),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
 });
 
 const _env = envSchema.safeParse(process.env);
