@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
 import { 
-  Users, 
   Search, 
   Plus, 
-  Smartphone, 
-  Calendar, 
-  DollarSign, 
   MessageSquare, 
-  Battery, 
-  Eye, 
   X,
   Phone,
+  MoreVertical
 } from 'lucide-react';
 import type { Customer } from '../types.js';
 import { validatePhoneBR } from '../utils/validators.js';
@@ -29,6 +24,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [activeMenuCustomerId, setActiveMenuCustomerId] = useState<string | null>(null);
 
   // Formulário de novo cliente
   const [formData, setFormData] = useState({
@@ -51,9 +47,12 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const avgLtv = customers.length > 0 ? Math.round(totalSpentAll / customers.length) : 0;
   const totalDevicesSold = customers.reduce((acc, c) => acc + c.purchasedDevices.length, 0);
 
-  const handleOpenWhatsApp = (phone: string, customerName: string) => {
+  const handleOpenWhatsApp = (phone: string, customerName: string, deviceModel?: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
-    const text = encodeURIComponent(`Olá ${customerName}! Tudo bem? Aqui é da equipe da Hiago iPhones.`);
+    const message = deviceModel 
+      ? `Olá ${customerName}! Tudo bem? Aqui é da Hiago iPhones. Seu ${deviceModel} está elegível para nossa avaliação especial de trade-in!`
+      : `Olá ${customerName}! Tudo bem? Aqui é da equipe da Hiago iPhones. Como podemos ajudar hoje?`;
+    const text = encodeURIComponent(message);
     window.open(`https://wa.me/${cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`}?text=${text}`, '_blank');
   };
 
@@ -96,393 +95,418 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   };
 
   return (
-    <div style={{ padding: '24px 32px 60px', maxWidth: 1360, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* CABEÇALHO */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <div style={{
-            fontSize: '0.72rem',
-            fontWeight: 800,
-            color: '#10b981',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-            GESTÃO COMERCIAL • BASE DE COMPRADORES
-          </div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.02em', marginTop: 4 }}>
-            Clientes & Ciclo de Vida
-          </h1>
-          <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: 4 }}>
-            Diretório unificado de contatos, histórico de smartphones comprados e saúde da bateria.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setIsNewModalOpen(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#10b981',
-            color: '#fff',
-            border: 'none',
-            padding: '9px 18px',
-            borderRadius: 8,
-            fontSize: '0.84rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            boxShadow: '0 2px 12px rgba(16, 185, 129, 0.35)',
-          }}
-        >
-          <Plus size={16} strokeWidth={3} />
-          Cadastrar Cliente
-        </button>
-      </div>
-
-      {/* 3 CARDS DE MÉTRICAS DA BASE */}
+    <div style={{ padding: '24px 32px 60px', maxWidth: 1440, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* 3 CARDS DE MÉTRICAS DA BASE DE CLIENTES */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <div className="glass-panel" style={{ padding: '18px 20px', borderRadius: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8' }}>Base Ativa de Clientes</span>
-            <Users size={16} color="#38bdf8" />
+        <div className="balcao-card" style={{ padding: '16px 20px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>
+            Base ativa de clientes
           </div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#f8fafc', marginTop: 8 }}>
-            {customers.length} Clientes
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
+            {customers.length} contatos
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#10b981', marginTop: 4, fontWeight: 600 }}>
-            100% com WhatsApp cadastrado
+          <div style={{ fontSize: '0.75rem', color: '#16A34A', marginTop: 4, fontWeight: 500 }}>
+            100% com canal WhatsApp disponível
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '18px 20px', borderRadius: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8' }}>LTV Médio (Valor por Cliente)</span>
-            <DollarSign size={16} color="#10b981" />
+        <div className="balcao-card" style={{ padding: '16px 20px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>
+            LTV médio por cliente
           </div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#10b981', marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
             R$ {avgLtv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>
             Faturamento acumulado: R$ {totalSpentAll.toLocaleString('pt-BR')}
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '18px 20px', borderRadius: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8' }}>iPhones no Ciclo de Troca</span>
-            <Smartphone size={16} color="#a855f7" />
+        <div className="balcao-card" style={{ padding: '16px 20px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>
+            Aparelhos no ciclo
           </div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#f8fafc', marginTop: 8 }}>
-            {totalDevicesSold} Aparelhos
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
+            {totalDevicesSold} smartphones
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#818cf8', marginTop: 4, fontWeight: 600 }}>
-            Monitorados com saúde de bateria
+          <div style={{ fontSize: '0.75rem', color: '#2563EB', marginTop: 4, fontWeight: 500 }}>
+            Monitorados com histórico de bateria
           </div>
         </div>
       </div>
 
-      {/* BARRA DE PESQUISA */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.03)',
-        borderRadius: 12,
-        padding: '8px 16px',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-      }}>
-        <Search size={16} color="#94a3b8" />
-        <input
-          type="text"
-          placeholder="Buscar por nome, telefone, CPF, modelo de iPhone ou IMEI..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#f8fafc',
-            fontSize: '0.86rem',
-            width: '100%',
-            outline: 'none',
-          }}
-        />
-        {searchTerm && (
-          <button
-            onClick={() => setSearchTerm('')}
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-          >
-            <X size={14} />
-          </button>
-        )}
+      {/* BARRA DE PESQUISA & CONTROLE */}
+      <div className="balcao-card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          backgroundColor: '#F7F8FA',
+          border: '1px solid #E5E7EB',
+          borderRadius: 6,
+          padding: '7px 12px',
+          flex: 1,
+          maxWidth: 420,
+        }}>
+          <Search size={15} color="#667085" />
+          <input
+            type="text"
+            placeholder="Buscar por cliente, telefone, CPF ou aparelho comprado..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontSize: '0.8125rem',
+              color: '#17181A',
+              width: '100%',
+            }}
+          />
+        </div>
+
+        <button
+          id="open-customer-modal-btn"
+          onClick={() => setIsNewModalOpen(true)}
+          className="balcao-btn-primary"
+          style={{ height: 34, fontSize: '0.8125rem' }}
+        >
+          <Plus size={15} />
+          <span>Cadastrar cliente</span>
+        </button>
       </div>
 
-      {/* TABELA DE CLIENTES */}
-      <div className="glass-panel" style={{ borderRadius: 14, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+      {/* TABELA DE CLIENTES CONFORME ESPECIFICAÇÃO BALCÃO OS:
+          Cliente | Última compra | Aparelho | LTV | Próxima ação | Responsável | ••• */}
+      <div className="balcao-card" style={{ overflow: 'hidden' }}>
+        <table className="balcao-table">
           <thead>
-            <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.07)', color: '#94a3b8' }}>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Cliente</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>WhatsApp / Telefone</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Último iPhone Comprado</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Total Gasto</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Última Compra</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700, textAlign: 'right' }}>Ações Rápidas</th>
+            <tr>
+              <th>Cliente</th>
+              <th>Última Compra</th>
+              <th>Aparelho Registrado</th>
+              <th style={{ textAlign: 'right' }}>LTV</th>
+              <th>Próxima Ação</th>
+              <th>Responsável</th>
+              <th style={{ textAlign: 'right', width: 90 }}>•••</th>
             </tr>
           </thead>
           <tbody>
-            {filteredCustomers.length > 0 ? (
-              filteredCustomers.map((cust) => {
+            {filteredCustomers.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ padding: 36, textAlign: 'center', color: '#667085' }}>
+                  Nenhum cliente localizado na base cadastral.
+                </td>
+              </tr>
+            ) : (
+              filteredCustomers.map(cust => {
                 const latestDevice = cust.purchasedDevices[0];
                 return (
-                  <tr
-                    key={cust.id}
-                    style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                      transition: 'background 0.15s ease',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                    onClick={() => setSelectedCustomer(cust)}
-                  >
-                    <td style={{ padding: '14px 18px' }}>
-                      <div style={{ fontWeight: 800, color: '#f8fafc' }}>{cust.name}</div>
-                      {cust.cpf && <div style={{ fontSize: '0.72rem', color: '#64748b' }}>CPF: {cust.cpf}</div>}
-                    </td>
-
-                    <td style={{ padding: '14px 18px', color: '#cbd5e1' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Phone size={13} color="#10b981" />
-                        <span>{cust.phone}</span>
+                  <tr key={cust.id}>
+                    {/* Cliente */}
+                    <td>
+                      <div
+                        onClick={() => setSelectedCustomer(cust)}
+                        style={{ fontWeight: 600, color: '#17181A', cursor: 'pointer' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = '#2563EB')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = '#17181A')}
+                      >
+                        {cust.name}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#667085' }}>
+                        {cust.phone}
                       </div>
                     </td>
 
-                    <td style={{ padding: '14px 18px' }}>
+                    {/* Última compra */}
+                    <td>
+                      <span style={{ fontSize: '0.8125rem', color: '#17181A' }}>
+                        {cust.lastPurchaseDate || 'Sem compras'}
+                      </span>
+                    </td>
+
+                    {/* Aparelho */}
+                    <td>
                       {latestDevice ? (
                         <div>
-                          <div style={{ color: '#f8fafc', fontWeight: 600 }}>{latestDevice.model}</div>
-                          {latestDevice.batteryHealth && (
-                            <div style={{ fontSize: '0.7rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <Battery size={11} /> Saúde: {latestDevice.batteryHealth}%
-                            </div>
-                          )}
+                          <div style={{ fontWeight: 500, fontSize: '0.8125rem', color: '#17181A' }}>
+                            {latestDevice.model}
+                          </div>
+                          <div style={{ fontSize: '0.6875rem', color: '#667085' }}>
+                            {latestDevice.imei ? `IMEI: ${latestDevice.imei}` : 'Dispositivo'} • {latestDevice.batteryHealth ? `Bateria ${latestDevice.batteryHealth}%` : 'Novo'}
+                          </div>
                         </div>
                       ) : (
-                        <span style={{ color: '#64748b' }}>Nenhum aparelho</span>
+                        <span style={{ fontSize: '0.75rem', color: '#98A2B3' }}>Nenhum aparelho</span>
                       )}
                     </td>
 
-                    <td style={{ padding: '14px 18px', fontWeight: 800, color: '#10b981' }}>
-                      R$ {cust.totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {/* LTV */}
+                    <td className="text-financial" style={{ fontSize: '0.875rem' }}>
+                      R$ {Number(cust.totalSpent).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
 
-                    <td style={{ padding: '14px 18px', color: '#94a3b8' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Calendar size={12} />
-                        <span>{cust.lastPurchaseDate}</span>
-                      </div>
+                    {/* Próxima ação com etiqueta contextual de sugestão automática */}
+                    <td>
+                      {latestDevice ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span className="status-chip status-reserved" style={{ fontSize: '0.6875rem', width: 'fit-content' }}>
+                            Sugestão: trade-in provável
+                          </span>
+                          <span style={{ fontSize: '0.6875rem', color: '#667085' }}>
+                            Base: {latestDevice.model} comprado há 18m
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: '#667085' }}>Apresentar portfólio</span>
+                      )}
                     </td>
 
-                    <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                    {/* Responsável */}
+                    <td>
+                      <span style={{ fontSize: '0.8125rem', color: '#475467' }}>
+                        Hiago
+                      </span>
+                    </td>
+
+                    {/* Menu ••• */}
+                    <td style={{ textAlign: 'right', position: 'relative' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         <button
-                          onClick={() => handleOpenWhatsApp(cust.phone, cust.name)}
-                          title="Abrir conversa no WhatsApp"
+                          onClick={() => handleOpenWhatsApp(cust.phone, cust.name, latestDevice?.model)}
                           style={{
-                            background: 'rgba(16, 185, 129, 0.15)',
-                            border: '1px solid rgba(16, 185, 129, 0.3)',
-                            color: '#10b981',
-                            padding: '6px 10px',
-                            borderRadius: 6,
+                            background: 'transparent',
+                            border: '1px solid #E5E7EB',
+                            borderRadius: 4,
+                            padding: '4px 6px',
                             cursor: 'pointer',
+                            color: '#16A34A',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 4,
-                            fontSize: '0.74rem',
-                            fontWeight: 700,
                           }}
+                          title="Abrir WhatsApp"
                         >
                           <MessageSquare size={13} />
-                          WhatsApp
                         </button>
 
                         <button
-                          onClick={() => setSelectedCustomer(cust)}
-                          title="Ver Ficha Completa"
+                          onClick={() => setActiveMenuCustomerId(activeMenuCustomerId === cust.id ? null : cust.id)}
                           style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            color: '#cbd5e1',
-                            padding: '6px 10px',
-                            borderRadius: 6,
+                            background: 'transparent',
+                            border: 'none',
                             cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            fontSize: '0.74rem',
+                            color: '#667085',
+                            padding: 4,
                           }}
                         >
-                          <Eye size={13} />
-                          Ficha
+                          <MoreVertical size={15} />
                         </button>
                       </div>
+
+                      {activeMenuCustomerId === cust.id && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          right: 0,
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: 6,
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                          zIndex: 30,
+                          minWidth: 160,
+                          padding: '4px 0',
+                          textAlign: 'left',
+                        }}>
+                          <button
+                            onClick={() => {
+                              setSelectedCustomer(cust);
+                              setActiveMenuCustomerId(null);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              background: 'transparent',
+                              border: 'none',
+                              fontSize: '0.75rem',
+                              color: '#17181A',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F7F8FA')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          >
+                            <span>Ver perfil completo</span>
+                          </button>
+
+                          {onNavigateToPOS && (
+                            <button
+                              onClick={() => {
+                                onNavigateToPOS(cust.name);
+                                setActiveMenuCustomerId(null);
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                background: 'transparent',
+                                border: 'none',
+                                fontSize: '0.75rem',
+                                color: '#2563EB',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F7F8FA')}
+                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                            >
+                              <span>Iniciar venda no PDV</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
               })
-            ) : (
-              <tr>
-                <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: '#94a3b8' }}>
-                  Nenhum cliente encontrado para os critérios pesquisados.
-                </td>
-              </tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {/* MODAL / GAVETA DE DETALHES DO CLIENTE SELECIONADO */}
+      {/* PAINEL LATERAL (DRAWER) CONTEXTUAL DE DETALHES DO CLIENTE */}
       {selectedCustomer && (
         <div style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(6px)',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: 20,
+          justifyContent: 'flex-end',
+          zIndex: 90,
         }}>
-          <div style={{
-            background: '#0d121f',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: 16,
-            width: '100%',
-            maxWidth: 620,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: 26,
-            boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: 16 }}>
+          <div
+            className="animate-fade-in"
+            style={{
+              width: '100%',
+              maxWidth: 460,
+              backgroundColor: '#FFFFFF',
+              height: '100%',
+              boxShadow: '-4px 0 24px rgba(0,0,0,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '24px',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #E5E7EB', paddingBottom: 16 }}>
               <div>
-                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#10b981', textTransform: 'uppercase' }}>FICHA PERMANENTE DO CLIENTE</span>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', marginTop: 2 }}>{selectedCustomer.name}</h2>
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-                  <span>{selectedCustomer.phone}</span>
-                  {selectedCustomer.cpf && <span>• CPF: {selectedCustomer.cpf}</span>}
-                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#17181A', margin: 0 }}>
+                  {selectedCustomer.name}
+                </h3>
+                <span style={{ fontSize: '0.75rem', color: '#667085' }}>
+                  Cliente desde {selectedCustomer.lastPurchaseDate || 'recente'}
+                </span>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#667085' }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* APARELHOS VINCULADOS */}
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f8fafc', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Smartphone size={15} color="#38bdf8" />
-                Histórico de Smartphones Comprados na Loja
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16, flex: 1 }}>
+              {/* Contatos */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.8125rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Phone size={14} color="#667085" />
+                  <span style={{ color: '#17181A', fontWeight: 500 }}>{selectedCustomer.phone}</span>
+                </div>
+                {selectedCustomer.cpf && (
+                  <div style={{ fontSize: '0.75rem', color: '#667085' }}>
+                    CPF: {selectedCustomer.cpf}
+                  </div>
+                )}
+                {selectedCustomer.email && (
+                  <div style={{ fontSize: '0.75rem', color: '#667085' }}>
+                    E-mail: {selectedCustomer.email}
+                  </div>
+                )}
               </div>
 
-              {selectedCustomer.purchasedDevices.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {selectedCustomer.purchasedDevices.map((dev, i) => (
-                    <div key={i} style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      borderRadius: 10,
-                      padding: '12px 14px',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                      <div>
-                        <div style={{ fontWeight: 800, color: '#f8fafc', fontSize: '0.86rem' }}>{dev.model}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                          Comprado em: {dev.purchaseDate} {dev.imei ? `• IMEI: ${dev.imei}` : ''}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: 800, color: '#10b981', fontSize: '0.86rem' }}>
-                          R$ {dev.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </div>
-                        {dev.batteryHealth && (
-                          <div style={{ fontSize: '0.7rem', color: '#818cf8', fontWeight: 700 }}>
-                            Bateria: {dev.batteryHealth}%
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+              {/* LTV & Histórico Financeiro */}
+              <div style={{ backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 8, padding: 14 }}>
+                <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>
+                  Total Investido na Loja (LTV)
+                </span>
+                <div className="tabular-nums" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#17181A', marginTop: 4 }}>
+                  R$ {selectedCustomer.totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
-              ) : (
-                <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 10, color: '#94a3b8', fontSize: '0.78rem' }}>
-                  Nenhum aparelho comprado registrado.
+              </div>
+
+              {/* Aparelhos Comprados */}
+              <div>
+                <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A', marginBottom: 10 }}>
+                  Aparelhos Adquiridos ({selectedCustomer.purchasedDevices.length})
+                </h4>
+
+                {selectedCustomer.purchasedDevices.length === 0 ? (
+                  <div style={{ padding: 16, textAlign: 'center', backgroundColor: '#F9FAFB', borderRadius: 6, fontSize: '0.75rem', color: '#667085' }}>
+                    Nenhum smartphone vinculado a este cadastro ainda.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {selectedCustomer.purchasedDevices.map((dev, idx) => (
+                      <div key={dev.imei || idx} style={{ padding: 12, border: '1px solid #E5E7EB', borderRadius: 6 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.8125rem', color: '#17181A' }}>{dev.model}</span>
+                          <span style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: 600 }}>
+                            R$ {Number(dev.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.6875rem', color: '#667085', marginTop: 4 }}>
+                          IMEI: {dev.imei || 'S/N'} • Bateria: {dev.batteryHealth ? `${dev.batteryHealth}%` : 'N/D'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {selectedCustomer.notes && (
+                <div>
+                  <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A', marginBottom: 6 }}>
+                    Observações de Balcão
+                  </h4>
+                  <div style={{ padding: 10, backgroundColor: '#F9FAFB', borderRadius: 6, fontSize: '0.75rem', color: '#475467' }}>
+                    {selectedCustomer.notes}
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* OBSERVAÇÕES & NOTAS */}
-            {selectedCustomer.notes && (
-              <div style={{ marginTop: 20, background: 'rgba(255, 255, 255, 0.02)', padding: 14, borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: 4 }}>NOTAS INTERNAS:</div>
-                <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{selectedCustomer.notes}</div>
-              </div>
-            )}
-
-            {/* BOTÕES DE AÇÃO */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24, borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: 16 }}>
+            {/* Ações no Rodapé do Drawer */}
+            <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 16, display: 'flex', gap: 10 }}>
               <button
-                onClick={() => handleOpenWhatsApp(selectedCustomer.phone, selectedCustomer.name)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  background: '#10b981',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '9px 18px',
-                  borderRadius: 8,
-                  fontSize: '0.82rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
+                onClick={() => handleOpenWhatsApp(selectedCustomer.phone, selectedCustomer.name, selectedCustomer.purchasedDevices[0]?.model)}
+                className="balcao-btn-secondary"
+                style={{ flex: 1 }}
               >
-                <MessageSquare size={14} />
-                Chamar no WhatsApp
+                <MessageSquare size={14} color="#16A34A" />
+                <span>WhatsApp</span>
               </button>
 
               {onNavigateToPOS && (
                 <button
                   onClick={() => {
-                    const name = selectedCustomer.name;
+                    onNavigateToPOS(selectedCustomer.name);
                     setSelectedCustomer(null);
-                    onNavigateToPOS(name);
                   }}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    color: '#f8fafc',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    padding: '9px 18px',
-                    borderRadius: 8,
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
+                  className="balcao-btn-primary"
+                  style={{ flex: 1 }}
                 >
-                  Nova Venda (PDV)
+                  Iniciar Venda
                 </button>
               )}
             </div>
@@ -490,132 +514,102 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
         </div>
       )}
 
-      {/* MODAL CADASTRAR NOVO CLIENTE */}
+      {/* MODAL CENTRAL DE CRIAÇÃO CURTA DE CLIENTE */}
       {isNewModalOpen && (
         <div style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(6px)',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 100,
+          zIndex: 80,
           padding: 20,
         }}>
-          <form onSubmit={handleSaveCustomer} style={{
-            background: '#0d121f',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: 16,
-            width: '100%',
-            maxWidth: 520,
-            padding: 24,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc' }}>Novo Cliente</h2>
-              <button
-                type="button"
-                onClick={() => setIsNewModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-              >
+          <div className="balcao-card animate-fade-in" style={{ width: '100%', maxWidth: 480, padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: 12, marginBottom: 16 }}>
+              <div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#17181A', margin: 0 }}>Novo Cliente</h3>
+                <p style={{ fontSize: '0.75rem', color: '#667085', margin: 0 }}>Cadastro rápido de balcão.</p>
+              </div>
+              <button onClick={() => setIsNewModalOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#667085' }}>
                 <X size={18} />
               </button>
             </div>
 
-            <div>
-              <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>NOME COMPLETO *</label>
-              <input
-                required
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ex: João da Silva"
-                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#f8fafc', fontSize: '0.84rem' }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <form onSubmit={handleSaveCustomer} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>WHATSAPP / TELEFONE *</label>
+                <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>Nome Completo *</label>
                 <input
+                  type="text"
+                  placeholder="Nome do cliente"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  type="text"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+55 77 98844-0000"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#f8fafc', fontSize: '0.84rem' }}
+                  style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>CPF (OPCIONAL)</label>
-                <input
-                  type="text"
-                  value={formData.cpf}
-                  onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                  placeholder="000.000.000-00"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#f8fafc', fontSize: '0.84rem' }}
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>WhatsApp *</label>
+                  <input
+                    type="text"
+                    placeholder="(77) 99999-9999"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    required
+                    style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>CPF</label>
+                  <input
+                    type="text"
+                    placeholder="000.000.000-00"
+                    value={formData.cpf}
+                    onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 12 }}>
               <div>
-                <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>E-MAIL</label>
+                <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>E-mail (Opcional)</label>
                 <input
                   type="email"
+                  placeholder="cliente@email.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="cliente@email.com"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#f8fafc', fontSize: '0.84rem' }}
+                  style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>DATA ANIVERSÁRIO</label>
-                <input
-                  type="text"
-                  value={formData.birthday}
-                  onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
-                  placeholder="DD/MM (Ex: 15/08)"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#f8fafc', fontSize: '0.84rem' }}
+                <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>Observações</label>
+                <textarea
+                  rows={2}
+                  placeholder="Preferências, canal de origem, etc."
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4, resize: 'none' }}
                 />
               </div>
-            </div>
 
-            <div>
-              <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>OBSERVAÇÕES / PREFERÊNCIAS</label>
-              <textarea
-                rows={2}
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Preferências de modelos, cores, histórico..."
-                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#f8fafc', fontSize: '0.84rem', resize: 'none' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
-              <button
-                type="button"
-                onClick={() => setIsNewModalOpen(false)}
-                style={{ background: 'transparent', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#94a3b8', padding: '9px 16px', borderRadius: 8, fontSize: '0.82rem', cursor: 'pointer' }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                style={{ background: '#10b981', color: '#fff', border: 'none', padding: '9px 20px', borderRadius: 8, fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer' }}
-              >
-                Salvar Cliente
-              </button>
-            </div>
-          </form>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 14, borderTop: '1px solid #E5E7EB', paddingTop: 14, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setIsNewModalOpen(false)}
+                  style={{ background: 'transparent', border: 'none', color: '#667085', fontSize: '0.8125rem', cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="balcao-btn-primary">
+                  Salvar Cliente
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

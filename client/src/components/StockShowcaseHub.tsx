@@ -100,17 +100,17 @@ export const StockShowcaseHub: React.FC<StockShowcaseHubProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      {/* BARRA SUPERIOR DE SUB-NAVEGAÇÃO */}
+      {/* BARRA SUPERIOR DE SUB-NAVEGAÇÃO SÓBRIA (BALCÃO OS) */}
       <div style={{
-        background: '#0d121f',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        padding: '8px 32px 0 32px',
+        backgroundColor: '#FFFFFF',
+        borderBottom: '1px solid #E5E7EB',
+        padding: '0 32px',
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
+        gap: 6,
         overflowX: 'auto',
         position: 'sticky',
-        top: 60,
+        top: 52,
         zIndex: 30,
       }}>
         {navItems.map((item) => {
@@ -125,29 +125,29 @@ export const StockShowcaseHub: React.FC<StockShowcaseHubProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                padding: '10px 16px',
-                borderRadius: '8px 8px 0 0',
+                padding: '12px 14px',
                 border: 'none',
-                background: isActive ? 'rgba(249, 115, 22, 0.12)' : 'transparent',
-                color: isActive ? '#f97316' : '#94a3b8',
-                fontSize: '0.8rem',
-                fontWeight: isActive ? 800 : 600,
+                background: 'transparent',
+                color: isActive ? '#2563EB' : '#667085',
+                fontSize: '0.8125rem',
+                fontWeight: isActive ? 600 : 500,
                 cursor: 'pointer',
-                borderBottom: isActive ? '3px solid #f97316' : '3px solid transparent',
-                transition: 'all 0.15s ease',
+                borderBottom: isActive ? '2px solid #2563EB' : '2px solid transparent',
+                transition: 'all 0.12s ease',
                 whiteSpace: 'nowrap',
               }}
             >
-              <Icon size={15} color={isActive ? '#f97316' : '#64748b'} />
+              <Icon size={15} color={isActive ? '#2563EB' : '#667085'} />
               <span>{item.label}</span>
               {item.count !== undefined && (
                 <span style={{
-                  fontSize: '0.68rem',
-                  fontWeight: 800,
-                  padding: '1px 6px',
+                  fontSize: '0.6875rem',
+                  fontWeight: 600,
+                  padding: '2px 6px',
                   borderRadius: 10,
-                  background: isActive ? 'rgba(249, 115, 22, 0.25)' : 'rgba(255, 255, 255, 0.06)',
-                  color: isActive ? '#fff' : '#94a3b8',
+                  backgroundColor: isActive ? '#EFF6FF' : '#F3F4F6',
+                  color: isActive ? '#2563EB' : '#667085',
+                  border: `1px solid ${isActive ? '#DBEAFE' : '#E5E7EB'}`,
                 }}>
                   {item.count}
                 </span>

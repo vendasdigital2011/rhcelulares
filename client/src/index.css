@@ -1,40 +1,64 @@
 :root {
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Palette */
-  --bg-main: #07090e;
-  --bg-surface: #0d121f;
-  --bg-card: #131b2e;
-  --bg-card-hover: #19233c;
-  --bg-card-glass: rgba(19, 27, 46, 0.75);
+  /* Paleta Balcão OS */
+  --sidebar-bg: #151515;
+  --sidebar-active: #252525;
+  --sidebar-hover: #1f1f1f;
+  --sidebar-border: #222222;
+  --sidebar-text: #9ca3af;
+  --sidebar-text-active: #ffffff;
 
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-focus: rgba(99, 102, 241, 0.5);
-  --border-glow: rgba(99, 102, 241, 0.25);
+  --canvas-bg: #F7F8FA;
+  --surface-bg: #FFFFFF;
+  --surface-hover: #F9FAFB;
+  --surface-muted: #F3F4F6;
 
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-glow: rgba(99, 102, 241, 0.35);
+  --text-main: #17181A;
+  --text-secondary: #667085;
+  --text-tertiary: #98A2B3;
 
-  --accent-emerald: #10b981;
-  --accent-emerald-glow: rgba(16, 185, 129, 0.25);
-  --accent-cyan: #06b6d4;
-  --accent-amber: #f59e0b;
-  --accent-rose: #f43f5e;
+  --border-color: #E5E7EB;
+  --border-subtle: #F2F4F7;
+  --border-focus: #2563EB;
 
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  /* Cores de Ação e Marca */
+  --action-blue: #2563EB;
+  --action-blue-hover: #1D4ED8;
+  --action-blue-subtle: #EFF6FF;
+  --brand-orange: #F97316;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
+  /* Status Operacionais Suaves */
+  --status-success: #16A34A;
+  --status-success-bg: #F0FDF4;
+  --status-success-border: #DCFCE7;
+
+  --status-info: #2563EB;
+  --status-info-bg: #EFF6FF;
+  --status-info-border: #DBEAFE;
+
+  --status-warning: #D97706;
+  --status-warning-bg: #FFFBEB;
+  --status-warning-border: #FEF3C7;
+
+  --status-danger: #DC2626;
+  --status-danger-bg: #FEF2F2;
+  --status-danger-border: #FEE2E2;
+
+  --status-neutral: #667085;
+  --status-neutral-bg: #F3F4F6;
+  --status-neutral-border: #E5E7EB;
+
+  /* Raios de Borda (6-8px, sem excessos) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
   --radius-full: 9999px;
 
-  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --shadow-glow: 0 0 20px -3px var(--primary-glow);
+  /* Sombras Sóbrias e Profissionais */
+  --shadow-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+  --shadow-card: 0 1px 3px 0 rgba(16, 24, 40, 0.08), 0 1px 2px -1px rgba(16, 24, 40, 0.04);
+  --shadow-dropdown: 0 4px 6px -1px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
 }
 
 * {
@@ -44,8 +68,8 @@
 }
 
 body {
-  font-family: var(--font-body);
-  background-color: var(--bg-main);
+  font-family: var(--font-family);
+  background-color: var(--canvas-bg);
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
@@ -53,35 +77,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Background Atmosphere Glows */
-body::before {
-  content: '';
-  position: fixed;
-  top: -200px;
-  left: 15%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -200px;
-  right: 10%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
+/* Tipografia Operacional */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: var(--font-family);
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.015em;
 }
 
 a {
@@ -91,9 +92,23 @@ a {
 
 button, input, select, textarea {
   font-family: inherit;
+  font-size: 0.875rem;
 }
 
-/* Scrollbar Customization */
+/* Alinhamento Tabular para Dados Financeiros */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.text-financial {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Scrollbar Sutil e Limpa */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -102,63 +117,150 @@ button, input, select, textarea {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: #D1D5DB;
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #9CA3AF;
 }
 
-/* Utility Animations */
+/* Transições Rápidas e Precisas */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.9); }
-}
-
 .animate-fade-in {
-  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.18s ease-out forwards;
 }
 
-.glass-panel {
-  background: var(--bg-card-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
+/* Componentes-Padrão Balcão OS */
+.balcao-btn-primary {
+  background-color: var(--action-blue);
+  color: #FFFFFF;
+  border: 1px solid var(--action-blue);
+  border-radius: var(--radius-sm);
+  height: 38px;
+  padding: 0 16px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+.balcao-btn-primary:hover {
+  background-color: var(--action-blue-hover);
+  border-color: var(--action-blue-hover);
 }
 
-/* ==============================================================================
-   ESTILOS DE IMPRESSÃO (TÉRMICA DE ETIQUETAS & TERMO DE GARANTIA)
-   ============================================================================== */
+.balcao-btn-secondary {
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  height: 38px;
+  padding: 0 14px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+.balcao-btn-secondary:hover {
+  background-color: var(--surface-muted);
+  border-color: #D1D5DB;
+}
+
+.balcao-card {
+  background-color: var(--surface-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+/* Tabelas Balcão OS */
+.balcao-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.balcao-table th {
+  background-color: #F9FAFB;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+.balcao-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  color: var(--text-main);
+  background-color: #FFFFFF;
+}
+.balcao-table tr:hover td {
+  background-color: #F9FAFB;
+}
+
+/* Status Chips Funcionais e Suaves */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.status-available {
+  background-color: var(--status-success-bg);
+  color: var(--status-success);
+  border: 1px solid var(--status-success-border);
+}
+.status-reserved {
+  background-color: var(--status-info-bg);
+  color: var(--status-info);
+  border: 1px solid var(--status-info-border);
+}
+.status-maintenance {
+  background-color: var(--status-warning-bg);
+  color: var(--status-warning);
+  border: 1px solid var(--status-warning-border);
+}
+.status-waiting {
+  background-color: var(--status-neutral-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+.status-cancelled {
+  background-color: var(--status-danger-bg);
+  color: var(--status-danger);
+  border: 1px solid var(--status-danger-border);
+}
+
+/* Estilos de Impressão */
 @media print {
   body {
     background: #ffffff !important;
     color: #000000 !important;
   }
-
-  body::before,
-  body::after,
-  aside,
-  header,
-  button,
-  .no-print {
+  aside, header, button, .no-print {
     display: none !important;
   }
-
   main {
     padding: 0 !important;
     margin: 0 !important;
   }
-
   #print-label-target {
     position: fixed;
     top: 0;
@@ -170,7 +272,6 @@ button, input, select, textarea {
     border: none !important;
     page-break-after: always;
   }
-
   #print-warranty-target,
   #print-purchase-contract-target {
     position: absolute;
@@ -182,4 +283,3 @@ button, input, select, textarea {
     padding: 10mm !important;
   }
 }
-

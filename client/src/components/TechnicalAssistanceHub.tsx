@@ -102,20 +102,19 @@ export const TechnicalAssistanceHub: React.FC<TechnicalAssistanceHubProps> = ({
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', background: 'var(--bg-main)' }}>
-      {/* SUB-HEADER ELEGANTE DE NAVEGAÇÃO DA ASSISTÊNCIA TÉCNICA */}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', background: 'var(--canvas-bg)' }}>
+      {/* SUB-HEADER ELEGANTE DE NAVEGAÇÃO DA ASSISTÊNCIA TÉCNICA (BALCÃO OS) */}
       <div
         style={{
-          background: 'rgba(9, 13, 22, 0.95)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #E5E7EB',
           padding: '0 32px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           position: 'sticky',
-          top: 56, // Abaixo do header principal
+          top: 52,
           zIndex: 35,
-          backdropFilter: 'blur(10px)',
           overflowX: 'auto',
         }}
       >

@@ -5,8 +5,9 @@ import {
   X, 
   Send, 
   Printer, 
-  User, 
-  Eye 
+  Eye,
+  LayoutList,
+  Columns
 } from 'lucide-react';
 import type { 
   ServiceOrder, 
@@ -64,6 +65,7 @@ export const ServiceOrderView: React.FC<ServiceOrderViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [technicianFilter, setTechnicianFilter] = useState<string>('all');
+  const [osViewMode, setOsViewMode] = useState<'table' | 'kanban'>('table');
 
   // Modais
   const [isNewOSModalOpen, setIsNewOSModalOpen] = useState(false);
@@ -421,65 +423,33 @@ export const ServiceOrderView: React.FC<ServiceOrderViewProps> = ({
   return (
     <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1440, margin: '0 auto' }}>
       
-      {/* CABEÇALHO */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              ASSISTÊNCIA TÉCNICA
-            </span>
-            <span style={{ background: 'rgba(249, 115, 22, 0.12)', color: '#f97316', fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: 10 }}>
-              Ciclo Operacional Completo
-            </span>
-          </div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 900, color: '#f8fafc', letterSpacing: '-0.02em', margin: 0 }}>
-            Ordens de Serviço
-          </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '4px 0 0' }}>
-            Abertura, diagnóstico de bancada, orçamentos, aprovação do cliente, consumo de peças e entrega com termo de garantia.
-          </p>
-        </div>
-
-        <button
-          onClick={handleOpenNewOSModal}
-          style={{
-            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 18px',
-            borderRadius: 8,
-            fontSize: '0.85rem',
-            fontWeight: 800,
-            cursor: 'pointer',
+      {/* BARRA DE CONTROLE & SELETOR DE VISÃO (TABELA OU KANBAN) */}
+      <div className="balcao-card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 280 }}>
+          <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            boxShadow: '0 4px 14px rgba(249, 115, 22, 0.35)',
-          }}
-        >
-          <Plus size={16} />
-          Nova Ordem de Serviço
-        </button>
-      </div>
-
-      {/* BARRA DE PESQUISA & STATUS MACHINE STRIP */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 260, position: 'relative' }}>
-            <Search size={16} color="#64748b" style={{ position: 'absolute', left: 14, top: 12 }} />
+            backgroundColor: '#F7F8FA',
+            border: '1px solid #E5E7EB',
+            borderRadius: 6,
+            padding: '7px 12px',
+            width: '100%',
+            maxWidth: 380,
+          }}>
+            <Search size={15} color="#667085" />
             <input
               type="text"
               placeholder="Pesquisar por nº da OS, cliente, telefone, IMEI ou modelo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                fontSize: '0.8125rem',
+                color: '#17181A',
                 width: '100%',
-                background: '#0d121f',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                padding: '10px 14px 10px 40px',
-                borderRadius: 8,
-                color: '#f8fafc',
-                fontSize: '0.85rem',
               }}
             />
           </div>
@@ -488,12 +458,13 @@ export const ServiceOrderView: React.FC<ServiceOrderViewProps> = ({
             value={technicianFilter}
             onChange={(e) => setTechnicianFilter(e.target.value)}
             style={{
-              background: '#0d121f',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              padding: '10px 14px',
-              borderRadius: 8,
-              color: '#f8fafc',
-              fontSize: '0.85rem',
+              backgroundColor: '#F7F8FA',
+              border: '1px solid #E5E7EB',
+              borderRadius: 6,
+              padding: '7px 10px',
+              fontSize: '0.75rem',
+              color: '#17181A',
+              outline: 'none',
             }}
           >
             <option value="all">Todos os Técnicos</option>
@@ -502,189 +473,324 @@ export const ServiceOrderView: React.FC<ServiceOrderViewProps> = ({
           </select>
         </div>
 
-        {/* STATUS TABS */}
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-          {[
-            { id: 'all', label: 'Todas' },
-            { id: 'aberta', label: 'Abertas' },
-            { id: 'em_diagnostico', label: 'Em Diagnóstico' },
-            { id: 'aguardando_aprovacao', label: 'Aguardando Aprovação' },
-            { id: 'aprovada', label: 'Aprovadas' },
-            { id: 'em_reparo', label: 'Em Reparo' },
-            { id: 'em_testes', label: 'Em Testes' },
-            { id: 'pronta', label: 'Prontas' },
-            { id: 'entregue', label: 'Entregues' },
-            { id: 'cancelada', label: 'Canceladas' },
-          ].map(tab => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Alternância de Visão */}
+          <div style={{
+            display: 'flex',
+            backgroundColor: '#F3F4F6',
+            borderRadius: 6,
+            padding: 2,
+            border: '1px solid #E5E7EB',
+          }}>
             <button
-              key={tab.id}
-              onClick={() => setStatusFilter(tab.id)}
+              onClick={() => setOsViewMode('table')}
               style={{
-                background: statusFilter === tab.id ? '#f97316' : 'rgba(255, 255, 255, 0.04)',
-                color: statusFilter === tab.id ? '#fff' : '#94a3b8',
-                border: '1px solid',
-                borderColor: statusFilter === tab.id ? '#f97316' : 'rgba(255, 255, 255, 0.08)',
-                padding: '6px 14px',
-                borderRadius: 20,
-                fontSize: '0.78rem',
-                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 10px',
+                border: 'none',
+                borderRadius: 4,
+                backgroundColor: osViewMode === 'table' ? '#FFFFFF' : 'transparent',
+                color: osViewMode === 'table' ? '#17181A' : '#667085',
+                fontSize: '0.75rem',
+                fontWeight: osViewMode === 'table' ? 600 : 500,
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
               }}
             >
-              {tab.label}
+              <LayoutList size={13} />
+              <span>Tabela</span>
             </button>
-          ))}
+
+            <button
+              onClick={() => setOsViewMode('kanban')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 10px',
+                border: 'none',
+                borderRadius: 4,
+                backgroundColor: osViewMode === 'kanban' ? '#FFFFFF' : 'transparent',
+                color: osViewMode === 'kanban' ? '#17181A' : '#667085',
+                fontSize: '0.75rem',
+                fontWeight: osViewMode === 'kanban' ? 600 : 500,
+                cursor: 'pointer',
+              }}
+            >
+              <Columns size={13} />
+              <span>Kanban</span>
+            </button>
+          </div>
+
+          <button
+            onClick={handleOpenNewOSModal}
+            className="balcao-btn-primary"
+            style={{ height: 34, fontSize: '0.8125rem' }}
+          >
+            <Plus size={15} />
+            <span>Nova Ordem de Serviço</span>
+          </button>
         </div>
       </div>
 
-      {/* TABELA DE ORDENS DE SERVIÇO */}
-      <div style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
-          <thead>
-            <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>O.S.</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Cliente</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Equipamento / IMEI</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Defeito / Diagnóstico</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Técnico</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Status</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700 }}>Valor</th>
-              <th style={{ padding: '14px 18px', fontWeight: 700, textAlign: 'right' }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.length === 0 ? (
-              <tr>
-                <td colSpan={8} style={{ padding: 36, textAlign: 'center', color: '#64748b' }}>
-                  Nenhuma ordem de serviço encontrada com os critérios informados.
-                </td>
-              </tr>
-            ) : (
-              filteredOrders.map(os => {
-                let badgeBg = 'rgba(245, 158, 11, 0.15)';
-                let badgeColor = '#f59e0b';
+      {/* VISÃO 1: KANBAN OPERACIONAL (5 ETAPAS REQUERIDAS: Diagnóstico → Aguardando aprovação → Em reparo → Testes → Prontas) */}
+      {osViewMode === 'kanban' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, alignItems: 'start' }}>
+          {[
+            {
+              id: 'diagnostico',
+              title: 'Diagnóstico',
+              color: '#3B82F6',
+              statuses: ['aberta', 'em_diagnostico', 'received', 'diagnosing'],
+            },
+            {
+              id: 'aguardando_aprovacao',
+              title: 'Aguardando aprovação',
+              color: '#F59E0B',
+              statuses: ['aguardando_aprovacao', 'waiting_approval'],
+            },
+            {
+              id: 'em_reparo',
+              title: 'Em reparo',
+              color: '#8B5CF6',
+              statuses: ['aprovada', 'em_reparo', 'in_repair', 'approved'],
+            },
+            {
+              id: 'testes',
+              title: 'Testes',
+              color: '#06B6D4',
+              statuses: ['em_testes', 'testing'],
+            },
+            {
+              id: 'prontas',
+              title: 'Prontas',
+              color: '#16A34A',
+              statuses: ['pronta', 'ready', 'entregue', 'delivered'],
+            },
+          ].map(stage => {
+            const stageOrders = filteredOrders.filter(os => stage.statuses.includes(os.status));
 
-                if (['pronta', 'ready'].includes(os.status)) {
-                  badgeBg = 'rgba(16, 185, 129, 0.15)';
-                  badgeColor = '#10b981';
-                } else if (['entregue', 'delivered'].includes(os.status)) {
-                  badgeBg = 'rgba(59, 130, 246, 0.15)';
-                  badgeColor = '#60a5fa';
-                } else if (os.status === 'cancelada') {
-                  badgeBg = 'rgba(239, 68, 68, 0.15)';
-                  badgeColor = '#ef4444';
-                } else if (os.status === 'em_reparo') {
-                  badgeBg = 'rgba(6, 182, 212, 0.15)';
-                  badgeColor = '#06b6d4';
-                }
+            return (
+              <div
+                key={stage.id}
+                style={{
+                  backgroundColor: '#F7F8FA',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: 8,
+                  padding: 10,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  minHeight: 460,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #E5E7EB' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: stage.color }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#17181A' }}>{stage.title}</span>
+                  </div>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 600, backgroundColor: '#FFFFFF', padding: '1px 6px', borderRadius: 10, border: '1px solid #E5E7EB', color: '#667085' }}>
+                    {stageOrders.length}
+                  </span>
+                </div>
 
-                return (
-                  <tr key={os.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
-                    <td style={{ padding: '14px 18px' }}>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#f97316' }}>
-                        {os.osNumber}
-                      </span>
-                      <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{os.entryDate}</div>
-                    </td>
-
-                    <td style={{ padding: '14px 18px' }}>
-                      <div style={{ fontWeight: 700, color: '#f8fafc' }}>{os.customerName}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{os.customerPhone}</div>
-                    </td>
-
-                    <td style={{ padding: '14px 18px' }}>
-                      <div style={{ fontWeight: 600 }}>{os.deviceModel}</div>
-                      {os.imei && (
-                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
-                          IMEI: {os.imei}
-                        </div>
-                      )}
-                    </td>
-
-                    <td style={{ padding: '14px 18px' }}>
-                      <div style={{ fontSize: '0.78rem', color: '#e2e8f0', maxWidth: 260 }}>
-                        {os.reportedIssue}
+                {/* Cartões enxutos: cliente, aparelho, defeito curto, prazo e valor */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {stageOrders.map(os => (
+                    <div
+                      key={os.id}
+                      className="balcao-card"
+                      onClick={() => handleOpenDetail(os)}
+                      style={{
+                        padding: 10,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 4,
+                        transition: 'border-color 0.12s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563EB')}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#E5E7EB')}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A' }}>{os.customerName}</span>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.6875rem', color: '#2563EB', fontWeight: 600 }}>
+                          {os.osNumber}
+                        </span>
                       </div>
-                      {os.technicalDiagnosis && (
-                        <div style={{ fontSize: '0.7rem', color: '#10b981', marginTop: 2 }}>
-                          {os.technicalDiagnosis.substring(0, 50)}...
-                        </div>
-                      )}
-                    </td>
 
-                    <td style={{ padding: '14px 18px', color: '#94a3b8' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <User size={13} color="#f97316" />
-                        <span>{os.technician}</span>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 500, color: '#344054' }}>
+                        {os.deviceModel}
                       </div>
-                    </td>
 
-                    <td style={{ padding: '14px 18px' }}>
-                      <span
-                        style={{
-                          background: badgeBg,
-                          color: badgeColor,
-                          padding: '3px 8px',
-                          borderRadius: 6,
-                          fontSize: '0.72rem',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {os.status}
-                      </span>
-                    </td>
-
-                    <td style={{ padding: '14px 18px', fontWeight: 800, color: '#f8fafc' }}>
-                      R$ {(os.finalValue || os.estimatedValue).toFixed(2)}
-                    </td>
-
-                    <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-                        <button
-                          onClick={() => handleSendOSWhatsApp(os)}
-                          title="Enviar no WhatsApp"
-                          style={{
-                            background: '#25d366',
-                            border: 'none',
-                            color: '#fff',
-                            padding: '6px 8px',
-                            borderRadius: 6,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Send size={13} />
-                        </button>
-
-                        <button
-                          onClick={() => handleOpenDetail(os)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            color: '#e2e8f0',
-                            padding: '6px 12px',
-                            borderRadius: 6,
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
-                        >
-                          <Eye size={13} />
-                          <span>Detalhes</span>
-                        </button>
+                      <div style={{ fontSize: '0.6875rem', color: '#667085', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {os.reportedIssue || 'Sem defeito relatado'}
                       </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, paddingTop: 6, borderTop: '1px solid #F3F4F6' }}>
+                        <span style={{ fontSize: '0.6875rem', color: '#667085' }}>
+                          Prazo: {os.estimatedDeliveryDate || os.entryDate}
+                        </span>
+                        <span className="tabular-nums" style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#17181A' }}>
+                          R$ {(os.finalValue || os.estimatedValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* VISÃO 2: TABELA DE ORDENS DE SERVIÇO (PADRÃO OPERACIONAL BALCÃO OS) */}
+      {osViewMode === 'table' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Status Tabs */}
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+            {[
+              { id: 'all', label: 'Todas' },
+              { id: 'aberta', label: 'Abertas' },
+              { id: 'em_diagnostico', label: 'Em Diagnóstico' },
+              { id: 'aguardando_aprovacao', label: 'Aguardando Aprovação' },
+              { id: 'aprovada', label: 'Aprovadas' },
+              { id: 'em_reparo', label: 'Em Reparo' },
+              { id: 'em_testes', label: 'Em Testes' },
+              { id: 'pronta', label: 'Prontas' },
+              { id: 'entregue', label: 'Entregues' },
+              { id: 'cancelada', label: 'Canceladas' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setStatusFilter(tab.id)}
+                style={{
+                  background: statusFilter === tab.id ? '#EFF6FF' : '#FFFFFF',
+                  color: statusFilter === tab.id ? '#2563EB' : '#667085',
+                  border: '1px solid',
+                  borderColor: statusFilter === tab.id ? '#2563EB' : '#E5E7EB',
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                  fontSize: '0.75rem',
+                  fontWeight: statusFilter === tab.id ? 600 : 500,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="balcao-card" style={{ overflow: 'hidden' }}>
+            <table className="balcao-table">
+              <thead>
+                <tr>
+                  <th>O.S.</th>
+                  <th>Cliente</th>
+                  <th>Equipamento / IMEI</th>
+                  <th>Defeito Relatado</th>
+                  <th>Técnico</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Valor</th>
+                  <th style={{ textAlign: 'right', width: 140 }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} style={{ padding: 36, textAlign: 'center', color: '#667085' }}>
+                      Nenhuma ordem de serviço encontrada com os critérios informados.
                     </td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                ) : (
+                  filteredOrders.map(os => {
+                    const isReady = ['pronta', 'ready'].includes(os.status);
+                    const isDelivered = ['entregue', 'delivered'].includes(os.status);
+                    const isRepair = ['em_reparo', 'in_repair', 'aprovada'].includes(os.status);
+
+                    return (
+                      <tr key={os.id}>
+                        <td>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#2563EB' }}>
+                            {os.osNumber}
+                          </span>
+                          <div style={{ fontSize: '0.6875rem', color: '#667085' }}>{os.entryDate}</div>
+                        </td>
+
+                        <td>
+                          <div style={{ fontWeight: 600, color: '#17181A' }}>{os.customerName}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#667085' }}>{os.customerPhone}</div>
+                        </td>
+
+                        <td>
+                          <div style={{ fontWeight: 500, color: '#17181A' }}>{os.deviceModel}</div>
+                          {os.imei && (
+                            <div style={{ fontSize: '0.6875rem', color: '#667085', fontFamily: 'monospace' }}>
+                              IMEI: {os.imei}
+                            </div>
+                          )}
+                        </td>
+
+                        <td>
+                          <div style={{ fontSize: '0.75rem', color: '#475467', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {os.reportedIssue}
+                          </div>
+                        </td>
+
+                        <td>
+                          <span style={{ fontSize: '0.75rem', color: '#475467' }}>
+                            {os.technician}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className={`status-chip ${isReady || isDelivered ? 'status-available' : isRepair ? 'status-reserved' : 'status-maintenance'}`}>
+                            {os.status.replace('_', ' ')}
+                          </span>
+                        </td>
+
+                        <td className="text-financial" style={{ fontSize: '0.875rem' }}>
+                          R$ {(os.finalValue || os.estimatedValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: 6 }}>
+                            <button
+                              onClick={() => handleSendOSWhatsApp(os)}
+                              title="Enviar no WhatsApp"
+                              style={{
+                                background: 'transparent',
+                                border: '1px solid #E5E7EB',
+                                color: '#16A34A',
+                                padding: '5px 8px',
+                                borderRadius: 4,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Send size={13} />
+                            </button>
+
+                            <button
+                              onClick={() => handleOpenDetail(os)}
+                              className="balcao-btn-secondary"
+                              style={{ height: 28, padding: '0 8px', fontSize: '0.6875rem', gap: 4 }}
+                            >
+                              <Eye size={12} />
+                              <span>Detalhes</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* DRAWER / MODAL DE DETALHES COMPLETOS DA ORDEM DE SERVIÇO */}
       {selectedOS && (
@@ -692,8 +798,7 @@ export const ServiceOrderView: React.FC<ServiceOrderViewProps> = ({
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(10px)',
+            background: 'rgba(0, 0, 0, 0.45)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -702,31 +807,32 @@ export const ServiceOrderView: React.FC<ServiceOrderViewProps> = ({
           }}
         >
           <div
+            className="balcao-card animate-fade-in"
             style={{
-              background: '#0d121f',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
-              borderRadius: 16,
+              background: '#FFFFFF',
+              border: '1px solid #E5E7EB',
+              borderRadius: 12,
               width: '100%',
               maxWidth: 960,
               maxHeight: '92vh',
               overflowY: 'auto',
-              padding: 26,
+              padding: 24,
               display: 'flex',
               flexDirection: 'column',
-              gap: 20,
+              gap: 18,
             }}
           >
             {/* CABEÇALHO DO DETALHE */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #E5E7EB', paddingBottom: 16 }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f97316' }}>{selectedOS.osNumber}</span>
-                  <span style={{ background: 'rgba(255, 255, 255, 0.08)', color: '#f8fafc', padding: '3px 10px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 700 }}>
+                  <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#2563EB' }}>{selectedOS.osNumber}</span>
+                  <span className="status-chip status-maintenance">
                     {selectedOS.status.toUpperCase()}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: 4 }}>
-                  Cliente: <strong style={{ color: '#f8fafc' }}>{selectedOS.customerName}</strong> • {selectedOS.customerPhone} • Aparelho: <strong style={{ color: '#f8fafc' }}>{selectedOS.deviceModel}</strong>
+                <div style={{ fontSize: '0.8125rem', color: '#667085', marginTop: 4 }}>
+                  Cliente: <strong style={{ color: '#17181A' }}>{selectedOS.customerName}</strong> • {selectedOS.customerPhone} • Aparelho: <strong style={{ color: '#17181A' }}>{selectedOS.deviceModel}</strong>
                 </div>
               </div>
 

@@ -36,7 +36,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
     });
 
     assert.strictEqual(res.status, 201, 'Deve retornar 201 Created');
-    const created = await res.json();
+    const created = (await res.json()) as any;
     testCustomerId = created[0].id;
     assert.ok(testCustomerId, 'Cliente deve possuir ID UUID');
 
@@ -44,7 +44,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
     const getRes = await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${testCustomerId}`, {
       headers,
     });
-    const found = await getRes.json();
+    const found = (await getRes.json()) as any;
     assert.strictEqual(found.length, 1);
     assert.strictEqual(found[0].name, custPayload.name);
   });
@@ -54,7 +54,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
     const getRes = await fetch(`${SUPABASE_URL}/rest/v1/cash_registers?status=eq.open&limit=1`, {
       headers,
     });
-    const openList = await getRes.json();
+    const openList = (await getRes.json()) as any;
     assert.ok(openList.length > 0, 'Deve haver um caixa aberto para operação');
     assert.strictEqual(Number(openList[0].initial_float), 300, 'Fundo inicial deve ser R$ 300,00');
   });
@@ -82,7 +82,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
       body: JSON.stringify(salePayload),
     });
     assert.strictEqual(saleRes.status, 201, 'Venda deve ser criada com 201');
-    const createdSales = await saleRes.json();
+    const createdSales = (await saleRes.json()) as any;
     testSaleId = createdSales[0].id;
     assert.ok(testSaleId, 'Venda criada deve conter UUID');
 
@@ -111,7 +111,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
 
     // Valida status no banco
     const devCheck = await fetch(`${SUPABASE_URL}/rest/v1/devices?imei=eq.${testImei}`, { headers });
-    const devData = await devCheck.json();
+    const devData = (await devCheck.json()) as any;
     assert.strictEqual(devData[0].status, 'sold', 'Aparelho deve estar como sold');
   });
 
@@ -136,7 +136,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
       body: JSON.stringify(tradeInSalePayload),
     });
     assert.strictEqual(res.status, 201);
-    const createdTradeIn = await res.json();
+    const createdTradeIn = (await res.json()) as any;
     const tradeInSaleId = createdTradeIn[0].id;
 
     // Limpa registro de teste
@@ -175,7 +175,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
     assert.ok([200, 204].includes(updateCustRes.status));
 
     const custRes = await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${testCustomerId}`, { headers });
-    const custData = await custRes.json();
+    const custData = (await custRes.json()) as any;
     assert.strictEqual(Number(custData[0].total_spent), 2800.00, 'LTV do cliente deve ser atualizado');
   });
 
@@ -190,7 +190,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
     assert.ok([200, 204].includes(devRestoreRes.status));
 
     const devCheck = await fetch(`${SUPABASE_URL}/rest/v1/devices?imei=eq.${testImei}`, { headers });
-    const devData = await devCheck.json();
+    const devData = (await devCheck.json()) as any;
     assert.strictEqual(devData[0].status, 'available', 'Aparelho deve ter voltado para available');
 
     // 2. Lança estorno no caixa

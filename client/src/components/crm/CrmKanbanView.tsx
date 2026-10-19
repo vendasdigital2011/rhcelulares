@@ -265,94 +265,93 @@ export const CrmKanbanView: React.FC = () => {
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: 14,
       }}>
-        <div style={{ background: '#0d1322', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 18 }}>
+        <div className="balcao-card" style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Total de Leads</span>
-            <Users size={16} color="#3b82f6" />
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Total de Leads</span>
+            <Users size={16} color="#2563EB" />
           </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#f8fafc', marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
             {summary.totalLeads}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#10b981', marginTop: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#16A34A', marginTop: 4, fontWeight: 500 }}>
             R$ {summary.totalPotentialValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} em potencial
           </div>
         </div>
 
-        <div style={{ background: '#0d1322', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 18 }}>
+        <div className="balcao-card" style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Leads Novos (7d)</span>
-            <Calendar size={16} color="#06b6d4" />
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Leads Novos (7d)</span>
+            <Calendar size={16} color="#0891B2" />
           </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#f8fafc', marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
             {summary.newLeadsCount}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>
             Entradas recentes no funil
           </div>
         </div>
 
-        <div style={{ background: '#0d1322', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 18 }}>
+        <div className="balcao-card" style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Em Andamento</span>
-            <TrendingUp size={16} color="#f59e0b" />
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Em Andamento</span>
+            <TrendingUp size={16} color="#D97706" />
           </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#f59e0b', marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#D97706', marginTop: 6 }}>
             {summary.inProgressCount}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>
             Qualificação, contato e negociação
           </div>
         </div>
 
-        <div style={{ background: '#0d1322', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 18 }}>
+        <div className="balcao-card" style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Retorno Pendente</span>
-            <Clock size={16} color="#f97316" />
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Retorno Pendente</span>
+            <Clock size={16} color="#EA580C" />
           </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: summary.pendingReturnCount > 0 ? '#f97316' : '#f8fafc', marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: summary.pendingReturnCount > 0 ? '#EA580C' : '#17181A', marginTop: 6 }}>
             {summary.pendingReturnCount}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>
             Aguardando ou com prazo vencido
           </div>
         </div>
 
-        <div style={{ background: '#0d1322', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 18 }}>
+        <div className="balcao-card" style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Convertidas</span>
-            <CheckCircle2 size={16} color="#10b981" />
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Convertidas</span>
+            <CheckCircle2 size={16} color="#16A34A" />
           </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#10b981', marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#16A34A', marginTop: 6 }}>
             {summary.convertedCount}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#10b981', marginTop: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#16A34A', marginTop: 4, fontWeight: 500 }}>
             {summary.conversionRate}% taxa de conversão
           </div>
         </div>
       </div>
 
       {/* 3. ASSISTENTE DE IA COMERCIAL (BASEADO EM EVIDÊNCIAS REAIS) */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(13, 19, 34, 0.8) 100%)',
-        border: '1px solid rgba(249, 115, 22, 0.25)',
-        borderRadius: 12,
-        padding: '16px 20px',
+      <div className="balcao-card" style={{
+        backgroundColor: '#F0FDF4',
+        border: '1px solid #DCFCE7',
+        padding: '14px 18px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(249, 115, 22, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}>
-              <Sparkles size={17} />
+            <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A' }}>
+              <Sparkles size={16} />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#f8fafc' }}>
-                  Assistente IA de Prospecção & Inteligência Comercial
+                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#166534' }}>
+                  Sugestões Automáticas Comerciais
                 </span>
-                <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: 6, background: 'rgba(249, 115, 22, 0.2)', color: '#f97316', fontWeight: 800 }}>
-                  {recommendations.length} recomendação(ões) verificável(is)
+                <span className="status-chip status-available" style={{ fontSize: '0.6875rem' }}>
+                  {recommendations.length} verificável(is)
                 </span>
               </div>
-              <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 2 }}>
+              <p style={{ fontSize: '0.75rem', color: '#15803D', margin: '2px 0 0' }}>
                 Análise baseada estritamente nos dados reais de retorno, estagnação de negociações e follow-up do funil.
               </p>
             </div>
@@ -360,17 +359,17 @@ export const CrmKanbanView: React.FC = () => {
 
           <button
             onClick={() => setAiExpanded(!aiExpanded)}
-            style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', fontWeight: 700 }}
+            style={{ background: 'none', border: 'none', color: '#166534', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', fontWeight: 600 }}
           >
             <span>{aiExpanded ? 'Recolher' : 'Ver Recomendações'}</span>
-            {aiExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {aiExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
 
         {aiExpanded && (
-          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: 14 }}>
+          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #BBF7D0', paddingTop: 12 }}>
             {recommendations.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '16px 0', color: '#94a3b8', fontSize: '0.78rem' }}>
+              <div style={{ textAlign: 'center', padding: '12px 0', color: '#166534', fontSize: '0.75rem' }}>
                 Nenhuma pendência crítica ou dados insuficientes para novas recomendações no momento. Todos os retornos estão em dia!
               </div>
             ) : (
@@ -378,10 +377,10 @@ export const CrmKanbanView: React.FC = () => {
                 <div
                   key={rec.id}
                   style={{
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: 10,
-                    padding: 14,
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #DCFCE7',
+                    borderRadius: 6,
+                    padding: 12,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -390,48 +389,28 @@ export const CrmKanbanView: React.FC = () => {
                 >
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#f8fafc' }}>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A' }}>
                         {rec.problemOrOpportunity}
                       </span>
-                      <span style={{
-                        fontSize: '0.65rem',
-                        fontWeight: 800,
-                        padding: '1px 6px',
-                        borderRadius: 4,
-                        background: rec.urgency === 'alta' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(234, 179, 8, 0.2)',
-                        color: rec.urgency === 'alta' ? '#ef4444' : '#eab308',
-                        textTransform: 'uppercase',
-                      }}>
+                      <span className={`status-chip ${rec.urgency === 'alta' ? 'status-cancelled' : 'status-maintenance'}`} style={{ fontSize: '0.625rem' }}>
                         {rec.urgency}
                       </span>
                     </div>
 
-                    <p style={{ fontSize: '0.75rem', color: '#cbd5e1', marginTop: 4 }}>
+                    <p style={{ fontSize: '0.75rem', color: '#475467', marginTop: 4, margin: 0 }}>
                       {rec.justification}
                     </p>
 
-                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 6, display: 'flex', gap: 14 }}>
-                      <span><strong>Dados utilizados:</strong> {rec.usedData}</span>
+                    <div style={{ fontSize: '0.6875rem', color: '#667085', marginTop: 4, display: 'flex', gap: 14 }}>
+                      <span><strong>Dados:</strong> {rec.usedData}</span>
                       <span><strong>Período:</strong> {rec.analyzedPeriod}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={() => applyAIRecommendation(rec)}
-                    style={{
-                      background: '#f97316',
-                      border: 'none',
-                      color: '#fff',
-                      padding: '8px 14px',
-                      borderRadius: 6,
-                      fontSize: '0.72rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}
+                    className="balcao-btn-primary"
+                    style={{ height: 32, fontSize: '0.75rem', whiteSpace: 'nowrap', gap: 4 }}
                   >
                     <span>Aprovar Ação</span>
                     <ArrowRight size={13} />
@@ -444,33 +423,31 @@ export const CrmKanbanView: React.FC = () => {
       </div>
 
       {/* 4. BARRA DE BUSCA, FILTROS E ORDENAÇÃO */}
-      <div style={{
-        background: '#0d1322',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 12,
-        padding: '14px 18px',
+      <div className="balcao-card" style={{
+        padding: '12px 16px',
         display: 'flex',
         flexWrap: 'wrap',
-        gap: 12,
+        gap: 10,
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
         {/* BUSCA */}
-        <div style={{ position: 'relative', minWidth: 260, flex: 1 }}>
-          <Search size={15} style={{ position: 'absolute', left: 12, top: 11, color: '#64748b' }} />
+        <div style={{ position: 'relative', minWidth: 260, flex: 1, maxWidth: 360 }}>
+          <Search size={15} style={{ position: 'absolute', left: 10, top: 9, color: '#667085' }} />
           <input
             type="text"
-            placeholder="Buscar por nome, empresa, telefone, e-mail ou modelo..."
+            placeholder="Buscar por nome, telefone, modelo..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{
               width: '100%',
-              padding: '9px 12px 9px 36px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: 8,
-              color: '#fff',
-              fontSize: '0.8rem',
+              padding: '7px 10px 7px 32px',
+              backgroundColor: '#F7F8FA',
+              border: '1px solid #E5E7EB',
+              borderRadius: 6,
+              color: '#17181A',
+              fontSize: '0.8125rem',
+              outline: 'none',
             }}
           />
         </div>
@@ -480,7 +457,7 @@ export const CrmKanbanView: React.FC = () => {
           <select
             value={stageFilter}
             onChange={e => setStageFilter(e.target.value)}
-            style={{ padding: '8px 10px', background: '#131b2e', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#cbd5e1', fontSize: '0.78rem' }}
+            style={{ padding: '6px 10px', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, color: '#17181A', fontSize: '0.75rem', outline: 'none' }}
           >
             <option value="todas">Todas as Etapas</option>
             {KANBAN_STAGES.map(s => (
@@ -491,25 +468,23 @@ export const CrmKanbanView: React.FC = () => {
           <select
             value={originFilter}
             onChange={e => setOriginFilter(e.target.value)}
-            style={{ padding: '8px 10px', background: '#131b2e', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#cbd5e1', fontSize: '0.78rem' }}
+            style={{ padding: '6px 10px', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, color: '#17181A', fontSize: '0.75rem', outline: 'none' }}
           >
             <option value="todas">Todas as Origens</option>
-            <option value="pesquisa_manual">Pesquisa Manual</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="instagram">Instagram</option>
+            <option value="balcao">Balcão Loja</option>
             <option value="indicacao">Indicação</option>
-            <option value="formulario">Formulário</option>
-            <option value="importacao">Importação</option>
-            <option value="evento">Evento</option>
-            <option value="fonte_autorizada">Fonte Autorizada</option>
-            <option value="outros">Outros</option>
+            <option value="site">Site / Catálogo</option>
           </select>
 
           <select
             value={priorityFilter}
             onChange={e => setPriorityFilter(e.target.value)}
-            style={{ padding: '8px 10px', background: '#131b2e', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#cbd5e1', fontSize: '0.78rem' }}
+            style={{ padding: '6px 10px', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, color: '#17181A', fontSize: '0.75rem', outline: 'none' }}
           >
             <option value="todas">Todas as Prioridades</option>
-            <option value="urgente">Urgente 🔥</option>
+            <option value="urgente">Urgente</option>
             <option value="alta">Alta</option>
             <option value="media">Média</option>
             <option value="baixa">Baixa</option>
@@ -518,7 +493,7 @@ export const CrmKanbanView: React.FC = () => {
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value as any)}
-            style={{ padding: '8px 10px', background: '#131b2e', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, color: '#f97316', fontWeight: 700, fontSize: '0.78rem' }}
+            style={{ padding: '6px 10px', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, color: '#2563EB', fontWeight: 600, fontSize: '0.75rem', outline: 'none' }}
           >
             <option value="updated">Ordenar: Atualização Recente</option>
             <option value="value">Ordenar: Maior Valor Potencial</option>
@@ -529,16 +504,15 @@ export const CrmKanbanView: React.FC = () => {
           <button
             onClick={loadData}
             title="Atualizar dados"
-            style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#94a3b8', padding: '8px', borderRadius: 8, cursor: 'pointer' }}
+            style={{ background: '#F7F8FA', border: '1px solid #E5E7EB', color: '#667085', padding: '6px 8px', borderRadius: 6, cursor: 'pointer' }}
           >
-            <RefreshCw size={15} />
+            <RefreshCw size={14} />
           </button>
         </div>
       </div>
-
       {/* 5. PIPELINE KANBAN (7 ETAPAS COM IDENTIFICAÇÃO VISUAL CLARA) */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: '#667085' }}>
           Carregando pipeline de prospecção comercial...
         </div>
       ) : (
@@ -558,9 +532,9 @@ export const CrmKanbanView: React.FC = () => {
               <div
                 key={col.id}
                 style={{
-                  background: '#0a0e19',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                  borderRadius: 12,
+                  backgroundColor: '#F7F8FA',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: 8,
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: 520,
@@ -569,29 +543,30 @@ export const CrmKanbanView: React.FC = () => {
               >
                 {/* CABEÇALHO DA COLUNA */}
                 <div style={{
-                  padding: '12px 14px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                  padding: '10px 12px',
+                  borderBottom: '1px solid #E5E7EB',
                   borderTop: `3px solid ${col.color}`,
-                  borderRadius: '12px 12px 0 0',
-                  background: 'rgba(255, 255, 255, 0.015)',
+                  borderRadius: '8px 8px 0 0',
+                  backgroundColor: '#FFFFFF',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc' }}>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A' }}>
                       {col.label}
                     </span>
                     <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 800,
-                      padding: '2px 8px',
+                      fontSize: '0.6875rem',
+                      fontWeight: 600,
+                      padding: '1px 6px',
                       borderRadius: 10,
-                      background: col.bgBadge,
-                      color: col.color,
+                      backgroundColor: '#F3F4F6',
+                      color: '#667085',
+                      border: '1px solid #E5E7EB',
                     }}>
                       {stageLeads.length}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 4 }}>
-                    Total: <strong style={{ color: '#f8fafc' }}>R$ {stageTotalValue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}</strong>
+                  <div style={{ fontSize: '0.6875rem', color: '#667085', marginTop: 2 }}>
+                    Total: <strong style={{ color: '#17181A' }}>R$ {stageTotalValue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}</strong>
                   </div>
                 </div>
 
@@ -599,19 +574,19 @@ export const CrmKanbanView: React.FC = () => {
                 <div style={{
                   flex: 1,
                   overflowY: 'auto',
-                  padding: 10,
+                  padding: 8,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 10,
+                  gap: 8,
                 }}>
                   {stageLeads.length === 0 ? (
                     <div style={{
                       textAlign: 'center',
-                      padding: '30px 10px',
-                      color: '#475569',
-                      fontSize: '0.72rem',
-                      border: '1px dashed rgba(255, 255, 255, 0.05)',
-                      borderRadius: 8,
+                      padding: '24px 10px',
+                      color: '#98A2B3',
+                      fontSize: '0.75rem',
+                      border: '1px dashed #E5E7EB',
+                      borderRadius: 6,
                     }}>
                       Nenhum lead nesta etapa
                     </div>
@@ -621,61 +596,49 @@ export const CrmKanbanView: React.FC = () => {
                       return (
                         <div
                           key={lead.id}
+                          className="balcao-card"
                           onClick={() => setSelectedLead(lead)}
                           style={{
-                            background: '#0f172a',
-                            border: isReturnOverdue ? '1px solid rgba(249, 115, 22, 0.4)' : '1px solid rgba(255, 255, 255, 0.07)',
-                            borderRadius: 10,
-                            padding: 12,
+                            padding: 10,
                             cursor: 'pointer',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 8,
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25)',
-                            transition: 'all 0.15s ease',
+                            gap: 6,
+                            borderColor: isReturnOverdue ? '#D97706' : '#E5E7EB',
+                            transition: 'border-color 0.12s ease',
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.borderColor = col.color;
+                            e.currentTarget.style.borderColor = '#2563EB';
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.borderColor = isReturnOverdue ? 'rgba(249, 115, 22, 0.4)' : 'rgba(255, 255, 255, 0.07)';
+                            e.currentTarget.style.borderColor = isReturnOverdue ? '#D97706' : '#E5E7EB';
                           }}
                         >
                           {/* NOME & PRIORIDADE */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
-                              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#f8fafc' }}>
+                              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A' }}>
                                 {lead.contactName}
                               </div>
                               {lead.companyName && (
-                                <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                <div style={{ fontSize: '0.6875rem', color: '#667085' }}>
                                   {lead.companyName}
                                 </div>
                               )}
                             </div>
-                            <span style={{
-                              fontSize: '0.62rem',
-                              fontWeight: 800,
-                              padding: '1px 5px',
-                              borderRadius: 4,
-                              textTransform: 'uppercase',
-                              background: lead.priority === 'urgente' ? 'rgba(239, 68, 68, 0.2)' : lead.priority === 'alta' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                              color: lead.priority === 'urgente' ? '#ef4444' : lead.priority === 'alta' ? '#f59e0b' : '#94a3b8',
-                            }}>
+                            <span className={`status-chip ${lead.priority === 'urgente' ? 'status-cancelled' : lead.priority === 'alta' ? 'status-maintenance' : 'status-waiting'}`} style={{ fontSize: '0.625rem', padding: '1px 5px' }}>
                               {lead.priority}
                             </span>
                           </div>
 
                           {/* INTERESSE COMERCIAL */}
-                          <div style={{ fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 600 }}>
+                          <div style={{ fontSize: '0.75rem', color: '#344054', fontWeight: 500 }}>
                             {lead.commercialInterest}
                           </div>
 
                           {/* VALOR POTENCIAL */}
                           {(lead.potentialValue || 0) > 0 && (
-                            <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#10b981' }}>
+                            <div className="tabular-nums" style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#16A34A' }}>
                               R$ {(lead.potentialValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </div>
                           )}
@@ -683,17 +646,17 @@ export const CrmKanbanView: React.FC = () => {
                           {/* PRÓXIMA AÇÃO / RETORNO */}
                           {lead.nextAction && (
                             <div style={{
-                              fontSize: '0.68rem',
-                              color: '#cbd5e1',
-                              background: 'rgba(255, 255, 255, 0.03)',
+                              fontSize: '0.6875rem',
+                              color: '#475467',
+                              backgroundColor: '#F9FAFB',
                               padding: '4px 6px',
                               borderRadius: 4,
-                              borderLeft: isReturnOverdue ? '2px solid #f97316' : '2px solid rgba(255, 255, 255, 0.1)',
+                              borderLeft: isReturnOverdue ? '2px solid #D97706' : '2px solid #E5E7EB',
                             }}>
-                              <div style={{ color: '#94a3b8', fontSize: '0.62rem' }}>Próxima Ação:</div>
+                              <div style={{ color: '#667085', fontSize: '0.625rem' }}>Próxima Ação:</div>
                               <div>{lead.nextAction}</div>
                               {lead.nextReturnDate && (
-                                <div style={{ color: isReturnOverdue ? '#f97316' : '#94a3b8', fontWeight: isReturnOverdue ? 700 : 500, marginTop: 2 }}>
+                                <div style={{ color: isReturnOverdue ? '#D97706' : '#667085', fontWeight: isReturnOverdue ? 600 : 400, marginTop: 2 }}>
                                   {isReturnOverdue ? '⚠️ Retorno atrasado: ' : 'Retorno: '}
                                   {new Date(lead.nextReturnDate).toLocaleDateString('pt-BR')}
                                 </div>
@@ -701,21 +664,20 @@ export const CrmKanbanView: React.FC = () => {
                             </div>
                           )}
 
-                          {/* RODAPÉ DO CARD: ORIGEM, RESPONSÁVEL E MOVIMENTAÇÃO RÁPIDA */}
+                          {/* RODAPÉ DO CARD */}
                           <div style={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             marginTop: 4,
                             paddingTop: 6,
-                            borderTop: '1px solid rgba(255, 255, 255, 0.04)',
-                            fontSize: '0.68rem',
-                            color: '#94a3b8',
+                            borderTop: '1px solid #F3F4F6',
+                            fontSize: '0.6875rem',
+                            color: '#667085',
                           }}>
                             <span>{lead.origin.replace('_', ' ')}</span>
 
                             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                              {/* BOTÃO DIRETO WHATSAPP 1-CLIQUE */}
                               <button
                                 type="button"
                                 title={`Conversar com ${lead.contactName} no WhatsApp`}
@@ -727,25 +689,23 @@ export const CrmKanbanView: React.FC = () => {
                                   window.open(`https://wa.me/${num}?text=${text}`, '_blank');
                                 }}
                                 style={{
-                                  background: '#16a34a',
-                                  border: 'none',
-                                  color: '#fff',
-                                  padding: '3px 7px',
+                                  background: 'transparent',
+                                  border: '1px solid #E5E7EB',
+                                  color: '#16A34A',
+                                  padding: '2px 6px',
                                   borderRadius: 4,
-                                  fontSize: '0.62rem',
-                                  fontWeight: 700,
+                                  fontSize: '0.625rem',
+                                  fontWeight: 600,
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: 3,
                                   cursor: 'pointer',
-                                  boxShadow: '0 1px 3px rgba(22, 163, 74, 0.4)',
                                 }}
                               >
                                 <MessageCircle size={10} />
                                 <span>WhatsApp</span>
                               </button>
 
-                              {/* SELETOR RÁPIDO DE MUDANÇA DE ETAPA */}
                               <select
                                 value={lead.stage}
                                 onClick={e => e.stopPropagation()}

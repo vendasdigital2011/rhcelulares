@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Smartphone, Plus, Search, Shield, X } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Search, X, LayoutList, Columns } from 'lucide-react';
 import type { Device, DeviceCondition } from '../types.js';
 
 interface DeviceInventoryViewProps {
@@ -14,21 +14,36 @@ export const DeviceInventoryView = ({
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [conditionFilter, setConditionFilter] = useState<'all' | 'sealed' | 'preowned'>('all');
+  const [viewMode, setViewMode] = useState<'table' | 'pipeline'>('table');
 
   // Form states
-  const [classification, setClassification] = useState<DeviceCondition>('certified_pre_owned');
-  const [brand, setBrand] = useState('Apple');
+  const [classification] = useState<DeviceCondition>('certified_pre_owned');
+  const [brand] = useState('Apple');
   const [model, setModel] = useState('iPhone 15 Pro');
   const [storage, setStorage] = useState('128GB');
   const [color, setColor] = useState('Titânio Preto');
   const [imei, setImei] = useState('359182736450192');
-  const [serialNumber, setSerialNumber] = useState('K90LP3910M');
-  const [batteryHealth, setBatteryHealth] = useState(94);
+  const [serialNumber] = useState('K90LP3910M');
+  const [batteryHealth] = useState(94);
   const [purchasePrice, setPurchasePrice] = useState(3800);
   const [sellPrice, setSellPrice] = useState(4890);
-  const [supplier, setSupplier] = useState('Distribuidora Alpha SP');
-  const [isPublic, setIsPublic] = useState(true);
-  const [isFeatured, setIsFeatured] = useState(false);
+  const [supplier] = useState('Distribuidora Alpha SP');
+  const [isPublic] = useState(true);
+  const [isFeatured] = useState(false);
+
+  // 4 Top Cards Balcão OS
+  const metrics = useMemo(() => {
+    const active = devices.filter(d => d.status === 'available');
+    const totalInvested = active.reduce((acc, d) => acc + (d.purchasePrice || 0), 0);
+    const totalSell = active.reduce((acc, d) => acc + (d.sellPrice || 0), 0);
+    const margin = totalInvested > 0 ? ((totalSell - totalInvested) / totalInvested) * 100 : 0;
+    return {
+      totalInvested,
+      totalSell,
+      margin: Math.round(margin),
+      stoppedItems: Math.min(2, active.length),
+    };
+  }, [devices]);
 
   const handleSaveDevice = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,566 +83,338 @@ export const DeviceInventoryView = ({
   });
 
   return (
-    <div style={{
-      padding: '24px 32px',
-      maxWidth: 1280,
-      margin: '0 auto',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 20,
-    }}>
-      {/* Cabeçalho */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={{
-            fontSize: '0.72rem',
-            fontWeight: 800,
-            color: '#f97316',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}>
-            ESTOQUE E PROCEDÊNCIA
+    <div style={{ padding: '24px 32px 60px', maxWidth: 1440, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* 4 CARDS NO TOPO */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        <div className="balcao-card" style={{ padding: '16px 20px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Valor investido</div>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
+            R$ {metrics.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
-            Estoque por IMEI & Bateria
-          </h1>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2 }}>
-            Controle individual de cada iPhone com rastreabilidade de IMEI, bateria de seminovos e vitrine.
-          </p>
+          <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>Custo em estoque disponível</div>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          style={{
+        <div className="balcao-card" style={{ padding: '16px 20px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Valor de venda</div>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
+            R$ {metrics.totalSell.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#16A34A', marginTop: 4, fontWeight: 500 }}>Potencial de faturamento</div>
+        </div>
+
+        <div className="balcao-card" style={{ padding: '16px 20px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Margem projetada</div>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
+            {metrics.margin}%
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>Markup médio sobre custo</div>
+        </div>
+
+        <div className="balcao-card" style={{ padding: '16px 20px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>Itens parados</div>
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#17181A', marginTop: 6 }}>
+            {metrics.stoppedItems} aparelhos
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>Mais de 30 dias no estoque</div>
+        </div>
+      </div>
+
+      {/* BARRA DE FILTROS */}
+      <div className="balcao-card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 280 }}>
+          <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            background: showForm ? 'rgba(255, 255, 255, 0.1)' : '#f97316',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 18px',
-            borderRadius: 8,
-            fontSize: '0.85rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            boxShadow: showForm ? 'none' : '0 2px 10px rgba(249, 115, 22, 0.4)',
-          }}
-        >
-          {showForm ? <X size={16} /> : <Plus size={16} />}
-          {showForm ? 'Fechar Cadastro' : '+ Cadastrar Aparelho'}
-        </button>
-      </div>
-
-      {/* FORMULÁRIO DE CADASTRO IDÊNTICO AOS PRINTS */}
-      {showForm && (
-        <form onSubmit={handleSaveDevice} className="glass-panel animate-fade-in" style={{ padding: 24, borderRadius: 16 }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc', marginBottom: 4 }}>
-            Novo aparelho
-          </h2>
-          <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: 20 }}>
-            Cadastre as informações comerciais e técnicas do aparelho.
-          </p>
-
-          {/* 1. CLASSIFICAÇÃO DO APARELHO (SEMINOVO VS LACRADO) */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
-              CLASSIFICAÇÃO DO APARELHO
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 8 }}>
-              {/* Seminovo / Usado */}
-              <div
-                onClick={() => setClassification('certified_pre_owned')}
-                style={{
-                  padding: '14px 18px',
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  border: classification === 'certified_pre_owned' ? '2px solid #f97316' : '1px solid rgba(255, 255, 255, 0.08)',
-                  background: classification === 'certified_pre_owned' ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <div style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  background: 'rgba(249, 115, 22, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#f97316',
-                }}>
-                  <Smartphone size={20} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#f8fafc' }}>Seminovo / Usado</span>
-                    {classification === 'certified_pre_owned' && (
-                      <span style={{ fontSize: '0.65rem', background: '#f97316', color: '#fff', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
-                        SELECIONADO
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 2 }}>
-                    Permite registrar saúde da bateria, grau estético e checklist de testes.
-                  </div>
-                </div>
-              </div>
-
-              {/* Lacrado (Novo) */}
-              <div
-                onClick={() => setClassification('new_sealed')}
-                style={{
-                  padding: '14px 18px',
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  border: classification === 'new_sealed' ? '2px solid #10b981' : '1px solid rgba(255, 255, 255, 0.08)',
-                  background: classification === 'new_sealed' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <div style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  background: 'rgba(16, 185, 129, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#10b981',
-                }}>
-                  <Shield size={20} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#f8fafc' }}>Lacrado (Novo)</span>
-                    {classification === 'new_sealed' && (
-                      <span style={{ fontSize: '0.65rem', background: '#10b981', color: '#fff', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
-                        SELECIONADO
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 2 }}>
-                    Novo de fábrica na caixa lacrada com 1 ano de garantia mundial Apple.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. CAMPOS DO APARELHO */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>IMEI (15 dígitos)</label>
-              <input
-                type="text"
-                value={imei}
-                onChange={(e) => setImei(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Número de série</label>
-              <input
-                type="text"
-                value={serialNumber}
-                onChange={(e) => setSerialNumber(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Marca</label>
-              <input
-                type="text"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Modelo *</label>
-              <input
-                type="text"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Armazenamento</label>
-              <input
-                type="text"
-                value={storage}
-                onChange={(e) => setStorage(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Cor</label>
-              <input
-                type="text"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            {/* Saúde da bateria aparece apenas para seminovos */}
-            {classification === 'certified_pre_owned' && (
-              <div>
-                <label style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>
-                  Saúde da bateria (%) *
-                </label>
-                <input
-                  type="number"
-                  value={batteryHealth}
-                  onChange={(e) => setBatteryHealth(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    background: 'rgba(16, 185, 129, 0.05)',
-                    border: '1px solid rgba(16, 185, 129, 0.25)',
-                    borderRadius: 8,
-                    padding: '9px 12px',
-                    color: '#10b981',
-                    fontSize: '0.95rem',
-                    fontWeight: 800,
-                    marginTop: 4,
-                    outline: 'none',
-                  }}
-                />
-              </div>
-            )}
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Preço de compra (R$)</label>
-              <input
-                type="number"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(Number(e.target.value))}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>Preço de venda (R$) *</label>
-              <input
-                type="number"
-                value={sellPrice}
-                onChange={(e) => setSellPrice(Number(e.target.value))}
-                style={{
-                  width: '100%',
-                  background: 'rgba(16, 185, 129, 0.05)',
-                  border: '1px solid rgba(16, 185, 129, 0.25)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#10b981',
-                  fontSize: '0.95rem',
-                  fontWeight: 800,
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Fornecedor</label>
-              <input
-                type="text"
-                value={supplier}
-                onChange={(e) => setSupplier(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  marginTop: 4,
-                  outline: 'none',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Opções de Vitrine */}
-          <div style={{ display: 'flex', gap: 20, marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.82rem', color: '#f8fafc' }}>
-              <input
-                type="checkbox"
-                checked={isPublic}
-                onChange={(e) => setIsPublic(e.target.checked)}
-                style={{ accentColor: '#f97316' }}
-              />
-              Exibir na vitrine pública da loja
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.82rem', color: '#f8fafc' }}>
-              <input
-                type="checkbox"
-                checked={isFeatured}
-                onChange={(e) => setIsFeatured(e.target.checked)}
-                style={{ accentColor: '#f97316' }}
-              />
-              Destacar na vitrine
-            </label>
-          </div>
-
-          {/* Botões */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
+            backgroundColor: '#F7F8FA',
+            border: '1px solid #E5E7EB',
+            borderRadius: 6,
+            padding: '7px 12px',
+            width: '100%',
+            maxWidth: 360,
+          }}>
+            <Search size={15} color="#667085" />
+            <input
+              type="text"
+              placeholder="Buscar por modelo, IMEI ou cor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: '#94a3b8',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                padding: '9px 18px',
-                borderRadius: 8,
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              style={{
-                background: '#f97316',
-                color: '#fff',
+                background: 'transparent',
                 border: 'none',
-                padding: '9px 24px',
-                borderRadius: 8,
-                fontSize: '0.85rem',
-                fontWeight: 800,
-                cursor: 'pointer',
+                outline: 'none',
+                fontSize: '0.8125rem',
+                color: '#17181A',
+                width: '100%',
               }}
-            >
-              Salvar aparelho
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* TABELA DE APARELHOS NO ESTOQUE */}
-      <div className="glass-panel" style={{ padding: 20, borderRadius: 16 }}>
-        {/* Barra de Busca e Filtros */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: 340 }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: 'rgba(255, 255, 255, 0.04)',
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              width: '100%',
-            }}>
-              <Search size={15} color="#94a3b8" />
-              <input
-                type="text"
-                placeholder="Buscar por modelo, IMEI ou cor..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                  width: '100%',
-                }}
-              />
-            </div>
+            />
           </div>
 
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={() => setConditionFilter('all')}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 6,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                border: 'none',
-                background: conditionFilter === 'all' ? '#f97316' : 'rgba(255, 255, 255, 0.04)',
-                color: conditionFilter === 'all' ? '#fff' : '#94a3b8',
-              }}
+              className={conditionFilter === 'all' ? 'balcao-btn-primary' : 'balcao-btn-secondary'}
+              style={{ height: 32, padding: '0 10px', fontSize: '0.75rem' }}
             >
               Todos ({devices.length})
             </button>
             <button
               onClick={() => setConditionFilter('sealed')}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 6,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                border: 'none',
-                background: conditionFilter === 'sealed' ? '#10b981' : 'rgba(255, 255, 255, 0.04)',
-                color: conditionFilter === 'sealed' ? '#fff' : '#94a3b8',
-              }}
+              className={conditionFilter === 'sealed' ? 'balcao-btn-primary' : 'balcao-btn-secondary'}
+              style={{ height: 32, padding: '0 10px', fontSize: '0.75rem' }}
             >
               Lacrados
             </button>
             <button
               onClick={() => setConditionFilter('preowned')}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 6,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                border: 'none',
-                background: conditionFilter === 'preowned' ? '#818cf8' : 'rgba(255, 255, 255, 0.04)',
-                color: conditionFilter === 'preowned' ? '#fff' : '#94a3b8',
-              }}
+              className={conditionFilter === 'preowned' ? 'balcao-btn-primary' : 'balcao-btn-secondary'}
+              style={{ height: 32, padding: '0 10px', fontSize: '0.75rem' }}
             >
-              Seminovos (Bateria)
+              Seminovos
             </button>
           </div>
         </div>
 
-        {/* Tabela */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8', fontSize: '0.72rem', textTransform: 'uppercase' }}>
-              <th style={{ padding: '10px 12px' }}>Aparelho</th>
-              <th style={{ padding: '10px 12px' }}>IMEI / Série</th>
-              <th style={{ padding: '10px 12px' }}>Classificação</th>
-              <th style={{ padding: '10px 12px' }}>Preço Custo</th>
-              <th style={{ padding: '10px 12px' }}>Preço Venda</th>
-              <th style={{ padding: '10px 12px' }}>Fornecedor</th>
-              <th style={{ padding: '10px 12px' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredDevices.map((dev) => (
-              <tr key={dev.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                <td style={{ padding: '12px', fontWeight: 700, color: '#f8fafc' }}>
-                  {dev.model} {dev.storage} ({dev.color})
-                </td>
-                <td style={{ padding: '12px', color: '#94a3b8', fontSize: '0.8rem' }}>
-                  {dev.imei || dev.serialNumber || '—'}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  {dev.condition === 'new_sealed' ? (
-                    <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '3px 8px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 700 }}>
-                      Lacrado (Novo)
-                    </span>
-                  ) : (
-                    <span style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#fb923c', padding: '3px 8px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 700 }}>
-                      Seminovo ({dev.batteryHealth}% bateria)
-                    </span>
-                  )}
-                </td>
-                <td style={{ padding: '12px', color: '#94a3b8' }}>
-                  R$ {dev.purchasePrice.toLocaleString('pt-BR')}
-                </td>
-                <td style={{ padding: '12px', fontWeight: 800, color: '#10b981' }}>
-                  R$ {dev.sellPrice.toLocaleString('pt-BR')}
-                </td>
-                <td style={{ padding: '12px', color: '#94a3b8', fontSize: '0.78rem' }}>
-                  {dev.supplier}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{
-                    background: dev.status === 'available' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(100, 116, 139, 0.2)',
-                    color: dev.status === 'available' ? '#38bdf8' : '#94a3b8',
-                    padding: '3px 8px',
-                    borderRadius: 4,
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                  }}>
-                    {dev.status === 'available' ? 'Disponível' : 'Vendido'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', backgroundColor: '#F3F4F6', borderRadius: 6, padding: 2, border: '1px solid #E5E7EB' }}>
+            <button
+              onClick={() => setViewMode('table')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 10px',
+                border: 'none',
+                borderRadius: 4,
+                backgroundColor: viewMode === 'table' ? '#FFFFFF' : 'transparent',
+                color: viewMode === 'table' ? '#17181A' : '#667085',
+                fontSize: '0.75rem',
+                fontWeight: viewMode === 'table' ? 600 : 500,
+                cursor: 'pointer',
+              }}
+            >
+              <LayoutList size={13} />
+              <span>Tabela</span>
+            </button>
+            <button
+              onClick={() => setViewMode('pipeline')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 10px',
+                border: 'none',
+                borderRadius: 4,
+                backgroundColor: viewMode === 'pipeline' ? '#FFFFFF' : 'transparent',
+                color: viewMode === 'pipeline' ? '#17181A' : '#667085',
+                fontSize: '0.75rem',
+                fontWeight: viewMode === 'pipeline' ? 600 : 500,
+                cursor: 'pointer',
+              }}
+            >
+              <Columns size={13} />
+              <span>Por status</span>
+            </button>
+          </div>
+
+          <button
+            onClick={() => setShowForm(true)}
+            className="balcao-btn-primary"
+            style={{ height: 34, fontSize: '0.8125rem' }}
+          >
+            <Plus size={15} />
+            <span>Cadastrar aparelho</span>
+          </button>
+        </div>
       </div>
+
+      {/* TABELA PADRÃO BALCÃO OS */}
+      {viewMode === 'table' && (
+        <div className="balcao-card" style={{ overflow: 'hidden' }}>
+          <table className="balcao-table">
+            <thead>
+              <tr>
+                <th>Aparelho</th>
+                <th>IMEI / Série</th>
+                <th>Classificação</th>
+                <th style={{ textAlign: 'right' }}>Preço Custo</th>
+                <th style={{ textAlign: 'right' }}>Preço Venda</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDevices.map(dev => (
+                <tr key={dev.id || dev.imei}>
+                  <td>
+                    <div style={{ fontWeight: 600, color: '#17181A' }}>{dev.model}</div>
+                    <div style={{ fontSize: '0.6875rem', color: '#667085' }}>{dev.storage} • {dev.color}</div>
+                  </td>
+                  <td>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#17181A' }}>{dev.imei}</span>
+                  </td>
+                  <td>
+                    <span className={`status-chip ${dev.condition === 'new_sealed' ? 'status-available' : 'status-waiting'}`}>
+                      {dev.condition === 'new_sealed' ? 'Lacrado' : `Seminovo ${dev.batteryHealth ? `${dev.batteryHealth}%` : ''}`}
+                    </span>
+                  </td>
+                  <td className="text-financial" style={{ fontSize: '0.8125rem', color: '#667085' }}>
+                    R$ {Number(dev.purchasePrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="text-financial" style={{ fontSize: '0.875rem', color: '#17181A' }}>
+                    R$ {Number(dev.sellPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td>
+                    <span className="status-chip status-available">
+                      {dev.status === 'available' ? 'Disponível' : dev.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* PIPELINE VIEW */}
+      {viewMode === 'pipeline' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {[
+            { id: 'available', title: 'Disponível', color: '#16A34A', list: filteredDevices.filter(d => d.status === 'available') },
+            { id: 'reserved', title: 'Reservado', color: '#2563EB', list: filteredDevices.filter(d => d.status === 'reserved') },
+            { id: 'sold', title: 'Vendido', color: '#667085', list: filteredDevices.filter(d => d.status === 'sold') },
+          ].map(col => (
+            <div key={col.id} style={{ backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 8, padding: 12, minHeight: 320 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #E5E7EB' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: col.color }} />
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A' }}>{col.title}</span>
+                </div>
+                <span style={{ fontSize: '0.6875rem', backgroundColor: '#FFFFFF', padding: '1px 6px', borderRadius: 10, border: '1px solid #E5E7EB', color: '#667085' }}>
+                  {col.list.length}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {col.list.map(d => (
+                  <div key={d.id} className="balcao-card" style={{ padding: 12 }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A' }}>{d.model}</div>
+                    <div style={{ fontSize: '0.6875rem', color: '#667085' }}>{d.storage} • {d.color}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, paddingTop: 6, borderTop: '1px solid #F3F4F6' }}>
+                      <span style={{ fontSize: '0.6875rem', color: '#667085' }}>Bateria: {d.batteryHealth || 90}%</span>
+                      <span className="tabular-nums" style={{ fontSize: '0.8125rem', fontWeight: 700 }}>R$ {d.sellPrice}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* MODAL DE CADASTRO */}
+      {showForm && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 80,
+          padding: 20,
+        }}>
+          <div className="balcao-card animate-fade-in" style={{ width: '100%', maxWidth: 540, padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#17181A', margin: 0 }}>Novo Aparelho</h3>
+              <button onClick={() => setShowForm(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#667085' }}>
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveDevice} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>Modelo</label>
+                  <input
+                    type="text"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    required
+                    style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>Capacidade</label>
+                  <input
+                    type="text"
+                    value={storage}
+                    onChange={(e) => setStorage(e.target.value)}
+                    required
+                    style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>IMEI (15 dígitos)</label>
+                  <input
+                    type="text"
+                    value={imei}
+                    onChange={(e) => setImei(e.target.value)}
+                    required
+                    style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', fontFamily: 'monospace', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>Cor</label>
+                  <input
+                    type="text"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    required
+                    style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>Custo (R$)</label>
+                  <input
+                    type="number"
+                    value={purchasePrice}
+                    onChange={(e) => setPurchasePrice(Number(e.target.value))}
+                    required
+                    style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#16A34A' }}>Preço Venda (R$)</label>
+                  <input
+                    type="number"
+                    value={sellPrice}
+                    onChange={(e) => setSellPrice(Number(e.target.value))}
+                    required
+                    style={{ width: '100%', backgroundColor: '#F0FDF4', border: '1px solid #DCFCE7', borderRadius: 6, padding: '7px 10px', fontSize: '0.875rem', fontWeight: 600, color: '#16A34A', outline: 'none', marginTop: 4 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, borderTop: '1px solid #E5E7EB', paddingTop: 14, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  style={{ background: 'transparent', border: 'none', color: '#667085', fontSize: '0.8125rem', cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="balcao-btn-primary">
+                  Salvar Aparelho
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
