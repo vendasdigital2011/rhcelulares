@@ -10,17 +10,23 @@ import {
   CheckCircle2,
   ExternalLink,
   Save,
+  Trash2,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import type { StoreSettings, CardMachineConfig } from '../../types.js';
-import { fetchStoreSettings, updateStoreSettingsApi } from '../../api/erpApi.js';
+import { fetchStoreSettings, updateStoreSettingsApi, resetAllFictitiousDataApi } from '../../api/erpApi.js';
 
-type SettingsTab = 'store_data' | 'card_machines' | 'terms' | 'customers';
+type SettingsTab = 'store_data' | 'card_machines' | 'terms' | 'customers' | 'data_management';
 
 export const StoreSettingsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('store_data');
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetMessage, setResetMessage] = useState<{ success: boolean; text: string } | null>(null);
 
   // Formulário Dados da Loja
   const [storeName, setStoreName] = useState('');
@@ -128,6 +134,31 @@ export const StoreSettingsView: React.FC = () => {
     }
   };
 
+  const handleExecuteReset = async () => {
+    setIsResetting(true);
+    setResetMessage(null);
+    try {
+      const res = await resetAllFictitiousDataApi();
+      setResetMessage({
+        success: res.success,
+        text: res.message,
+      });
+      if (res.success) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      }
+    } catch (err: any) {
+      setResetMessage({
+        success: false,
+        text: err?.message || 'Falha ao processar o reset dos dados.',
+      });
+    } finally {
+      setIsResetting(false);
+      setResetModalOpen(false);
+    }
+  };
+
   if (loading || !settings) {
     return (
       <div style={{ padding: 48, textAlign: 'center', color: '#94a3b8' }}>
@@ -158,6 +189,7 @@ export const StoreSettingsView: React.FC = () => {
           { id: 'card_machines', label: 'Maquininhas e taxas', icon: CreditCard },
           { id: 'terms', label: 'Termos de venda', icon: FileText },
           { id: 'customers', label: 'Clientes', icon: Users },
+          { id: 'data_management', label: 'Zerar Dados Fictícios', icon: Trash2 },
         ].map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -691,6 +723,186 @@ export const StoreSettingsView: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* ABA 5: ZERAR DADOS FICTÍCIOS / LIMPEZA DE BASE */}
+      {activeTab === 'data_management' && (
+        <div style={{ background: '#0d121f', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 12, padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+              <Trash2 size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f8fafc' }}>Zerar Dados Fictícios & Limpar Cache</h3>
+              <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                Limpe todo o estoque de teste, movimentações fictícias, vendas e ordens de serviço para iniciar a operação real da loja com base limpa.
+              </p>
+            </div>
+          </div>
+
+          {resetMessage && (
+            <div style={{ 
+              padding: '14px 18px', 
+              marginBottom: 20, 
+              borderRadius: 10, 
+              background: resetMessage.success ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              border: `1px solid ${resetMessage.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              color: resetMessage.success ? '#10b981' : '#ef4444',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}>
+              {resetMessage.success ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+              <span>{resetMessage.text} {resetMessage.success && '(Recarregando sistema em instantes...)'}</span>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: 10, padding: 16 }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <Trash2 size={14} />
+                <span>O que será ZERADO:</span>
+              </div>
+              <ul style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0, paddingLeft: 18, lineHeight: 1.8 }}>
+                <li>Aparelhos em estoque (iPhones de demonstração)</li>
+                <li>Vendas, itens vendidos e histórico do PDV</li>
+                <li>Ordens de serviço e laudos técnicos de teste</li>
+                <li>Clientes e contatos fictícios</li>
+                <li>Garantias emitidas e retornos de bancada</li>
+                <li>Peças de reposição, produtos e compras de teste</li>
+                <li>Lançamentos financeiros, contas a pagar e a receber fictícias</li>
+                <li>Leads e tarefas de demonstração do CRM</li>
+                <li>Cache local do navegador (localStorage)</li>
+              </ul>
+            </div>
+
+            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: 10, padding: 16 }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#10b981', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <ShieldCheck size={14} />
+                <span>O que será PRESERVADO:</span>
+              </div>
+              <ul style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0, paddingLeft: 18, lineHeight: 1.8 }}>
+                <li>Usuários cadastrados e logins de acesso (Robson, Hiago, Rafael, etc.)</li>
+                <li>Permissões e senhas/PINs dos usuários</li>
+                <li>Configurações cadastrais da loja (nome, CNPJ, telefone, endereço)</li>
+                <li>Taxas e maquininhas de cartão configuradas</li>
+                <li>Termos de garantia jurídicos personalizados</li>
+                <li>Conexão segura com o banco de dados Supabase</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            <button
+              onClick={() => setResetModalOpen(true)}
+              disabled={isResetting}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '11px 22px',
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                cursor: isResetting ? 'not-allowed' : 'pointer',
+                opacity: isResetting ? 0.7 : 1,
+                boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {isResetting ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              <span>{isResetting ? 'Zerando base de dados...' : 'Zerar Todos os Dados Fictícios'}</span>
+            </button>
+            <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+              Uma janela de confirmação de segurança será exibida antes de prosseguir.
+            </span>
+          </div>
+
+          {/* MODAL DE CONFIRMAÇÃO DE SEGURANÇA */}
+          {resetModalOpen && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.8)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 20,
+            }}>
+              <div style={{
+                background: '#0d121f',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 16,
+                maxWidth: 480,
+                width: '100%',
+                padding: 28,
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+                    <AlertTriangle size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc' }}>Confirmar Limpeza Total?</h3>
+                    <p style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Esta ação é irreversível.</p>
+                  </div>
+                </div>
+
+                <p style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.6, marginBottom: 20 }}>
+                  Você está prestes a <strong style={{ color: '#ef4444' }}>zerar todos os dados fictícios</strong> (aparelhos de teste, histórico de vendas do PDV, ordens de serviço, clientes e lançamentos financeiros). 
+                  Seus dados de login e usuários continuarão intactos.
+                </p>
+
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setResetModalOpen(false)}
+                    disabled={isResetting}
+                    style={{
+                      padding: '10px 18px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: '#94a3b8',
+                      borderRadius: 8,
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleExecuteReset}
+                    disabled={isResetting}
+                    style={{
+                      padding: '10px 20px',
+                      background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 8,
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      cursor: isResetting ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    {isResetting ? <RefreshCw size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                    <span>{isResetting ? 'Limpando...' : 'Sim, Zerar Tudo Agora'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
+

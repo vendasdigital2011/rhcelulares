@@ -1,68 +1,7 @@
 import { supabase } from '../services/supabaseClient.js';
 import type { InventoryMovement } from '../types.js';
 
-const INITIAL_MOVEMENTS: InventoryMovement[] = [
-  {
-    id: 'mov-1',
-    itemType: 'device',
-    itemId: '356984112094832',
-    itemName: 'iPhone 13 128GB Meia-noite',
-    movementType: 'inflow_purchase',
-    quantity: 1,
-    previousStock: 0,
-    newStock: 1,
-    unitCost: 2150.00,
-    reason: 'Entrada via compra de lote Alpha SP',
-    referenceId: 'CP-1082',
-    operatorName: 'Hiago',
-    createdAt: '2026-03-10 10:15',
-  },
-  {
-    id: 'mov-2',
-    itemType: 'product',
-    itemId: 'CAP-MAG-1314',
-    itemName: 'Capa Magnética MagSafe Silicone iPhone 13/14',
-    movementType: 'inflow_purchase',
-    quantity: 30,
-    previousStock: 4,
-    newStock: 34,
-    unitCost: 22.00,
-    reason: 'Reposição de estoque semanal',
-    referenceId: 'NF-49102',
-    operatorName: 'Hiago',
-    createdAt: '2026-03-11 14:30',
-  },
-  {
-    id: 'mov-3',
-    itemType: 'part',
-    itemId: 'PEC-DISP-13',
-    itemName: 'Tela Frontal OLED iPhone 13 (True Tone Ativo)',
-    movementType: 'inflow_purchase',
-    quantity: 5,
-    previousStock: 1,
-    newStock: 6,
-    unitCost: 240.00,
-    reason: 'Entrada de peças Fox Parts',
-    referenceId: 'PED-8912',
-    operatorName: 'Hiago',
-    createdAt: '2026-03-12 09:45',
-  },
-  {
-    id: 'mov-4',
-    itemType: 'device',
-    itemId: '352918273645019',
-    itemName: 'iPhone 12 64GB Azul',
-    movementType: 'outflow_sale',
-    quantity: 1,
-    previousStock: 1,
-    newStock: 0,
-    unitCost: 1550.00,
-    reason: 'Venda de balcão VD-2089',
-    referenceId: 'VD-2089',
-    operatorName: 'Operador Balcão',
-    createdAt: '2026-03-13 16:20',
-  },
-];
+const INITIAL_MOVEMENTS: InventoryMovement[] = [];
 
 export class MovementRepository {
   private static localMovements: InventoryMovement[] = [...INITIAL_MOVEMENTS];

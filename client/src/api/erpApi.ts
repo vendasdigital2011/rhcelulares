@@ -647,3 +647,83 @@ export async function fetchAIRecommendationsApi(leads: any[]) {
   return LeadRepository.getAIRecommendations(leads);
 }
 
+// 12. LIMPEZA & RESET COMPLETO DE DADOS FICTÍCIOS
+export async function resetAllFictitiousDataApi(): Promise<{ success: boolean; message: string }> {
+  try {
+    // 1. Limpa todas as chaves de dados no localStorage (mantendo auth e dados de usuário)
+    const keysToRemove = [
+      'crm_hiago_leads',
+      'hiago_crm_leads',
+      'hiago_financial_accounts',
+      'hiago_financial_bills_pay',
+      'hiago_financial_bills_receive',
+      'hiago_financial_transactions',
+      'hiago_bills_to_pay',
+      'hiago_bills_to_receive',
+      'hiago_timecard_records',
+      'hiago_timecard_adjustments',
+      'hiago_commission_records',
+      'hiago_fi_decisions',
+      'hiago_fi_analysis',
+      'hiago_devices',
+      'hiago_sales',
+      'hiago_customers',
+      'hiago_service_orders',
+      'hiago_warranties',
+      'hiago_warranty_claims',
+      'hiago_products',
+      'hiago_parts',
+      'hiago_suppliers',
+      'hiago_phone_purchases',
+      'hiago_inventory_movements',
+    ];
+
+    for (const key of keysToRemove) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.warn('Erro ao remover chave localStorage:', key, e);
+      }
+    }
+
+    // 2. Se Supabase estiver configurado, deleta registros das tabelas operacionais
+    if (isSupabaseConfigured) {
+      const { supabase } = await import('../services/supabaseClient.js');
+      const tablesToClean = [
+        'sale_items',
+        'sales',
+        'devices',
+        'service_orders',
+        'customers',
+        'warranties',
+        'warranty_claims',
+        'phone_purchases',
+        'inventory_movements',
+        'bills_to_pay',
+        'bills_to_receive',
+        'financial_transactions',
+        'timecard_records',
+      ];
+
+      for (const table of tablesToClean) {
+        try {
+          await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        } catch {
+          // ignora tabelas que não existem no banco
+        }
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Todos os dados fictícios foram zerados com sucesso no banco e no cache local!'
+    };
+  } catch (error: any) {
+    console.error('Erro ao resetar dados fictícios:', error);
+    return {
+      success: false,
+      message: error?.message || 'Falha ao zerar dados fictícios.',
+    };
+  }
+}
+

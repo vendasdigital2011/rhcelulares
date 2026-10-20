@@ -1,56 +1,7 @@
 import { supabase } from '../services/supabaseClient.js';
 import type { Supplier } from '../types.js';
 
-const INITIAL_SUPPLIERS: Supplier[] = [
-  {
-    id: 'forn-1',
-    type: 'pj',
-    name: 'Distribuidora Alpha SP Ltda',
-    tradeName: 'Alpha SP',
-    document: '12.345.678/0001-90',
-    phone: '(11) 98765-4321',
-    email: 'vendas@alphasp.com.br',
-    city: 'São Paulo - SP',
-    contactPerson: 'Rodrigo Vendas',
-    categories: ['iPhones Novos', 'Seminovos Grade A'],
-    paymentTerms: '30 dias boleto',
-    notes: 'Fornecedor principal de aparelhos novos e lacrados.',
-    status: 'active',
-    createdAt: '2026-01-15',
-  },
-  {
-    id: 'forn-2',
-    type: 'pj',
-    name: 'Miami Tech Importadora e Comércio',
-    tradeName: 'Miami Tech',
-    document: '98.765.432/0001-11',
-    phone: '(19) 99123-9876',
-    email: 'contato@miamitech.com',
-    city: 'Campinas - SP',
-    contactPerson: 'Carlos Import',
-    categories: ['Seminovos Swap', 'Vitrine'],
-    paymentTerms: 'À vista PIX c/ 3% desconto',
-    notes: 'Excelente para reposição de iPhone 12, 13 e 14 seminovos.',
-    status: 'active',
-    createdAt: '2026-02-10',
-  },
-  {
-    id: 'forn-3',
-    type: 'pj',
-    name: 'Fox Parts Distribuidora de Componentes',
-    tradeName: 'Fox Parts',
-    document: '45.678.901/0001-22',
-    phone: '(11) 97654-1234',
-    email: 'pedidos@foxparts.com.br',
-    city: 'São Paulo - SP',
-    contactPerson: 'Julio Peças',
-    categories: ['Telas OLED', 'Baterias Originais', 'Conectores'],
-    paymentTerms: '14/28 dias no boleto',
-    notes: 'Fornecedor de telas premium True Tone e baterias com chip.',
-    status: 'active',
-    createdAt: '2026-03-01',
-  },
-];
+const INITIAL_SUPPLIERS: Supplier[] = [];
 
 export class SupplierRepository {
   private static localSuppliers: Supplier[] = [...INITIAL_SUPPLIERS];

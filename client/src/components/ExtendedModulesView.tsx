@@ -30,11 +30,7 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
 
   // 1. COMPRA DE TELEFONE (TRADE-IN & USADOS)
   if (tab === 'phone_purchases') {
-    const mockPurchases = [
-      { id: 'cp-1', date: '12/10/2026', customer: 'Marcos Vinicius', model: 'iPhone 13 128GB', imei: '358920192837482', battery: 86, evaluation: 2200, status: 'approved', hasContract: true },
-      { id: 'cp-2', date: '10/10/2026', customer: 'Ana Beatriz Souza', model: 'iPhone 12 64GB', imei: '354819203948192', battery: 82, evaluation: 1550, status: 'approved', hasContract: true },
-      { id: 'cp-3', date: '08/10/2026', customer: 'Felipe Santana', model: 'iPhone 14 Pro 128GB', imei: '351928374650123', battery: 91, evaluation: 3600, status: 'in_review', hasContract: false },
-    ];
+    const mockPurchases: any[] = [];
 
     return (
       <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -110,7 +106,13 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {mockPurchases.map((cp) => (
+              {mockPurchases.length === 0 ? (
+                <tr>
+                  <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                    Nenhum aparelho comprado ou em avaliação no momento.
+                  </td>
+                </tr>
+              ) : mockPurchases.map((cp) => (
                 <tr key={cp.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
                   <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{cp.date}</td>
                   <td style={{ padding: '14px 18px', fontWeight: 600 }}>{cp.customer}</td>
@@ -239,14 +241,7 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
 
   // 3. PEÇAS DE REPARO
   if (tab === 'parts') {
-    const mockParts = [
-      { id: 'pc-1', name: 'Tela Frontal OLED iPhone 13 (True Tone)', category: 'Display', stock: 6, minStock: 2, cost: 240, sale: 650 },
-      { id: 'pc-2', name: 'Tela Frontal Incell iPhone 11', category: 'Display', stock: 8, minStock: 3, cost: 95, sale: 320 },
-      { id: 'pc-3', name: 'Bateria Foxconn c/ Flex iPhone 12 (100% Saúde)', category: 'Bateria', stock: 12, minStock: 4, cost: 65, sale: 280 },
-      { id: 'pc-4', name: 'Bateria Foxconn c/ Flex iPhone 13', category: 'Bateria', stock: 5, minStock: 3, cost: 85, sale: 320 },
-      { id: 'pc-5', name: 'Conector de Carga Lightning iPhone 13 Pro', category: 'Conector', stock: 4, minStock: 2, cost: 45, sale: 250 },
-      { id: 'pc-6', name: 'Módulo Câmera Traseira iPhone 14', category: 'Câmera', stock: 2, minStock: 2, cost: 280, sale: 750 },
-    ];
+    const mockParts: any[] = [];
 
     return (
       <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -298,7 +293,13 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {mockParts.map((pc) => (
+              {mockParts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                    Nenhuma peça cadastrada no momento.
+                  </td>
+                </tr>
+              ) : mockParts.map((pc) => (
                 <tr key={pc.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', color: '#f8fafc' }}>
                   <td style={{ padding: '14px 18px', fontWeight: 700 }}>{pc.name}</td>
                   <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{pc.category}</td>
@@ -328,11 +329,7 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
 
   // 4. FORNECEDORES
   if (tab === 'suppliers') {
-    const mockSuppliers = [
-      { id: 'forn-1', name: 'Distribuidora Alpha SP', contact: 'Rodrigo Vendas', phone: '+55 11 98765-4321', type: 'iPhones Novos e Lacrados', city: 'São Paulo - SP' },
-      { id: 'forn-2', name: 'Miami Tech Importadora', contact: 'Carlos Import', phone: '+55 11 99123-9876', type: 'Seminovos Grade A / Swap', city: 'Campinas - SP' },
-      { id: 'forn-3', name: 'Fox Parts Distribuição', contact: 'Julio Peças', phone: '+55 11 97654-1234', type: 'Telas e Baterias Originais', city: 'São Paulo - SP' },
-    ];
+    const mockSuppliers: any[] = [];
 
     return (
       <div style={{ padding: '24px 32px', maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -371,7 +368,11 @@ export const ExtendedModulesView: React.FC<ExtendedModulesViewProps> = ({
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
-          {mockSuppliers.map((forn) => (
+          {mockSuppliers.length === 0 ? (
+            <div style={{ gridColumn: '1 / -1', padding: '36px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem', background: '#0d121f', borderRadius: 12, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+              Nenhum fornecedor cadastrado no momento.
+            </div>
+          ) : mockSuppliers.map((forn) => (
             <div key={forn.id} style={{ background: '#0d121f', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, padding: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(249, 115, 22, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}>
