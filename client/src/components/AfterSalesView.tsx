@@ -84,8 +84,8 @@ export const AfterSalesView: React.FC<AfterSalesViewProps> = ({
           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>
             Receita potencial estimada
           </div>
-          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#16A34A', marginTop: 6 }}>
-            R$ 8.940,00
+          <div className="tabular-nums" style={{ fontSize: '1.5rem', fontWeight: 700, color: pendingCount > 0 ? '#16A34A' : '#17181A', marginTop: 6 }}>
+            R$ {(pendingCount * 1490).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
           <div style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4 }}>
             Upgrade de aparelhos + vendas cruzadas de acessórios

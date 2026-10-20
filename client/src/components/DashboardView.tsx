@@ -25,6 +25,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   sales,
   isCashOpen = true,
   onNavigate,
+  onOpenNewDevice,
   onQuickNewSale,
 }) => {
   const [periodFilter, setPeriodFilter] = useState<'today' | '7d' | '30d' | 'month'>('today');
@@ -33,9 +34,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const totalSales = sales.reduce((acc, curr) => acc + (curr.total || 0), 0);
   const salesCount = sales.length;
 
-  // Vendas de hoje (estimadas/filtradas)
-  const todaySalesValue = totalSales > 0 ? totalSales : 8420;
-  const todaySalesCount = salesCount > 0 ? salesCount : 12;
+  // Vendas de hoje (reais)
+  const todaySalesValue = totalSales;
+  const todaySalesCount = salesCount;
 
   // Aparelhos disponíveis
   const availableDevices = devices.filter(d => d.status === 'available');
@@ -45,99 +46,74 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const activeOS = serviceOrders.filter(os => os.status !== 'delivered');
   const overdueOS = serviceOrders.filter(os => os.status === 'diagnosing' || os.status === 'waiting_parts');
 
-  // Fila de Ação com dados estruturados da operação
-  const actionItems = [
-    {
-      id: 'act-1',
-      tag: 'O.S. #1024',
+  // Fila de Ação com dados reais da operação
+  const actionItems: Array<{
+    id: string;
+    tag: string;
+    badgeClass: string;
+    description: string;
+    time: string;
+    targetTab: string;
+    actionLabel: string;
+    phone?: string;
+    isWhatsApp?: boolean;
+    message?: string;
+  }> = [];
+
+  overdueOS.forEach(os => {
+    actionItems.push({
+      id: `os-${os.id}`,
+      tag: `O.S. #${os.osNumber || os.id}`,
       badgeClass: 'status-maintenance',
-      description: 'Cliente aguarda aprovação de orçamento há 48h (iPhone 13 - Display)',
-      time: 'Há 2 dias',
+      description: `Cliente ${os.customerName || 'Cliente'}: ${os.deviceModel || 'Aparelho'} - ${os.reportedIssue || 'Em análise'}`,
+      time: 'Pendente',
       targetTab: 'service_order',
-      actionLabel: 'Abrir O.S.',
-    },
-    {
-      id: 'act-2',
-      tag: 'iPhone 14 Pro',
+      actionLabel: 'Ver O.S.',
+    });
+  });
+
+  devices.filter(d => d.status === 'reserved').forEach(d => {
+    actionItems.push({
+      id: `dev-${d.id}`,
+      tag: `${d.model}`,
       badgeClass: 'status-reserved',
-      description: 'Reserva no balcão expira hoje às 18:00 (Cliente: Marcos Paulo)',
-      time: 'Expira hoje',
+      description: `Aparelho reservado no balcão (${d.imei ? 'IMEI: ' + d.imei : 'Estoque'})`,
+      time: 'Reservado',
       targetTab: 'checkout',
-      actionLabel: 'Ver venda',
-    },
-    {
-      id: 'act-3',
-      tag: 'Cliente Rodrigo Silveira',
-      badgeClass: 'status-available',
-      description: 'Elegível para trade-in: iPhone 12 comprado há 18 meses (Saúde 79%)',
-      time: 'Ciclo ideal',
-      phone: '5577981447719',
-      actionLabel: 'Enviar WhatsApp',
-      isWhatsApp: true,
-      message: 'Olá Rodrigo! Tudo bem? Aqui é da Hiago iPhones. Seu iPhone 12 completou 18 meses e temos condições especiais de troca com avaliação imediata para a linha iPhone 14/15!',
-    },
-    {
-      id: 'act-4',
-      tag: 'O.S. #1019',
-      badgeClass: 'status-maintenance',
-      description: 'Peça técnica em trânsito do fornecedor TechParts (Bateria 11 Pro)',
-      time: 'Previsão hoje',
-      targetTab: 'service_order',
-      actionLabel: 'Verificar rastreio',
-    },
-  ];
+      actionLabel: 'Ver PDV',
+    });
+  });
 
-  // Oportunidades de Recompra estruturadas (sem texto prolixo de IA)
-  const repurchaseOpportunities = [
-    {
-      clientName: 'Rodrigo Silveira',
-      phone: '5577981447719',
-      lastPurchase: 'Há 18 meses',
-      currentDevice: 'iPhone 12 128GB Black',
-      estimatedLTV: 'R$ 6.800,00',
-      tradeInValue: 'R$ 1.950,00',
-      recommendedUpgrade: 'iPhone 14 128GB',
-      suggestion: 'Upgrade de geração com trade-in facilitado',
-    },
-    {
-      clientName: 'Juliana Mendes',
-      phone: '5577981223344',
-      lastPurchase: 'Há 12 meses',
-      currentDevice: 'iPhone 13 128GB Estelar',
-      estimatedLTV: 'R$ 5.400,00',
-      tradeInValue: 'R$ 2.600,00',
-      recommendedUpgrade: 'iPhone 15 128GB',
-      suggestion: 'Troca anual recomendada antes da desvalorização',
-    },
-    {
-      clientName: 'Carlos Eduardo',
-      phone: '5577999887766',
-      lastPurchase: 'Há 24 meses',
-      currentDevice: 'iPhone 11 64GB White',
-      estimatedLTV: 'R$ 4.200,00',
-      tradeInValue: 'R$ 1.250,00',
-      recommendedUpgrade: 'iPhone 13 128GB',
-      suggestion: 'Aparelho antigo com bateria degradada (76%)',
-    },
-    {
-      clientName: 'Fernanda Rocha',
-      phone: '5577988776655',
-      lastPurchase: 'Há 6 meses',
-      currentDevice: 'iPhone 14 Pro 256GB',
-      estimatedLTV: 'R$ 7.900,00',
-      tradeInValue: 'R$ 4.300,00',
-      recommendedUpgrade: 'Apple Watch Ultra ou AirPods Pro',
-      suggestion: 'Cross-sell de acessórios premium para ecossistema',
-    },
-  ];
+  // Oportunidades de Recompra baseadas em dados reais
+  const repurchaseOpportunities: Array<{
+    clientName: string;
+    phone: string;
+    lastPurchase: string;
+    currentDevice: string;
+    estimatedLTV: string;
+    tradeInValue: string;
+    recommendedUpgrade: string;
+    suggestion: string;
+  }> = [];
 
-  // Evolução semanal do resultado comercial
-  const weeklyPerformance = [
-    { week: 'Semana 1', sales: 18, revenue: 38400, margin: 31.4, ticket: 2133 },
-    { week: 'Semana 2', sales: 24, revenue: 52100, margin: 29.8, ticket: 2170 },
-    { week: 'Semana 3', sales: 21, revenue: 46800, margin: 32.1, ticket: 2228 },
-    { week: 'Semana 4 (Atual)', sales: 16, revenue: 34900, margin: 30.5, ticket: 2181 },
-  ];
+  // Evolução semanal do resultado comercial (dinâmica)
+  const weeklyPerformance: Array<{
+    week: string;
+    sales: number;
+    revenue: number;
+    margin: number;
+    ticket: number;
+  }> = sales.length > 0
+    ? [
+        {
+          week: 'Semana Atual',
+          sales: salesCount,
+          revenue: totalSales,
+          margin: 30.0,
+          ticket: salesCount > 0 ? Math.round(totalSales / salesCount) : 0,
+        },
+      ]
+    : [];
 
   const handleOpenWhatsApp = (phone: string, msg: string) => {
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -191,10 +167,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
               R$ {todaySalesValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: '#16A34A', fontWeight: 500 }}>
-              <span>↑ 12,4% vs. dia anterior</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: todaySalesCount > 0 ? '#16A34A' : 'var(--text-secondary)', fontWeight: 500 }}>
+              <span>{todaySalesCount > 0 ? `${todaySalesCount} vendas concluídas` : 'Sem vendas no período'}</span>
               <span style={{ color: '#98A2B3' }}>•</span>
-              <span style={{ color: 'var(--text-secondary)' }}>{todaySalesCount} vendas concluídas</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Filtro: {periodFilter === 'today' ? 'Hoje' : periodFilter === '7d' ? '7 dias' : periodFilter === '30d' ? '30 dias' : 'Este mês'}</span>
             </div>
           </div>
 
@@ -204,7 +180,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Caixa esperado do dia
             </div>
             <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
-              R$ 2.180,00
+              R$ {todaySalesValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
               <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', backgroundColor: isCashOpen ? '#16A34A' : '#DC2626' }} />
@@ -222,11 +198,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Ordens de serviço
             </div>
             <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
-              {activeOS.length > 0 ? activeOS.length : 8} em andamento
+              {activeOS.length} em andamento
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: '#D97706', fontWeight: 500 }}>
-              <AlertCircle size={13} color="#D97706" />
-              <span>{overdueOS.length > 0 ? overdueOS.length : 3} O.S. requerem atenção</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: overdueOS.length > 0 ? '#D97706' : 'var(--text-secondary)', fontWeight: 500 }}>
+              {overdueOS.length > 0 ? (
+                <>
+                  <AlertCircle size={13} color="#D97706" />
+                  <span>{overdueOS.length} O.S. requerem atenção</span>
+                </>
+              ) : (
+                <span>Nenhuma O.S. com pendência</span>
+              )}
             </div>
           </div>
 
@@ -236,12 +218,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Aparelhos em estoque
             </div>
             <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
-              {availableDevices.length > 0 ? availableDevices.length : 34} unidades
+              {availableDevices.length} unidades
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
               <span>Patrimônio:</span>
               <span style={{ fontWeight: 600, color: 'var(--text-main)' }} className="tabular-nums">
-                R$ {(inventoryValue > 0 ? inventoryValue : 124800).toLocaleString('pt-BR')}
+                R$ {inventoryValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -276,57 +258,68 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div className="balcao-card" style={{ overflow: 'hidden' }}>
-          {actionItems.map((item, idx) => (
-            <div
-              key={item.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 18px',
-                borderBottom: idx === actionItems.length - 1 ? 'none' : '1px solid var(--border-default)',
-                backgroundColor: 'var(--surface-bg)',
-                transition: 'background-color 0.1s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-                <span className={`status-chip ${item.badgeClass}`} style={{ whiteSpace: 'nowrap' }}>
-                  {item.tag}
-                </span>
-                <span style={{ fontSize: '0.875rem', color: 'var(--text-main)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {item.description}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  {item.time}
-                </span>
-
-                {item.isWhatsApp ? (
-                  <button
-                    onClick={() => handleOpenWhatsApp(item.phone!, item.message!)}
-                    className="balcao-btn-primary"
-                    style={{ height: 32, fontSize: '0.8125rem', padding: '0 12px' }}
-                  >
-                    <MessageCircle size={14} />
-                    <span>{item.actionLabel}</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onNavigate(item.targetTab)}
-                    className="balcao-btn-secondary"
-                    style={{ height: 32, fontSize: '0.8125rem', padding: '0 12px' }}
-                  >
-                    <span>{item.actionLabel}</span>
-                    <ChevronRight size={14} color="var(--text-secondary)" />
-                  </button>
-                )}
-              </div>
+          {actionItems.length === 0 ? (
+            <div style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: 'var(--surface-bg)' }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
+                Nenhuma pendência operacional no momento
+              </p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                Todas as ordens de serviço, orçamentos e reservas de balcão estão em dia.
+              </p>
             </div>
-          ))}
+          ) : (
+            actionItems.map((item, idx) => (
+              <div
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 18px',
+                  borderBottom: idx === actionItems.length - 1 ? 'none' : '1px solid var(--border-default)',
+                  backgroundColor: 'var(--surface-bg)',
+                  transition: 'background-color 0.1s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                  <span className={`status-chip ${item.badgeClass}`} style={{ whiteSpace: 'nowrap' }}>
+                    {item.tag}
+                  </span>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--text-main)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.description}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {item.time}
+                  </span>
+
+                  {item.isWhatsApp ? (
+                    <button
+                      onClick={() => handleOpenWhatsApp(item.phone!, item.message!)}
+                      className="balcao-btn-primary"
+                      style={{ height: 32, fontSize: '0.8125rem', padding: '0 12px' }}
+                    >
+                      <MessageCircle size={14} />
+                      <span>{item.actionLabel}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => onNavigate(item.targetTab)}
+                      className="balcao-btn-secondary"
+                      style={{ height: 32, fontSize: '0.8125rem', padding: '0 12px' }}
+                    >
+                      <span>{item.actionLabel}</span>
+                      <ChevronRight size={14} color="var(--text-secondary)" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -346,10 +339,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-main)' }} className="tabular-nums">
-                R$ 172.200,00
+                R$ {totalSales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: 500 }}>
-                ↑ 18,2% no mês atual
+              <div style={{ fontSize: '0.75rem', color: salesCount > 0 ? '#16A34A' : 'var(--text-secondary)', fontWeight: 500 }}>
+                {salesCount > 0 ? `${salesCount} vendas no período` : 'Aguardando primeiras vendas'}
               </div>
             </div>
           </div>
@@ -366,21 +359,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {weeklyPerformance.map((row) => (
-                <tr key={row.week}>
-                  <td style={{ fontWeight: 500 }}>{row.week}</td>
-                  <td style={{ textAlign: 'right' }} className="tabular-nums">{row.sales} un</td>
-                  <td style={{ textAlign: 'right', fontWeight: 600 }} className="tabular-nums">
-                    R$ {row.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td style={{ textAlign: 'right' }} className="tabular-nums">
-                    <span style={{ color: '#16A34A', fontWeight: 500 }}>{row.margin}%</span>
-                  </td>
-                  <td style={{ textAlign: 'right' }} className="tabular-nums">
-                    R$ {row.ticket.toLocaleString('pt-BR')}
+              {weeklyPerformance.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
+                    Nenhuma venda registrada no período selecionado.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                weeklyPerformance.map((row) => (
+                  <tr key={row.week}>
+                    <td style={{ fontWeight: 500 }}>{row.week}</td>
+                    <td style={{ textAlign: 'right' }} className="tabular-nums">{row.sales} un</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }} className="tabular-nums">
+                      R$ {row.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ textAlign: 'right' }} className="tabular-nums">
+                      <span style={{ color: '#16A34A', fontWeight: 500 }}>{row.margin}%</span>
+                    </td>
+                    <td style={{ textAlign: 'right' }} className="tabular-nums">
+                      R$ {row.ticket.toLocaleString('pt-BR')}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </section>
@@ -397,22 +398,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
-            {/* Insight 1 */}
+            {/* Insight 1: Estoque */}
             <div style={{ padding: 12, border: '1px solid var(--border-default)', borderRadius: 6, backgroundColor: 'var(--surface-bg)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Giro de Estoque
+                  {availableDevices.length > 0 ? 'Catálogo Ativo' : 'Estoque Inicial'}
                 </span>
                 <span style={{ fontSize: '0.6875rem', color: '#98A2B3' }}>Estoque</span>
               </div>
               <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }}>
-                4 unidades de iPhone 13 128GB paradas há mais de 35 dias
+                {availableDevices.length > 0
+                  ? `${availableDevices.length} aparelhos disponíveis para venda`
+                  : 'Cadastre os primeiros aparelhos'}
               </div>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: '1.4' }}>
-                Preço médio atual R$ 3.200. Ofertar R$ 2.990 à vista no Pix para liberar R$ 11.960 de capital de giro.
+                {availableDevices.length > 0
+                  ? `Patrimônio atual em estoque avaliado em R$ ${inventoryValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`
+                  : 'Seu catálogo está pronto para receber o inventário físico com conferência de IMEI e saúde de bateria.'}
               </p>
               <button
-                onClick={() => onNavigate('inventory')}
+                onClick={availableDevices.length > 0 ? () => onNavigate('inventory') : onOpenNewDevice}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -427,31 +432,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   marginTop: 8,
                 }}
               >
-                <span>Ver estoque parado</span>
+                <span>{availableDevices.length > 0 ? 'Ver estoque' : 'Cadastrar aparelho'}</span>
                 <ChevronRight size={13} />
               </button>
             </div>
 
-            {/* Insight 2 */}
+            {/* Insight 2: Assistência Técnica & Vendas */}
             <div style={{ padding: 12, border: '1px solid var(--border-default)', borderRadius: 6, backgroundColor: 'var(--surface-bg)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Assistência Técnica
+                  Balcão & Vendas
                 </span>
-                <span style={{ fontSize: '0.6875rem', color: '#98A2B3' }}>Balcão</span>
+                <span style={{ fontSize: '0.6875rem', color: '#98A2B3' }}>Operação</span>
               </div>
               <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }}>
-                Alta demanda por troca de bateria iPhone 11 / 12
+                {salesCount > 0 ? `${salesCount} vendas realizadas` : 'Pronto para atendimento'}
               </div>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: '1.4' }}>
-                Margem de serviço de 68% com peças em estoque. Oportunidade de divulgar combo Bateria + Película 3D.
+                Realize vendas com trade-in, emita comprovantes térmicos e gerencie ordens de serviço de assistência técnica.
               </p>
               <button
-                onClick={() => onNavigate('service_order')}
+                onClick={() => {
+                  if (onQuickNewSale) onQuickNewSale();
+                  else onNavigate('checkout');
+                }}
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#2563EB',
+                  color: '#16A34A',
                   fontSize: '0.75rem',
                   fontWeight: 600,
                   display: 'inline-flex',
@@ -462,7 +470,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   marginTop: 8,
                 }}
               >
-                <span>Abrir O.S. de balcão</span>
+                <span>Abrir PDV de Balcão</span>
                 <ChevronRight size={13} />
               </button>
             </div>
@@ -470,7 +478,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </section>
       </div>
 
-      {/* 4. OPORTUNIDADES DE RECOMPRA (LISTA ACIONÁVEL, NÃO UM TEXTO LONGO GERADO POR IA) */}
+      {/* 4. OPORTUNIDADES DE RECOMPRA */}
       <section className="balcao-card" style={{ padding: '20px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
@@ -487,7 +495,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             className="balcao-btn-secondary"
             style={{ height: 32, fontSize: '0.8125rem', padding: '0 12px' }}
           >
-            <span>Ver funil no WhatsApp</span>
+            <span>Ver funil de clientes</span>
             <ExternalLink size={13} color="var(--text-secondary)" />
           </button>
         </div>
@@ -507,61 +515,69 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {repurchaseOpportunities.map((op) => (
-                <tr key={op.clientName}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{op.clientName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{op.suggestion}</div>
-                  </td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{op.lastPurchase}</td>
-                  <td>
-                    <span className="status-chip status-waiting">
-                      {op.currentDevice}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right', fontWeight: 500 }} className="tabular-nums">
-                    {op.estimatedLTV}
-                  </td>
-                  <td style={{ textAlign: 'right', fontWeight: 600, color: '#16A34A' }} className="tabular-nums">
-                    {op.tradeInValue}
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 500, color: '#2563EB' }}>
-                      {op.recommendedUpgrade}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: 6 }}>
-                      <button
-                        onClick={() =>
-                          handleOpenWhatsApp(
-                            op.phone,
-                            `Olá ${op.clientName}! Aqui é da Hiago iPhones. Seu ${op.currentDevice} está elegível para avaliação de trade-in por até ${op.tradeInValue} na troca pelo ${op.recommendedUpgrade}!`
-                          )
-                        }
-                        className="balcao-btn-secondary"
-                        style={{ height: 30, padding: '0 10px', fontSize: '0.75rem' }}
-                        title="Iniciar conversa no WhatsApp"
-                      >
-                        <MessageCircle size={13} color="#16A34A" />
-                        <span>WhatsApp</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          if (onQuickNewSale) onQuickNewSale();
-                          else onNavigate('checkout');
-                        }}
-                        className="balcao-btn-primary"
-                        style={{ height: 30, padding: '0 10px', fontSize: '0.75rem' }}
-                        title="Iniciar venda com trade-in no PDV"
-                      >
-                        <span>Nova Venda</span>
-                      </button>
-                    </div>
+              {repurchaseOpportunities.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
+                    Nenhuma oportunidade de recompra pendente no momento. As oportunidades serão geradas automaticamente conforme o histórico de compras for registrado.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                repurchaseOpportunities.map((op) => (
+                  <tr key={op.clientName}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{op.clientName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{op.suggestion}</div>
+                    </td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{op.lastPurchase}</td>
+                    <td>
+                      <span className="status-chip status-waiting">
+                        {op.currentDevice}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 500 }} className="tabular-nums">
+                      {op.estimatedLTV}
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 600, color: '#16A34A' }} className="tabular-nums">
+                      {op.tradeInValue}
+                    </td>
+                    <td>
+                      <span style={{ fontWeight: 500, color: '#2563EB' }}>
+                        {op.recommendedUpgrade}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: 6 }}>
+                        <button
+                          onClick={() =>
+                            handleOpenWhatsApp(
+                              op.phone,
+                              `Olá ${op.clientName}! Aqui é da Hiago iPhones. Seu ${op.currentDevice} está elegível para avaliação de trade-in por até ${op.tradeInValue} na troca pelo ${op.recommendedUpgrade}!`
+                            )
+                          }
+                          className="balcao-btn-secondary"
+                          style={{ height: 30, padding: '0 10px', fontSize: '0.75rem' }}
+                          title="Iniciar conversa no WhatsApp"
+                        >
+                          <MessageCircle size={13} color="#16A34A" />
+                          <span>WhatsApp</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (onQuickNewSale) onQuickNewSale();
+                            else onNavigate('checkout');
+                          }}
+                          className="balcao-btn-primary"
+                          style={{ height: 30, padding: '0 10px', fontSize: '0.75rem' }}
+                          title="Iniciar venda com trade-in no PDV"
+                        >
+                          <span>Nova Venda</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
