@@ -94,13 +94,22 @@ import type {
   OSQuoteServiceItem,
   OSQuotePartItem
 } from './types.js';
-import { Bell, Search, LifeBuoy, Plus, X } from 'lucide-react';
+import { Bell, Search, LifeBuoy, Plus, X, Sun, Moon, Laptop, Palette } from 'lucide-react';
+import { themeService, type ThemeMode } from './services/themeService.js';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<ERPNavTab>('dashboard');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [currentThemeMode, setCurrentThemeMode] = useState<ThemeMode>(() => themeService.getTheme().mode);
+
+  useEffect(() => {
+    const unsub = themeService.subscribe((cfg) => {
+      setCurrentThemeMode(cfg.mode);
+    });
+    return () => unsub();
+  }, []);
 
   const [devices, setDevices] = useState<Device[]>(INITIAL_DEVICES);
   const [accessories] = useState<Accessory[]>(INITIAL_ACCESSORIES);
@@ -527,7 +536,7 @@ export function App() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--canvas-bg)', color: 'var(--text-main)' }}>
       {/* MENU LATERAL COMPLETO DO BALCÃO PHONES */}
       <Sidebar
         activeTab={activeTab}
@@ -546,8 +555,8 @@ export function App() {
         <header
           style={{
             height: 52,
-            backgroundColor: '#FFFFFF',
-            borderBottom: '1px solid #E5E7EB',
+            backgroundColor: 'var(--header-bg)',
+            borderBottom: 'var(--border-width) solid var(--header-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -555,6 +564,7 @@ export function App() {
             position: 'sticky',
             top: 0,
             zIndex: 40,
+            transition: 'background-color var(--animation-duration) ease, border-color var(--animation-duration) ease',
           }}
         >
           {/* Busca Global à Esquerda */}
@@ -564,13 +574,13 @@ export function App() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                backgroundColor: '#F7F8FA',
-                border: '1px solid #E5E7EB',
-                borderRadius: 6,
+                backgroundColor: 'var(--surface-bg)',
+                border: 'var(--border-width) solid var(--border-default)',
+                borderRadius: 'var(--radius-sm)',
                 padding: '6px 10px',
               }}
             >
-              <Search size={14} color="#667085" />
+              <Search size={14} color="var(--text-secondary)" />
               <input
                 type="text"
                 placeholder="Busca global... (Ctrl+K)"
@@ -580,7 +590,7 @@ export function App() {
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  color: '#17181A',
+                  color: 'var(--text-main)',
                   fontSize: '0.8125rem',
                   width: '100%',
                 }}
@@ -588,7 +598,7 @@ export function App() {
               {globalSearchQuery ? (
                 <button
                   onClick={() => setGlobalSearchQuery('')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#98A2B3', display: 'flex' }}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex' }}
                 >
                   <X size={13} />
                 </button>
@@ -596,11 +606,11 @@ export function App() {
                 <span
                   style={{
                     fontSize: '0.6875rem',
-                    color: '#98A2B3',
-                    border: '1px solid #E5E7EB',
+                    color: 'var(--text-tertiary)',
+                    border: 'var(--border-width) solid var(--border-default)',
                     borderRadius: 4,
                     padding: '1px 5px',
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--surface-hover)',
                   }}
                 >
                   ⌘K
@@ -617,17 +627,17 @@ export function App() {
                   left: 0,
                   right: 0,
                   marginTop: 6,
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: 6,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                  backgroundColor: 'var(--surface-bg)',
+                  border: 'var(--border-width) solid var(--border-default)',
+                  borderRadius: 'var(--radius-sm)',
+                  boxShadow: 'var(--shadow-dropdown)',
                   zIndex: 50,
                   maxHeight: 320,
                   overflowY: 'auto',
                   padding: '6px 0',
                 }}
               >
-                <div style={{ padding: '6px 12px', fontSize: '0.6875rem', fontWeight: 600, color: '#667085', textTransform: 'uppercase' }}>
+                <div style={{ padding: '6px 12px', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                   Resultados Rápidos
                 </div>
 
@@ -647,14 +657,14 @@ export function App() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
-                      borderBottom: '1px solid #F3F4F6',
+                      borderBottom: 'var(--border-width) solid var(--border-subtle)',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <div>
-                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#17181A' }}>{dev.model}</div>
-                      <div style={{ fontSize: '0.6875rem', color: '#667085' }}>IMEI: {dev.imei || 'S/N'}</div>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-main)' }}>{dev.model}</div>
+                      <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>IMEI: {dev.imei || 'S/N'}</div>
                     </div>
                     <span className="status-chip status-available" style={{ fontSize: '0.6875rem' }}>
                       R$ {dev.sellPrice?.toLocaleString('pt-BR')}
@@ -678,16 +688,16 @@ export function App() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
-                      borderBottom: '1px solid #F3F4F6',
+                      borderBottom: 'var(--border-width) solid var(--border-subtle)',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <div>
-                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#17181A' }}>{cust.name}</div>
-                      <div style={{ fontSize: '0.6875rem', color: '#667085' }}>{cust.phone}</div>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-main)' }}>{cust.name}</div>
+                      <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>{cust.phone}</div>
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: '#2563EB', fontWeight: 500 }}>Cliente</span>
+                    <span style={{ fontSize: '0.6875rem', color: 'var(--color-primary)', fontWeight: 500 }}>Cliente</span>
                   </div>
                 ))}
 
@@ -708,12 +718,12 @@ export function App() {
                       justifyContent: 'space-between',
                       cursor: 'pointer',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <div>
-                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#17181A' }}>{os.osNumber} • {os.customerName}</div>
-                      <div style={{ fontSize: '0.6875rem', color: '#667085' }}>{os.deviceModel}</div>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-main)' }}>{os.osNumber} • {os.customerName}</div>
+                      <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>{os.deviceModel}</div>
                     </div>
                     <span className="status-chip status-maintenance" style={{ fontSize: '0.6875rem' }}>O.S.</span>
                   </div>
@@ -722,19 +732,74 @@ export function App() {
             )}
           </div>
 
-          {/* Notificações, Ajuda e Perfil à Direita */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Ações Rápidas, Seletor de Tema, Ajuda e Perfil à Direita */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Seletor Rápido de Tema (White / Black / System Mode) */}
+            <button
+              onClick={() => {
+                const nextMode = currentThemeMode === 'light' ? 'dark' : currentThemeMode === 'dark' ? 'system' : 'light';
+                themeService.setMode(nextMode);
+              }}
+              style={{
+                background: 'var(--surface-bg)',
+                border: 'var(--border-width) solid var(--border-default)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '5px 10px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--text-main)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                transition: 'all var(--animation-duration) ease',
+              }}
+              title={`Tema: ${currentThemeMode === 'light' ? 'White Mode (Claro)' : currentThemeMode === 'dark' ? 'Black Mode (Escuro)' : 'System Mode (Automático)'}. Clique para alternar.`}
+            >
+              {currentThemeMode === 'light' ? (
+                <Sun size={14} color="var(--brand-orange)" />
+              ) : currentThemeMode === 'dark' ? (
+                <Moon size={14} color="var(--color-primary)" />
+              ) : (
+                <Laptop size={14} color="var(--text-secondary)" />
+              )}
+              <span>{currentThemeMode === 'light' ? 'Claro' : currentThemeMode === 'dark' ? 'Escuro' : 'Auto'}</span>
+            </button>
+
+            {/* Atalho do Designer Global */}
+            <button
+              onClick={() => setActiveTab('settings')}
+              style={{
+                background: 'var(--surface-bg)',
+                border: 'var(--border-width) solid var(--border-default)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '5px 10px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                cursor: 'pointer',
+                transition: 'all var(--animation-duration) ease',
+              }}
+              title="Abrir Configurações de Aparência e Designer"
+            >
+              <Palette size={14} color="var(--color-primary)" />
+              <span>Designer</span>
+            </button>
+
             {/* Botão de Ajuda */}
             <button
               onClick={() => setIsHelpModalOpen(true)}
               style={{
-                background: 'transparent',
-                border: '1px solid #E5E7EB',
-                borderRadius: 6,
+                background: 'var(--surface-bg)',
+                border: 'var(--border-width) solid var(--border-default)',
+                borderRadius: 'var(--radius-sm)',
                 padding: '5px 10px',
                 fontSize: '0.75rem',
                 fontWeight: 500,
-                color: '#667085',
+                color: 'var(--text-secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 5,
@@ -742,7 +807,7 @@ export function App() {
               }}
               title="Ajuda e Atalhos"
             >
-              <LifeBuoy size={14} color="#667085" />
+              <LifeBuoy size={14} color="var(--text-secondary)" />
               <span>Ajuda</span>
             </button>
 
@@ -750,15 +815,15 @@ export function App() {
             <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               style={{
-                background: 'transparent',
-                border: '1px solid #E5E7EB',
-                borderRadius: 6,
+                background: 'var(--surface-bg)',
+                border: 'var(--border-width) solid var(--border-default)',
+                borderRadius: 'var(--radius-sm)',
                 width: 32,
                 height: 32,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#667085',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
                 position: 'relative',
               }}
@@ -773,7 +838,7 @@ export function App() {
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  backgroundColor: '#DC2626',
+                  backgroundColor: 'var(--status-danger)',
                 }}
               />
             </button>
@@ -786,27 +851,27 @@ export function App() {
                   top: 52,
                   right: 28,
                   width: 300,
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: 6,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                  backgroundColor: 'var(--surface-bg)',
+                  border: 'var(--border-width) solid var(--border-default)',
+                  borderRadius: 'var(--radius-sm)',
+                  boxShadow: 'var(--shadow-dropdown)',
                   padding: '12px 14px',
                   zIndex: 60,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A' }}>Notificações</span>
-                  <span style={{ fontSize: '0.6875rem', color: '#2563EB', cursor: 'pointer' }} onClick={() => setIsNotificationsOpen(false)}>Fechar</span>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)' }}>Notificações</span>
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--color-primary)', cursor: 'pointer' }} onClick={() => setIsNotificationsOpen(false)}>Fechar</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.75rem', color: '#667085' }}>
-                  <div style={{ padding: '6px 8px', backgroundColor: '#F9FAFB', borderRadius: 4 }}>
-                    <strong style={{ color: '#17181A' }}>O.S. #1024</strong>: Cliente aguarda orçamento há 48h.
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ padding: '6px 8px', backgroundColor: 'var(--surface-hover)', borderRadius: 'var(--radius-sm)', border: 'var(--border-width) solid var(--border-subtle)' }}>
+                    <strong style={{ color: 'var(--text-main)' }}>O.S. #1024</strong>: Cliente aguarda orçamento há 48h.
                   </div>
-                  <div style={{ padding: '6px 8px', backgroundColor: '#F9FAFB', borderRadius: 4 }}>
-                    <strong style={{ color: '#17181A' }}>Reserva iPhone 14 Pro</strong>: Expira hoje às 18:00.
+                  <div style={{ padding: '6px 8px', backgroundColor: 'var(--surface-hover)', borderRadius: 'var(--radius-sm)', border: 'var(--border-width) solid var(--border-subtle)' }}>
+                    <strong style={{ color: 'var(--text-main)' }}>Reserva iPhone 14 Pro</strong>: Expira hoje às 18:00.
                   </div>
-                  <div style={{ padding: '6px 8px', backgroundColor: '#F9FAFB', borderRadius: 4 }}>
-                    <strong style={{ color: '#17181A' }}>Estoque baixo</strong>: Película 3D iPhone 13 (2 un).
+                  <div style={{ padding: '6px 8px', backgroundColor: 'var(--surface-hover)', borderRadius: 'var(--radius-sm)', border: 'var(--border-width) solid var(--border-subtle)' }}>
+                    <strong style={{ color: 'var(--text-main)' }}>Estoque baixo</strong>: Película 3D iPhone 13 (2 un).
                   </div>
                 </div>
               </div>
@@ -820,11 +885,11 @@ export function App() {
                 alignItems: 'center',
                 gap: 8,
                 padding: '4px 8px',
-                borderRadius: 6,
+                borderRadius: 'var(--radius-sm)',
                 cursor: 'pointer',
                 border: '1px solid transparent',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F7F8FA')}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               title="Meu Perfil"
             >
@@ -833,7 +898,7 @@ export function App() {
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  backgroundColor: '#151515',
+                  backgroundColor: 'var(--color-primary)',
                   color: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
@@ -845,8 +910,8 @@ export function App() {
                 RH
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A', lineHeight: 1.2 }}>Robson H.</span>
-                <span style={{ fontSize: '0.6875rem', color: '#667085', lineHeight: 1 }}>Gerente Balcão</span>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>Robson H.</span>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', lineHeight: 1 }}>Gerente Balcão</span>
               </div>
             </div>
           </div>
@@ -855,19 +920,20 @@ export function App() {
         {/* 2. SUB-HEADER / ACTION BAR CONTEXTUAL DA TELA (LAYOUT-BASE) */}
         <div
           style={{
-            backgroundColor: '#F7F8FA',
-            borderBottom: '1px solid #E5E7EB',
+            backgroundColor: 'var(--surface-bg)',
+            borderBottom: 'var(--border-width) solid var(--border-default)',
             padding: '16px 32px 14px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
             gap: 12,
+            transition: 'background-color var(--animation-duration) ease, border-color var(--animation-duration) ease',
           }}
         >
           <div>
             {/* Breadcrumb Sóbrio */}
-            <div style={{ fontSize: '0.75rem', color: '#667085', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <span>
                 {activeTab === 'dashboard' ? 'Visão geral' :
                  ['checkout', 'sales_history', 'cash', 'customers', 'after_sales', 'crm_customers'].includes(activeTab) ? 'Operação' :
@@ -875,7 +941,7 @@ export function App() {
                  ['assistance_dashboard', 'service_order', 'services', 'warranty'].includes(activeTab) ? 'Assistência' : 'Administração'}
               </span>
               <span>/</span>
-              <span style={{ color: '#17181A', fontWeight: 500 }}>
+              <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>
                 {activeTab === 'dashboard' ? 'Dashboard' :
                  activeTab === 'checkout' ? 'PDV / Nova venda' :
                  activeTab === 'sales_history' ? 'Caixa e vendas' :
@@ -903,7 +969,7 @@ export function App() {
             </div>
 
             {/* Título e Subtítulo Objetivo */}
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#17181A', margin: 0, letterSpacing: '-0.01em' }}>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.01em' }}>
               {activeTab === 'dashboard' && 'Dashboard'}
               {activeTab === 'checkout' && 'PDV / Nova venda'}
               {activeTab === 'sales_history' && 'Caixa e vendas'}
@@ -929,7 +995,7 @@ export function App() {
               {activeTab === 'settings' && 'Configurações'}
               {activeTab === 'profile' && 'Meu perfil'}
             </h1>
-            <p style={{ fontSize: '0.8125rem', color: '#667085', marginTop: 2, marginBottom: 0 }}>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: 2, marginBottom: 0 }}>
               {activeTab === 'dashboard' && 'Central de decisão, indicadores do dia e oportunidades de recompra.'}
               {activeTab === 'checkout' && 'Atendimento de balcão e checkout ágil com suporte a trade-in.'}
               {activeTab === 'sales_history' && 'Histórico cronológico de vendas e movimentações.'}

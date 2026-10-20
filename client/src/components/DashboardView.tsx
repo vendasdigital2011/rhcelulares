@@ -150,10 +150,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#17181A' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Hoje
             </h2>
-            <span style={{ fontSize: '0.8125rem', color: '#667085' }}>
+            <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
               • Atualizado em tempo real
             </span>
           </div>
@@ -165,8 +165,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => setPeriodFilter(p)}
                 style={{
                   background: periodFilter === p ? '#FFFFFF' : 'transparent',
-                  border: periodFilter === p ? '1px solid #E5E7EB' : '1px solid transparent',
-                  color: periodFilter === p ? '#17181A' : '#667085',
+                  border: periodFilter === p ? '1px solid var(--border-default)' : '1px solid transparent',
+                  color: periodFilter === p ? 'var(--text-main)' : 'var(--text-secondary)',
                   padding: '4px 10px',
                   borderRadius: 6,
                   fontSize: '0.75rem',
@@ -185,28 +185,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
           {/* Vendas do Dia */}
           <div className="balcao-card" style={{ padding: '16px 20px' }}>
-            <div style={{ fontSize: '0.75rem', color: '#667085', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Receita em vendas
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#17181A', marginTop: 4 }} className="tabular-nums">
+            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
               R$ {todaySalesValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: '#16A34A', fontWeight: 500 }}>
               <span>↑ 12,4% vs. dia anterior</span>
               <span style={{ color: '#98A2B3' }}>•</span>
-              <span style={{ color: '#667085' }}>{todaySalesCount} vendas concluídas</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{todaySalesCount} vendas concluídas</span>
             </div>
           </div>
 
           {/* Caixa Operacional */}
           <div className="balcao-card" style={{ padding: '16px 20px' }}>
-            <div style={{ fontSize: '0.75rem', color: '#667085', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Caixa esperado do dia
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#17181A', marginTop: 4 }} className="tabular-nums">
+            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
               R$ 2.180,00
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: '#667085' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
               <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', backgroundColor: isCashOpen ? '#16A34A' : '#DC2626' }} />
               <span style={{ fontWeight: 500, color: isCashOpen ? '#16A34A' : '#DC2626' }}>
                 {isCashOpen ? 'Caixa balcão aberto' : 'Caixa fechado'}
@@ -218,10 +218,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           {/* Assistência Técnica / O.S. */}
           <div className="balcao-card" style={{ padding: '16px 20px' }}>
-            <div style={{ fontSize: '0.75rem', color: '#667085', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Ordens de serviço
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#17181A', marginTop: 4 }} className="tabular-nums">
+            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
               {activeOS.length > 0 ? activeOS.length : 8} em andamento
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: '#D97706', fontWeight: 500 }}>
@@ -232,15 +232,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           {/* Estoque Disponível */}
           <div className="balcao-card" style={{ padding: '16px 20px' }}>
-            <div style={{ fontSize: '0.75rem', color: '#667085', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Aparelhos em estoque
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#17181A', marginTop: 4 }} className="tabular-nums">
+            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }} className="tabular-nums">
               {availableDevices.length > 0 ? availableDevices.length : 34} unidades
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: '#667085' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
               <span>Patrimônio:</span>
-              <span style={{ fontWeight: 600, color: '#17181A' }} className="tabular-nums">
+              <span style={{ fontWeight: 600, color: 'var(--text-main)' }} className="tabular-nums">
                 R$ {(inventoryValue > 0 ? inventoryValue : 124800).toLocaleString('pt-BR')}
               </span>
             </div>
@@ -252,7 +252,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#17181A' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Requer atenção
             </h2>
             <span
@@ -270,7 +270,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
           </div>
 
-          <span style={{ fontSize: '0.75rem', color: '#667085' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
             Fila priorizada por impacto no fechamento do dia
           </span>
         </div>
@@ -284,24 +284,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 18px',
-                borderBottom: idx === actionItems.length - 1 ? 'none' : '1px solid #E5E7EB',
-                backgroundColor: '#FFFFFF',
+                borderBottom: idx === actionItems.length - 1 ? 'none' : '1px solid var(--border-default)',
+                backgroundColor: 'var(--surface-bg)',
                 transition: 'background-color 0.1s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
                 <span className={`status-chip ${item.badgeClass}`} style={{ whiteSpace: 'nowrap' }}>
                   {item.tag}
                 </span>
-                <span style={{ fontSize: '0.875rem', color: '#17181A', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '0.875rem', color: 'var(--text-main)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.description}
                 </span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-                <span style={{ fontSize: '0.75rem', color: '#667085' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   {item.time}
                 </span>
 
@@ -321,7 +321,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     style={{ height: 32, fontSize: '0.8125rem', padding: '0 12px' }}
                   >
                     <span>{item.actionLabel}</span>
-                    <ChevronRight size={14} color="#667085" />
+                    <ChevronRight size={14} color="var(--text-secondary)" />
                   </button>
                 )}
               </div>
@@ -336,16 +336,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <section className="balcao-card" style={{ padding: '20px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#17181A' }}>
+              <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
                 Resultado comercial
               </h2>
-              <p style={{ fontSize: '0.75rem', color: '#667085', marginTop: 2 }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 2 }}>
                 Evolução semanal, volume e margem bruta consolidada
               </p>
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#17181A' }} className="tabular-nums">
+              <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-main)' }} className="tabular-nums">
                 R$ 172.200,00
               </div>
               <div style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: 500 }}>
@@ -388,27 +388,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* 5. INSIGHTS: PAINEL LATERAL DISCRETO (COM ORIGEM E AÇÃO) */}
         <section className="balcao-card" style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#17181A' }}>
+            <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Sugestões automáticas
             </h2>
-            <span style={{ fontSize: '0.6875rem', color: '#667085', backgroundColor: '#F3F4F6', padding: '2px 6px', borderRadius: 4 }}>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', backgroundColor: 'var(--surface-muted)', padding: '2px 6px', borderRadius: 4 }}>
               Base operacional
             </span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
             {/* Insight 1 */}
-            <div style={{ padding: 12, border: '1px solid #E5E7EB', borderRadius: 6, backgroundColor: '#FFFFFF' }}>
+            <div style={{ padding: 12, border: '1px solid var(--border-default)', borderRadius: 6, backgroundColor: 'var(--surface-bg)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Giro de Estoque
                 </span>
                 <span style={{ fontSize: '0.6875rem', color: '#98A2B3' }}>Estoque</span>
               </div>
-              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A', marginTop: 4 }}>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }}>
                 4 unidades de iPhone 13 128GB paradas há mais de 35 dias
               </div>
-              <p style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4, lineHeight: '1.4' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: '1.4' }}>
                 Preço médio atual R$ 3.200. Ofertar R$ 2.990 à vista no Pix para liberar R$ 11.960 de capital de giro.
               </p>
               <button
@@ -433,17 +433,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             {/* Insight 2 */}
-            <div style={{ padding: 12, border: '1px solid #E5E7EB', borderRadius: 6, backgroundColor: '#FFFFFF' }}>
+            <div style={{ padding: 12, border: '1px solid var(--border-default)', borderRadius: 6, backgroundColor: 'var(--surface-bg)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Assistência Técnica
                 </span>
                 <span style={{ fontSize: '0.6875rem', color: '#98A2B3' }}>Balcão</span>
               </div>
-              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A', marginTop: 4 }}>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 4 }}>
                 Alta demanda por troca de bateria iPhone 11 / 12
               </div>
-              <p style={{ fontSize: '0.75rem', color: '#667085', marginTop: 4, lineHeight: '1.4' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4, lineHeight: '1.4' }}>
                 Margem de serviço de 68% com peças em estoque. Oportunidade de divulgar combo Bateria + Película 3D.
               </p>
               <button
@@ -474,10 +474,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="balcao-card" style={{ padding: '20px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#17181A' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Oportunidades comerciais e recompra
             </h2>
-            <p style={{ fontSize: '0.75rem', color: '#667085', marginTop: 2 }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 2 }}>
               Clientes no momento ideal de troca de aparelho ou upgrade com trade-in
             </p>
           </div>
@@ -488,7 +488,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             style={{ height: 32, fontSize: '0.8125rem', padding: '0 12px' }}
           >
             <span>Ver funil no WhatsApp</span>
-            <ExternalLink size={13} color="#667085" />
+            <ExternalLink size={13} color="var(--text-secondary)" />
           </button>
         </div>
 
@@ -510,10 +510,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {repurchaseOpportunities.map((op) => (
                 <tr key={op.clientName}>
                   <td>
-                    <div style={{ fontWeight: 600, color: '#17181A' }}>{op.clientName}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#667085' }}>{op.suggestion}</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{op.clientName}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{op.suggestion}</div>
                   </td>
-                  <td style={{ color: '#667085' }}>{op.lastPurchase}</td>
+                  <td style={{ color: 'var(--text-secondary)' }}>{op.lastPurchase}</td>
                   <td>
                     <span className="status-chip status-waiting">
                       {op.currentDevice}

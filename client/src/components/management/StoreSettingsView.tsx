@@ -13,13 +13,19 @@ import {
   Trash2,
   AlertTriangle,
   RefreshCw,
+  Palette,
 } from 'lucide-react';
 import type { StoreSettings, CardMachineConfig } from '../../types.js';
 import { fetchStoreSettings, updateStoreSettingsApi, resetAllFictitiousDataApi } from '../../api/erpApi.js';
+import { AppearanceDesignerSubmodule } from './AppearanceDesignerSubmodule.js';
 
-type SettingsTab = 'store_data' | 'card_machines' | 'terms' | 'customers' | 'data_management';
+type SettingsTab = 'store_data' | 'appearance' | 'card_machines' | 'terms' | 'customers' | 'data_management';
 
-export const StoreSettingsView: React.FC = () => {
+interface StoreSettingsViewProps {
+  onNavigateToDesigner?: () => void;
+}
+
+export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onNavigateToDesigner: _onNavigateToDesigner }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('store_data');
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -186,6 +192,7 @@ export const StoreSettingsView: React.FC = () => {
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {[
           { id: 'store_data', label: 'Dados da loja', icon: Store },
+          { id: 'appearance', label: 'Aparência e Designer', icon: Palette },
           { id: 'card_machines', label: 'Maquininhas e taxas', icon: CreditCard },
           { id: 'terms', label: 'Termos de venda', icon: FileText },
           { id: 'customers', label: 'Clientes', icon: Users },
@@ -901,6 +908,11 @@ export const StoreSettingsView: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* ABA: APARÊNCIA E DESIGNER GLOBAL */}
+      {activeTab === 'appearance' && (
+        <AppearanceDesignerSubmodule />
       )}
     </div>
   );
