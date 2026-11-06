@@ -33,7 +33,6 @@ export class DeviceRepository {
 
   private static mapToDb(device: Device): any {
     return {
-      id: device.id,
       imei: device.imei?.replace(/\D/g, '') || null,
       serial_number: device.serialNumber || null,
       brand: device.brand || 'Apple',
@@ -91,14 +90,14 @@ export class DeviceRepository {
         if (error.code === '23505') {
           return { success: false, error: `Já existe um aparelho cadastrado com o IMEI ${device.imei}` };
         }
-        console.warn('Falha ao inserir no Supabase, mantendo local:', error.message);
-        return { success: true, data: device };
+        console.error('Falha ao inserir aparelho no Supabase:', error);
+        return { success: false, error: error.message };
       }
 
       return { success: true, data: this.mapFromDb(data) };
     } catch (err: any) {
-      console.warn('Exceção ao criar device:', err);
-      return { success: true, data: device };
+      console.error('Exceção ao criar aparelho:', err);
+      return { success: false, error: err?.message || 'Falha inesperada ao cadastrar aparelho' };
     }
   }
 

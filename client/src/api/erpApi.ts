@@ -50,12 +50,9 @@ export async function fetchDevices(): Promise<Device[]> {
 
 export async function createDeviceApi(device: Device): Promise<Device> {
   if (USE_SUPABASE) {
-    try {
-      const res = await DeviceRepository.create(device);
-      if (res.data) return res.data;
-    } catch (err) {
-      console.warn('Falha ao cadastrar no Supabase, mantendo local:', err);
-    }
+    const res = await DeviceRepository.create(device);
+    if (res.success && res.data) return res.data;
+    throw new Error(res.error || 'Não foi possível cadastrar o aparelho.');
   }
   return device;
 }

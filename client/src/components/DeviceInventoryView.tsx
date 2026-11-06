@@ -4,7 +4,7 @@ import type { Device, DeviceCondition } from '../types.js';
 
 interface DeviceInventoryViewProps {
   devices: Device[];
-  onAddDevice: (device: Device) => void;
+  onAddDevice: (device: Device) => Promise<void>;
 }
 
 export const DeviceInventoryView = ({
@@ -30,6 +30,8 @@ export const DeviceInventoryView = ({
   const [supplier] = useState('Distribuidora Alpha SP');
   const [isPublic] = useState(true);
   const [isFeatured] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   // 4 Top Cards Balcão OS
   const metrics = useMemo(() => {
@@ -45,12 +47,19 @@ export const DeviceInventoryView = ({
     };
   }, [devices]);
 
-  const handleSaveDevice = (e: React.FormEvent) => {
+  const handleSaveDevice = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setSaveError('');
+    const cleanImei = imei.replace(/\D/g, '');
+    if (cleanImei.length !== 15) {
+      setSaveError('O IMEI deve conter exatamente 15 dígitos.');
+      return;
+    }
 
     const newDev: Device = {
       id: `dev-${Date.now()}`,
-      imei,
+      imei: cleanImei,
       serialNumber,
       brand,
       model,
@@ -67,8 +76,15 @@ export const DeviceInventoryView = ({
       createdAt: new Date().toISOString().split('T')[0],
     };
 
-    onAddDevice(newDev);
-    setShowForm(false);
+    setIsSaving(true);
+    try {
+      await onAddDevice(newDev);
+      setShowForm(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Não foi possível cadastrar o aparelho.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const filteredDevices = devices.filter(d => {
@@ -330,6 +346,11 @@ export const DeviceInventoryView = ({
               </button>
             </div>
             <form onSubmit={handleSaveDevice} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {saveError && (
+                <div role="alert" style={{ padding: '9px 11px', borderRadius: 6, backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', fontSize: '0.8125rem' }}>
+                  {saveError}
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 10 }}>
                 <div>
                   <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#667085' }}>Modelo</label>
@@ -360,6 +381,9 @@ export const DeviceInventoryView = ({
                     type="text"
                     value={imei}
                     onChange={(e) => setImei(e.target.value)}
+                    inputMode="numeric"
+                    maxLength={15}
+                    pattern="\d{15}"
                     required
                     style={{ width: '100%', backgroundColor: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 6, padding: '7px 10px', fontSize: '0.8125rem', fontFamily: 'monospace', outline: 'none', marginTop: 4 }}
                   />
@@ -407,8 +431,8 @@ export const DeviceInventoryView = ({
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="balcao-btn-primary">
-                  Salvar Aparelho
+                <button type="submit" className="balcao-btn-primary" disabled={isSaving}>
+                  {isSaving ? 'Salvando...' : 'Salvar Aparelho'}
                 </button>
               </div>
             </form>
