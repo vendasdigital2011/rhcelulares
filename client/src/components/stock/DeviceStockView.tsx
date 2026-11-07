@@ -428,7 +428,7 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
 
       {/* VISÃO 1: TABELA OPERACIONAL BALCÃO OS (PADRÃO) */}
       {viewMode === 'table' && (
-        <div className="balcao-card" style={{ overflow: 'hidden' }}>
+        <div className="balcao-card" style={{ overflow: 'visible' }}>
           <table className="balcao-table">
             <thead>
               <tr>
@@ -490,6 +490,8 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
                     <td style={{ textAlign: 'right', position: 'relative' }}>
                       <button
                         onClick={() => setActionMenuOpenImei(actionMenuOpenImei === dev.imei ? null : (dev.imei || null))}
+                        aria-label={`Abrir ações de ${dev.model}`}
+                        aria-expanded={actionMenuOpenImei === dev.imei}
                         style={{
                           background: 'transparent',
                           border: 'none',
@@ -505,7 +507,7 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
                       {actionMenuOpenImei === dev.imei && (
                         <div style={{
                           position: 'absolute',
-                          top: '100%',
+                          top: 'calc(100% - 4px)',
                           right: 0,
                           backgroundColor: '#FFFFFF',
                           border: '1px solid #E5E7EB',
