@@ -292,7 +292,7 @@ export const CashControlView = ({
         </div>
 
         {/* Fundo de Troco Inicial */}
-        <div style={{ borderLeft: '1px solid rgba(255, 255, 255, 0.08)', paddingLeft: 16 }}>
+        <div style={{ borderLeft: '1px solid var(--border-default)', paddingLeft: 16 }}>
           <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Fundo de Troco Inicial</div>
           <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f8fafc', marginTop: 2 }}>
             R$ {cashRegister.initialFloat.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -301,7 +301,7 @@ export const CashControlView = ({
         </div>
 
         {/* Saldo Físico Esperado na Gaveta */}
-        <div style={{ borderLeft: '1px solid rgba(255, 255, 255, 0.08)', paddingLeft: 16 }}>
+        <div style={{ borderLeft: '1px solid var(--border-default)', paddingLeft: 16 }}>
           <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700 }}>Dinheiro Esperado na Gaveta</div>
           <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#10b981', marginTop: 2 }}>
             R$ {expectedCashInDrawer.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -310,7 +310,7 @@ export const CashControlView = ({
         </div>
 
         {/* Total Vendas do Turno */}
-        <div style={{ borderLeft: '1px solid rgba(255, 255, 255, 0.08)', paddingLeft: 16 }}>
+        <div style={{ borderLeft: '1px solid var(--border-default)', paddingLeft: 16 }}>
           <div style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 700 }}>Total Geral Faturado</div>
           <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#38bdf8', marginTop: 2 }}>
             R$ {totalSalesAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -338,11 +338,11 @@ export const CashControlView = ({
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: 'var(--surface-bg)',
+                border: '1px solid var(--border-default)',
                 borderRadius: 6,
                 padding: '6px 10px',
-                color: '#fff',
+                color: 'var(--text-main)',
                 fontSize: '0.82rem',
                 outline: 'none',
               }}
@@ -374,7 +374,7 @@ export const CashControlView = ({
             gap: 14,
             marginTop: 18,
             paddingTop: 16,
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            borderTop: '1px solid var(--border-default)',
           }}>
             <div>
               <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>Dinheiro Físico (Gaveta)</div>
@@ -448,7 +448,7 @@ export const CashControlView = ({
           </div>
 
           {/* Abas de filtro do extrato */}
-          <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 8, padding: 3 }}>
+          <div style={{ display: 'flex', background: 'var(--surface-bg)', border: '1px solid var(--border-default)', borderRadius: 8, padding: 3 }}>
             {(['all', 'inflow', 'outflow'] as const).map(tab => (
               <button
                 key={tab}
@@ -472,9 +472,9 @@ export const CashControlView = ({
 
         {/* Tabela do Extrato */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
+          <table className="legacy-bordered-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
             <thead>
-              <tr style={{ background: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', color: '#94a3b8' }}>
+              <tr style={{ background: 'var(--surface-muted)', borderBottom: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
                 <th style={{ padding: '10px 14px', fontWeight: 700 }}>Data / Hora</th>
                 <th style={{ padding: '10px 14px', fontWeight: 700 }}>Tipo</th>
                 <th style={{ padding: '10px 14px', fontWeight: 700 }}>Categoria</th>
@@ -494,7 +494,7 @@ export const CashControlView = ({
                 filteredTransactions.map((tx) => {
                   const isInflow = tx.type === 'inflow';
                   return (
-                    <tr key={tx.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
+                    <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td style={{ padding: '10px 14px', color: '#94a3b8', fontSize: '0.75rem' }}>
                         {tx.createdAt}
                       </td>

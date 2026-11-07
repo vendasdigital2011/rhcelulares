@@ -402,6 +402,32 @@ textarea:focus-visible {
   background-color: var(--surface-hover);
 }
 
+/* Compatibilidade para tabelas legadas ainda renderizadas dentro de painéis.
+   Mantém os agrupamentos visíveis nos temas claro e escuro. */
+.app-shell table:not(.balcao-table):not(.crm-table),
+.legacy-bordered-table {
+  width: 100%;
+  border: var(--border-width) solid var(--border-default);
+  background-color: var(--surface-bg);
+}
+
+.app-shell table:not(.balcao-table):not(.crm-table) thead tr,
+.legacy-bordered-table thead tr {
+  border-bottom: var(--border-width) solid var(--border-default);
+}
+
+.app-shell table:not(.balcao-table):not(.crm-table) tbody tr:not(:last-child),
+.legacy-bordered-table tbody tr:not(:last-child) {
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+
+.app-shell table:not(.balcao-table):not(.crm-table) th + th,
+.app-shell table:not(.balcao-table):not(.crm-table) td + td,
+.legacy-bordered-table th + th,
+.legacy-bordered-table td + td {
+  border-left: var(--border-width) solid var(--border-subtle);
+}
+
 /* Status Chips Funcionais e Legíveis */
 .status-chip {
   display: inline-flex;

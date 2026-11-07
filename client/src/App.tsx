@@ -549,7 +549,7 @@ export function App() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--canvas-bg)', color: 'var(--text-main)' }}>
+    <div className="app-shell" style={{ display: 'flex', minHeight: '100vh', background: 'var(--canvas-bg)', color: 'var(--text-main)' }}>
       {/* MENU LATERAL COMPLETO DO BALCÃO PHONES */}
       <Sidebar
         activeTab={activeTab}
