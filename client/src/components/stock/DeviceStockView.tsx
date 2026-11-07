@@ -428,8 +428,15 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
 
       {/* VISÃO 1: TABELA OPERACIONAL BALCÃO OS (PADRÃO) */}
       {viewMode === 'table' && (
-        <div className="balcao-card" style={{ overflow: 'visible' }}>
-          <table className="balcao-table">
+        <div
+          className="balcao-card"
+          style={{
+            overflow: 'visible',
+            position: 'relative',
+            zIndex: actionMenuOpenImei ? 40 : 'auto',
+          }}
+        >
+          <table className="balcao-table device-stock-table">
             <thead>
               <tr>
                 <th>Aparelho & Especificações</th>
@@ -488,6 +495,24 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
                       {getStatusChip(dev.status)}
                     </td>
                     <td style={{ textAlign: 'right', position: 'relative' }}>
+                      <button
+                        onClick={() => handleOpenEdit(dev)}
+                        aria-label={`Editar ${dev.model}`}
+                        title="Editar aparelho"
+                        style={{
+                          background: 'var(--action-blue-subtle)',
+                          border: '1px solid var(--border-default)',
+                          cursor: 'pointer',
+                          color: 'var(--action-blue)',
+                          padding: 5,
+                          borderRadius: 5,
+                          marginRight: 4,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Edit2 size={14} />
+                      </button>
                       <button
                         onClick={() => setActionMenuOpenImei(actionMenuOpenImei === dev.imei ? null : (dev.imei || null))}
                         aria-label={`Abrir ações de ${dev.model}`}

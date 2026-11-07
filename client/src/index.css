@@ -402,6 +402,18 @@ textarea:focus-visible {
   background-color: var(--surface-hover);
 }
 
+/* A tabela de aparelhos possui menus contextuais que precisam ultrapassar
+   os limites da última linha sem serem recortados. */
+.device-stock-table {
+  overflow: visible;
+}
+
+.device-stock-table tbody,
+.device-stock-table tr,
+.device-stock-table td {
+  overflow: visible;
+}
+
 /* Compatibilidade para tabelas legadas ainda renderizadas dentro de painéis.
    Mantém os agrupamentos visíveis nos temas claro e escuro. */
 .app-shell table:not(.balcao-table):not(.crm-table),
