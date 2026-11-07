@@ -94,7 +94,7 @@ export class SaleRepository {
         .maybeSingle();
 
       if (saleError) {
-        console.warn('Erro ao salvar venda no Supabase, mantendo local:', saleError.message);
+        return { success: false, error: saleError.message };
       }
 
       const persistedSaleId = insertedSale?.id || validSaleId || sale.id;
@@ -110,19 +110,21 @@ export class SaleRepository {
           imei: item.imei?.replace(/\D/g, '') || null,
         }));
 
-        await supabase.from('sale_items').insert(itemsPayload);
+        const { error: itemsError } = await supabase.from('sale_items').insert(itemsPayload);
+        if (itemsError) throw new Error(itemsError.message);
 
         // 3. Atualiza status dos aparelhos para 'sold'
         for (const item of sale.items) {
           if (item.type === 'device' && item.imei) {
-            await DeviceRepository.updateStatus(item.imei, 'sold');
+            const updated = await DeviceRepository.updateStatus(item.imei, 'sold');
+            if (!updated) throw new Error(`Não foi possível baixar o aparelho ${item.imei} do estoque.`);
           }
         }
       }
 
       // 4. Se teve Trade-in, cadastra no estoque de usados
       if (sale.tradeIn && sale.tradeIn.model) {
-        await DeviceRepository.create({
+        const tradeInResult = await DeviceRepository.create({
           id: `dev-tradein-${Date.now()}`,
           brand: 'Apple',
           model: sale.tradeIn.model,
@@ -138,6 +140,9 @@ export class SaleRepository {
           isShowcasePublic: false,
           createdAt: new Date().toISOString().split('T')[0],
         });
+        if (!tradeInResult.success) {
+          throw new Error(tradeInResult.error || 'Não foi possível cadastrar o aparelho recebido na troca.');
+        }
       }
 
       // 5. Registra transação no fluxo de caixa
@@ -149,36 +154,38 @@ export class SaleRepository {
           .limit(1)
           .maybeSingle();
 
-        await supabase.from('cash_transactions').insert([{
+        const { error: cashError } = await supabase.from('cash_transactions').insert([{
           register_id: openRegister?.id || null,
           type: 'inflow',
           category: 'sale',
           description: `Venda ${sale.saleNumber} - ${sale.customerName}`,
           amount: sale.total,
           payment_method: sale.paymentMethod,
-          sale_id: sale.id,
+          sale_id: persistedSaleId,
         }]);
-      } catch {
-        // Fallback
+        if (cashError) throw new Error(cashError.message);
+      } catch (err) {
+        throw err instanceof Error ? err : new Error('Falha ao registrar a entrada da venda no caixa.');
       }
 
       // 6. Atualiza histórico e LTV do Cliente
       const deviceItem = sale.items.find(i => i.type === 'device');
-      await CustomerRepository.recordPurchase(
+      const updatedCustomer = await CustomerRepository.recordPurchase(
         sale.customerName,
         sale.customerPhone || '',
         sale.total,
         deviceItem?.name,
         deviceItem?.imei
       );
+      if (!updatedCustomer) throw new Error('Não foi possível atualizar o histórico do cliente.');
 
       // 7. Gera automaticamente réguas e tarefas de Pós-Venda
       await AfterSalesRepository.generateForSale(sale);
 
-      return { success: true, data: { ...sale, status: 'completed' } };
+      return { success: true, data: { ...sale, id: persistedSaleId, status: 'completed' } };
     } catch (err: any) {
       console.warn('Exceção ao registrar venda:', err);
-      return { success: true, data: sale };
+      return { success: false, error: err?.message || 'Falha inesperada ao registrar venda.' };
     }
   }
 

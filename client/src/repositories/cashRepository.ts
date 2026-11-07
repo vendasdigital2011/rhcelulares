@@ -126,7 +126,7 @@ export class CashRepository {
         .single();
 
       if (error) {
-        console.warn('Erro ao abrir caixa no Supabase:', error.message);
+        throw new Error(error.message);
       }
 
       return {
@@ -139,14 +139,8 @@ export class CashRepository {
         breakdown: { money: 0, pix: 0, creditCard: 0, debitCard: 0, tradeIn: 0, other: 0 },
         transactions: [],
       };
-    } catch {
-      return {
-        isOpen: true,
-        openedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        initialFloat,
-        totalSales: 0,
-        breakdown: { money: 0, pix: 0, creditCard: 0, debitCard: 0, tradeIn: 0, other: 0 },
-      };
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Falha ao abrir o caixa.');
     }
   }
 
@@ -174,10 +168,13 @@ export class CashRepository {
       };
 
       if (current.id) {
-        await supabase
+        const { error } = await supabase
           .from('cash_registers')
           .update(updates)
           .eq('id', current.id);
+        if (error) throw new Error(error.message);
+      } else {
+        throw new Error('Nenhum caixa aberto foi encontrado para fechamento.');
       }
 
       const closedRegister: CashRegister = {
@@ -195,12 +192,7 @@ export class CashRepository {
         register: closedRegister,
       };
     } catch (err) {
-      return {
-        success: true,
-        expectedCash: 300,
-        difference: 0,
-        register: { ...INITIAL_CASH, isOpen: false },
-      };
+      throw err instanceof Error ? err : new Error('Falha ao fechar o caixa.');
     }
   }
 
@@ -213,7 +205,7 @@ export class CashRepository {
     amount: number,
     description: string,
     paymentMethod: string = 'Dinheiro',
-    operatorName: string = 'Hiago'
+    _operatorName: string = 'Hiago'
   ): Promise<{ success: boolean; transaction?: CashTransaction }> {
     try {
       const current = await this.getCurrent();
@@ -233,19 +225,11 @@ export class CashRepository {
         .single();
 
       if (error) {
-        console.warn('Erro ao salvar movimentação no Supabase:', error.message);
+        return { success: false };
       }
 
-      const createdTx: CashTransaction = data ? this.mapTransactionFromDb(data) : {
-        id: `tx-${Date.now()}`,
-        type,
-        category,
-        description,
-        amount,
-        paymentMethod,
-        operatorName,
-        createdAt: new Date().toLocaleString('pt-BR'),
-      };
+      if (!data) return { success: false };
+      const createdTx: CashTransaction = this.mapTransactionFromDb(data);
 
       return { success: true, transaction: createdTx };
     } catch (err: any) {

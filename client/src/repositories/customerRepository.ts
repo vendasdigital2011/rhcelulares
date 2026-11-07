@@ -55,13 +55,12 @@ export class CustomerRepository {
         .single();
 
       if (error) {
-        console.warn('Falha ao salvar cliente no Supabase:', error.message);
-        return { success: true, data: customer };
+        return { success: false, error: error.message };
       }
 
       return { success: true, data: this.mapFromDb(data) };
     } catch (err: any) {
-      return { success: true, data: customer };
+      return { success: false, error: err?.message || 'Falha inesperada ao salvar cliente.' };
     }
   }
 

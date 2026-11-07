@@ -1,4 +1,4 @@
-import { test, describe } from 'node:test';
+import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 
 // Credenciais ativas do Supabase
@@ -17,7 +17,36 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
   const testSuffix = Date.now();
   let testCustomerId: string;
   let testSaleId: string;
-  let testImei = '356984112094832'; // iPhone 13 128GB do estoque
+  let testCashRegisterId: string;
+  const testImei = `99${testSuffix.toString().padStart(13, '0').slice(-13)}`;
+
+  before(async () => {
+    const deviceRes = await fetch(`${SUPABASE_URL}/rest/v1/devices`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ imei: testImei, model: 'iPhone Auditoria E2E', storage: '128GB', color: 'Preto', cost_price: 1000, selling_price: 2000, status: 'available' }),
+    });
+    assert.strictEqual(deviceRes.status, 201, 'Fixture de aparelho deve ser criada');
+
+    const cashRes = await fetch(`${SUPABASE_URL}/rest/v1/cash_registers`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ operator_name: `Auditoria ${testSuffix}`, status: 'open', initial_float: 300, total_sales: 0 }),
+    });
+    assert.strictEqual(cashRes.status, 201, 'Fixture de caixa deve ser criada');
+    const cashData = await cashRes.json() as any;
+    testCashRegisterId = cashData[0].id;
+  });
+
+  after(async () => {
+    await fetch(`${SUPABASE_URL}/rest/v1/cash_transactions?description=like.*${testSuffix}*`, { method: 'DELETE', headers });
+    if (testSaleId) {
+      await fetch(`${SUPABASE_URL}/rest/v1/sale_items?sale_id=eq.${testSaleId}`, { method: 'DELETE', headers });
+      await fetch(`${SUPABASE_URL}/rest/v1/cash_transactions?sale_id=eq.${testSaleId}`, { method: 'DELETE', headers });
+      await fetch(`${SUPABASE_URL}/rest/v1/sales?id=eq.${testSaleId}`, { method: 'DELETE', headers });
+    }
+    if (testCustomerId) await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${testCustomerId}`, { method: 'DELETE', headers });
+    await fetch(`${SUPABASE_URL}/rest/v1/devices?imei=eq.${testImei}`, { method: 'DELETE', headers });
+    if (testCashRegisterId) await fetch(`${SUPABASE_URL}/rest/v1/cash_registers?id=eq.${testCashRegisterId}`, { method: 'DELETE', headers });
+  });
 
   // 1. Cadastro e consulta de cliente
   test('1. Deve cadastrar e consultar cliente com integridade e campos completos', async () => {
@@ -51,7 +80,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
 
   // 2. Abertura de caixa
   test('2. Deve verificar ou abrir sessão de caixa com saldo inicial de troco', async () => {
-    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/cash_registers?status=eq.open&limit=1`, {
+    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/cash_registers?id=eq.${testCashRegisterId}`, {
       headers,
     });
     const openList = (await getRes.json()) as any;
@@ -222,7 +251,7 @@ describe('AUDITORIA COMERCIAL COMPLETA — CRM HIAGO IPHONES', () => {
     const sangriaPayload = {
       type: 'outflow',
       category: 'sangria',
-      description: 'Sangria para depósito bancário',
+      description: `Sangria auditoria ${testSuffix}`,
       amount: 500.00,
       payment_method: 'Dinheiro',
     };

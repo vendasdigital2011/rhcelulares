@@ -79,12 +79,9 @@ export async function fetchSales(): Promise<Sale[]> {
 
 export async function createSaleApi(sale: any): Promise<Sale> {
   if (USE_SUPABASE) {
-    try {
-      const res = await SaleRepository.create(sale);
-      if (res.data) return res.data;
-    } catch (err) {
-      console.warn('Falha ao registrar venda no Supabase, mantendo local:', err);
-    }
+    const res = await SaleRepository.create(sale);
+    if (res.success && res.data) return res.data;
+    throw new Error(res.error || 'Não foi possível registrar a venda.');
   }
   return sale;
 }
@@ -267,12 +264,9 @@ export async function fetchCustomers(): Promise<Customer[]> {
 
 export async function createCustomerApi(customer: Customer): Promise<Customer> {
   if (USE_SUPABASE) {
-    try {
-      const res = await CustomerRepository.create(customer);
-      if (res.data) return res.data;
-    } catch (err) {
-      console.warn('Falha ao salvar cliente no Supabase:', err);
-    }
+    const res = await CustomerRepository.create(customer);
+    if (res.success && res.data) return res.data;
+    throw new Error(res.error || 'Não foi possível salvar o cliente.');
   }
   return customer;
 }
