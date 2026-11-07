@@ -109,7 +109,17 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       </div>
 
       {/* BARRA DE PESQUISA E FILTROS */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div
+        className="balcao-card"
+        style={{
+          display: 'flex',
+          gap: 12,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          padding: 12,
+          border: '1px solid var(--border-default)',
+        }}
+      >
         <div style={{ position: 'relative', flex: 1, minWidth: 260 }}>
           <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: 14, top: 12 }} />
           <input
@@ -179,10 +189,18 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
       </div>
 
       {/* TABELA DE VENDAS */}
-      <div className="glass-panel" style={{ borderRadius: 14, overflow: 'hidden' }}>
+      <div
+        className="balcao-card"
+        style={{
+          border: '1px solid var(--border-default)',
+          borderRadius: 12,
+          overflow: 'hidden',
+          boxShadow: 'var(--shadow-card)',
+        }}
+      >
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
           <thead>
-            <tr style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
+            <tr style={{ background: 'var(--surface-muted)', borderBottom: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
               <th style={{ padding: '12px 16px', fontWeight: 700 }}>Nº Venda</th>
               <th style={{ padding: '12px 16px', fontWeight: 700 }}>Status</th>
               <th style={{ padding: '12px 16px', fontWeight: 700 }}>Data</th>
@@ -197,7 +215,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
           <tbody>
             {paginatedSales.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ textAlign: 'center', padding: '36px 0', color: '#64748b' }}>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '44px 16px', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)' }}>
                   Nenhuma venda encontrada com os filtros selecionados.
                 </td>
               </tr>
@@ -208,7 +226,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
                   <tr
                     key={sale.id}
                     style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                      borderBottom: '1px solid var(--border-subtle)',
                       opacity: isCancelled ? 0.6 : 1,
                       background: isCancelled ? 'rgba(239, 68, 68, 0.03)' : 'transparent',
                     }}
@@ -353,7 +371,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '12px 18px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            borderTop: '1px solid var(--border-default)',
             fontSize: '0.78rem',
             color: '#94a3b8',
           }}>
