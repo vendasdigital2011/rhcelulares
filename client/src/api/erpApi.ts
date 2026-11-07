@@ -271,6 +271,15 @@ export async function createCustomerApi(customer: Customer): Promise<Customer> {
   return customer;
 }
 
+export async function updateCustomerApi(id: string, customer: Customer): Promise<Customer> {
+  if (USE_SUPABASE) {
+    const res = await CustomerRepository.update(id, customer);
+    if (res.success && res.data) return res.data;
+    throw new Error(res.error || 'Não foi possível atualizar o cliente.');
+  }
+  return { ...customer, id };
+}
+
 // 6. CENTRAL DE PÓS-VENDA PREDITIVO
 export async function fetchAfterSalesTriggers(): Promise<AfterSalesTrigger[]> {
   if (USE_SUPABASE) {

@@ -5,7 +5,8 @@ import {
   MessageSquare, 
   X,
   Phone,
-  MoreVertical
+  MoreVertical,
+  Pencil
 } from 'lucide-react';
 import type { Customer } from '../types.js';
 import { validatePhoneBR } from '../utils/validators.js';
@@ -13,12 +14,14 @@ import { validatePhoneBR } from '../utils/validators.js';
 interface CustomersViewProps {
   customers: Customer[];
   onAddCustomer: (customer: Customer) => Promise<void>;
+  onUpdateCustomer: (customer: Customer) => Promise<void>;
   onNavigateToPOS?: (customerName: string) => void;
 }
 
 export const CustomersView: React.FC<CustomersViewProps> = ({
   customers,
   onAddCustomer,
+  onUpdateCustomer,
   onNavigateToPOS,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,6 +30,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [activeMenuCustomerId, setActiveMenuCustomerId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   // Formulário de novo cliente
   const [formData, setFormData] = useState({
@@ -58,6 +62,29 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     window.open(`https://wa.me/${cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`}?text=${text}`, '_blank');
   };
 
+  const openCreateModal = () => {
+    setEditingCustomer(null);
+    setSaveError('');
+    setFormData({ name: '', phone: '', cpf: '', email: '', birthday: '', notes: '' });
+    setIsNewModalOpen(true);
+  };
+
+  const openEditModal = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setSaveError('');
+    setFormData({
+      name: customer.name,
+      phone: customer.phone,
+      cpf: customer.cpf || '',
+      email: customer.email || '',
+      birthday: customer.birthday || '',
+      notes: customer.notes || '',
+    });
+    setSelectedCustomer(null);
+    setActiveMenuCustomerId(null);
+    setIsNewModalOpen(true);
+  };
+
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.phone.trim()) {
@@ -72,21 +99,21 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     }
 
     const cleanPhone = formData.phone.replace(/\D/g, '');
-    const alreadyExists = customers.some(c => c.phone.replace(/\D/g, '') === cleanPhone);
+    const alreadyExists = customers.some(c => c.id !== editingCustomer?.id && c.phone.replace(/\D/g, '') === cleanPhone);
     if (alreadyExists) {
       alert('Já existe um cliente cadastrado com este telefone.');
       return;
     }
 
     const newCustomer: Customer = {
-      id: `cust-${Date.now()}`,
+      id: editingCustomer?.id || `cust-${Date.now()}`,
       name: formData.name.trim(),
       phone: formData.phone.trim(),
       cpf: formData.cpf.trim() || undefined,
       email: formData.email.trim() || undefined,
-      purchasedDevices: [],
-      totalSpent: 0,
-      lastPurchaseDate: new Date().toLocaleDateString('pt-BR'),
+      purchasedDevices: editingCustomer?.purchasedDevices || [],
+      totalSpent: editingCustomer?.totalSpent || 0,
+      lastPurchaseDate: editingCustomer?.lastPurchaseDate || new Date().toLocaleDateString('pt-BR'),
       notes: formData.notes.trim() || undefined,
       birthday: formData.birthday || undefined,
     };
@@ -94,7 +121,11 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     setIsSaving(true);
     setSaveError('');
     try {
-      await onAddCustomer(newCustomer);
+      if (editingCustomer) {
+        await onUpdateCustomer(newCustomer);
+      } else {
+        await onAddCustomer(newCustomer);
+      }
       setIsNewModalOpen(false);
       setFormData({ name: '', phone: '', cpf: '', email: '', birthday: '', notes: '' });
     } catch (error) {
@@ -177,7 +208,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
         <button
           id="open-customer-modal-btn"
-          onClick={() => setIsNewModalOpen(true)}
+          onClick={openCreateModal}
           className="balcao-btn-primary"
           style={{ height: 34, fontSize: '0.8125rem' }}
         >
@@ -327,6 +358,19 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                           padding: '4px 0',
                           textAlign: 'left',
                         }}>
+                          <button
+                            onClick={() => openEditModal(cust)}
+                            style={{
+                              width: '100%', padding: '8px 12px', background: 'transparent', border: 'none',
+                              fontSize: '0.75rem', color: '#2563EB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F7F8FA')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          >
+                            <Pencil size={13} />
+                            <span>Editar cliente</span>
+                          </button>
+
                           <button
                             onClick={() => {
                               setSelectedCustomer(cust);
@@ -498,6 +542,10 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
             {/* Ações no Rodapé do Drawer */}
             <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 16, display: 'flex', gap: 10 }}>
+              <button onClick={() => openEditModal(selectedCustomer)} className="balcao-btn-secondary" style={{ flex: 1 }}>
+                <Pencil size={14} />
+                <span>Editar</span>
+              </button>
               <button
                 onClick={() => handleOpenWhatsApp(selectedCustomer.phone, selectedCustomer.name, selectedCustomer.purchasedDevices[0]?.model)}
                 className="balcao-btn-secondary"
@@ -539,8 +587,8 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
           <div className="balcao-card animate-fade-in" style={{ width: '100%', maxWidth: 480, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: 12, marginBottom: 16 }}>
               <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#17181A', margin: 0 }}>Novo Cliente</h3>
-                <p style={{ fontSize: '0.75rem', color: '#667085', margin: 0 }}>Cadastro rápido de balcão.</p>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#17181A', margin: 0 }}>{editingCustomer ? 'Editar Cliente' : 'Novo Cliente'}</h3>
+                <p style={{ fontSize: '0.75rem', color: '#667085', margin: 0 }}>{editingCustomer ? 'Atualize os dados cadastrais.' : 'Cadastro rápido de balcão.'}</p>
               </div>
               <button type="button" disabled={isSaving} onClick={() => setIsNewModalOpen(false)} style={{ background: 'transparent', border: 'none', cursor: isSaving ? 'not-allowed' : 'pointer', color: '#667085' }}>
                 <X size={18} />
@@ -622,7 +670,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   Cancelar
                 </button>
                 <button type="submit" className="balcao-btn-primary" disabled={isSaving}>
-                  {isSaving ? 'Salvando...' : 'Salvar Cliente'}
+                  {isSaving ? 'Salvando...' : editingCustomer ? 'Salvar Alterações' : 'Salvar Cliente'}
                 </button>
               </div>
             </form>

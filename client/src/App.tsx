@@ -52,6 +52,7 @@ import {
   toggleCashApi,
   fetchCustomers,
   createCustomerApi,
+  updateCustomerApi,
   fetchAfterSalesTriggers,
   updateAfterSalesStatusApi,
   fetchSuppliers,
@@ -540,6 +541,11 @@ export function App() {
   const handleAddCustomer = async (customer: Customer) => {
     const created = await createCustomerApi(customer);
     setCustomers(prev => [created, ...prev.filter(c => c.id !== created.id)]);
+  };
+
+  const handleUpdateCustomer = async (customer: Customer) => {
+    const updated = await updateCustomerApi(customer.id, customer);
+    setCustomers(prev => prev.map(item => item.id === updated.id ? updated : item));
   };
 
   // Ação de Pós-Venda (Marcar Enviado / Convertido)
@@ -1221,6 +1227,7 @@ export function App() {
             <CustomersView
               customers={customers}
               onAddCustomer={handleAddCustomer}
+              onUpdateCustomer={handleUpdateCustomer}
               onNavigateToPOS={(_customerName) => {
                 setActiveTab('checkout');
               }}

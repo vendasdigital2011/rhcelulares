@@ -68,6 +68,34 @@ export class CustomerRepository {
     }
   }
 
+  static async update(id: string, customer: Customer): Promise<{ success: boolean; data?: Customer; error?: string }> {
+    try {
+      if (!this.UUID_PATTERN.test(id)) {
+        return { success: false, error: 'Identificador do cliente inválido.' };
+      }
+
+      const { data, error } = await supabase
+        .from('customers')
+        .update({
+          name: customer.name,
+          phone: customer.phone,
+          cpf: customer.cpf || null,
+          email: customer.email || null,
+          notes: customer.notes || null,
+          birthday: customer.birthday || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) return { success: false, error: error.message };
+      return { success: true, data: this.mapFromDb(data) };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Falha inesperada ao atualizar cliente.' };
+    }
+  }
+
   /**
    * Atualiza ou cadastra cliente após realização de venda no PDV
    */
