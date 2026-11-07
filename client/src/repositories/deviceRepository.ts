@@ -45,6 +45,8 @@ export class DeviceRepository {
       selling_price: device.sellPrice,
       supplier: device.supplier,
       status: device.status,
+      location: device.location || null,
+      internal_code: device.internalCode || null,
       is_showcase_public: device.isShowcasePublic ?? true,
       is_showcase_featured: device.isShowcaseFeatured ?? false,
       notes: device.notes || null,
@@ -80,11 +82,21 @@ export class DeviceRepository {
   static async create(device: Device): Promise<{ success: boolean; data?: Device; error?: string }> {
     try {
       const payload = this.mapToDb(device);
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('devices')
         .insert([payload])
         .select()
         .single();
+
+      if (error && (error.code === 'PGRST204' || error.code === '42703')) {
+        delete payload.location;
+        delete payload.internal_code;
+        ({ data, error } = await supabase
+          .from('devices')
+          .insert([payload])
+          .select()
+          .single());
+      }
 
       if (error) {
         if (error.code === '23505') {
@@ -120,12 +132,14 @@ export class DeviceRepository {
     }
   }
 
-  static async update(imei: string, updates: Partial<Device>): Promise<boolean> {
+  static async update(imei: string, updates: Partial<Device>): Promise<{ success: boolean; error?: string }> {
     try {
       const cleanImei = imei.replace(/\D/g, '');
       const payload: any = { updated_at: new Date().toISOString() };
       if (updates.model !== undefined) payload.model = updates.model;
       if (updates.brand !== undefined) payload.brand = updates.brand;
+      if (updates.serialNumber !== undefined) payload.serial_number = updates.serialNumber || null;
+      if (updates.internalCode !== undefined) payload.internal_code = updates.internalCode || null;
       if (updates.storage !== undefined) payload.storage = updates.storage;
       if (updates.color !== undefined) payload.color = updates.color;
       if (updates.condition !== undefined) payload.condition = updates.condition;
@@ -139,20 +153,48 @@ export class DeviceRepository {
       if (updates.isShowcaseFeatured !== undefined) payload.is_showcase_featured = updates.isShowcaseFeatured;
       if (updates.notes !== undefined) payload.notes = updates.notes;
 
-      await supabase.from('devices').update(payload).eq('imei', cleanImei);
-      return true;
-    } catch {
-      return true;
+      let { data, error } = await supabase
+        .from('devices')
+        .update(payload)
+        .eq('imei', cleanImei)
+        .select('id');
+
+      // Bancos criados antes da ampliação do estoque ainda não têm estes campos.
+      // Reexecuta a edição sem eles para não bloquear preço/modelo/cor enquanto a
+      // migração docs/supabase_fix_devices_edit.sql não for aplicada.
+      if (error && (error.code === 'PGRST204' || error.code === '42703')) {
+        const compatiblePayload = { ...payload };
+        delete compatiblePayload.location;
+        delete compatiblePayload.internal_code;
+        ({ data, error } = await supabase
+          .from('devices')
+          .update(compatiblePayload)
+          .eq('imei', cleanImei)
+          .select('id'));
+      }
+
+      if (error) {
+        console.error('Falha ao atualizar aparelho no Supabase:', error);
+        return { success: false, error: error.message };
+      }
+      if (!data?.length) {
+        return { success: false, error: 'Aparelho não encontrado ou sem permissão para editar.' };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Falha inesperada ao atualizar aparelho.' };
     }
   }
 
-  static async delete(imei: string): Promise<boolean> {
+  static async delete(imei: string): Promise<{ success: boolean; error?: string }> {
     try {
       const cleanImei = imei.replace(/\D/g, '');
-      await supabase.from('devices').delete().eq('imei', cleanImei);
-      return true;
-    } catch {
-      return true;
+      const { data, error } = await supabase.from('devices').delete().eq('imei', cleanImei).select('id');
+      if (error) return { success: false, error: error.message };
+      if (!data?.length) return { success: false, error: 'Aparelho não encontrado ou sem permissão para excluir.' };
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Falha inesperada ao excluir aparelho.' };
     }
   }
 

@@ -123,7 +123,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
             style={{
               width: '100%',
               background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.09)',
+              border: '1px solid var(--border-default)',
               borderRadius: 10,
               padding: '10px 14px 10px 42px',
               color: '#fff',
@@ -134,7 +134,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         </div>
 
         {/* Filtro Período */}
-        <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 10, padding: 3 }}>
+        <div style={{ display: 'flex', background: 'var(--surface-bg)', border: '1px solid var(--border-default)', borderRadius: 10, padding: 3 }}>
           {(['all', 'today', 'week', 'month'] as const).map(p => (
             <button
               key={p}
@@ -156,7 +156,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({
         </div>
 
         {/* Filtro Status */}
-        <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 10, padding: 3 }}>
+        <div style={{ display: 'flex', background: 'var(--surface-bg)', border: '1px solid var(--border-default)', borderRadius: 10, padding: 3 }}>
           {(['all', 'completed', 'cancelled'] as const).map(s => (
             <button
               key={s}

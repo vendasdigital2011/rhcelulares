@@ -14,6 +14,7 @@ import { TechnicalAssistanceHub } from './components/TechnicalAssistanceHub.js';
 import { ManagementHub, type ManagementSubmoduleTab } from './components/ManagementHub.js';
 import { FinancialIntelligenceHub } from './components/financial-intelligence/FinancialIntelligenceHub.js';
 import { FinancialRepository } from './repositories/financialRepository.js';
+import { isSupabaseConfigured } from './services/supabaseClient.js';
 import { 
   INITIAL_DEVICES, 
   INITIAL_ACCESSORIES, 
@@ -310,19 +311,31 @@ export function App() {
 
   // Handlers de Estoque de Aparelhos (Celulares)
   const handleAddDevice = async (device: Device) => {
-    await createDeviceApi(device);
+    const created = await createDeviceApi(device);
+    if (!isSupabaseConfigured) {
+      setDevices(prev => [created, ...prev]);
+      return;
+    }
     const updated = await fetchDevices();
     if (updated) setDevices(updated);
   };
 
   const handleUpdateDevice = async (imei: string, updates: Partial<Device>) => {
     await updateDeviceApi(imei, updates);
+    if (!isSupabaseConfigured) {
+      setDevices(prev => prev.map(device => device.imei === imei ? { ...device, ...updates } : device));
+      return;
+    }
     const updated = await fetchDevices();
     if (updated) setDevices(updated);
   };
 
   const handleDeleteDevice = async (imei: string) => {
     await deleteDeviceApi(imei);
+    if (!isSupabaseConfigured) {
+      setDevices(prev => prev.filter(device => device.imei !== imei));
+      return;
+    }
     const updated = await fetchDevices();
     if (updated) setDevices(updated);
   };

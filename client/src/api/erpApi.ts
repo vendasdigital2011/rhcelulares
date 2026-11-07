@@ -399,11 +399,15 @@ export async function recordInventoryMovementApi(movement: Omit<import('../types
 
 // 12. ATUALIZAÇÃO E EXCLUSÃO DE APARELHO
 export async function updateDeviceApi(imei: string, updates: Partial<Device>) {
-  return await DeviceRepository.update(imei, updates);
+  if (!USE_SUPABASE) return;
+  const result = await DeviceRepository.update(imei, updates);
+  if (!result.success) throw new Error(result.error || 'Não foi possível atualizar o aparelho.');
 }
 
 export async function deleteDeviceApi(imei: string) {
-  return await DeviceRepository.delete(imei);
+  if (!USE_SUPABASE) return;
+  const result = await DeviceRepository.delete(imei);
+  if (!result.success) throw new Error(result.error || 'Não foi possível excluir o aparelho.');
 }
 
 // 13. STATUS DA CONEXÃO DO SUPABASE

@@ -282,6 +282,22 @@ textarea:focus-visible {
   transition: border-color var(--animation-duration) ease, box-shadow var(--animation-duration) ease;
 }
 
+/* Painel compartilhado pelos módulos operacionais. A classe já era usada
+   nas telas, mas sem uma definição global as bordas desapareciam no tema claro. */
+.glass-panel {
+  background-color: var(--card-bg);
+  border: var(--border-width) solid var(--border-default);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--animation-duration) ease,
+    background-color var(--animation-duration) ease,
+    box-shadow var(--animation-duration) ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-strong);
+}
+
 .crm-card-highlight {
   border-color: var(--border-strong);
 }

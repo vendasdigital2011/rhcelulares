@@ -52,8 +52,6 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
   onEditLead,
   onDeleteLead,
 }) => {
-  if (!isOpen || !lead) return null;
-
   // Nova Atividade
   const [activityType, setActivityType] = useState<LeadActivityType>('observacao');
   const [activityDesc, setActivityDesc] = useState('');
@@ -68,6 +66,8 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
   const [targetStage, setTargetStage] = useState<LeadStage | null>(null);
   const [stageReason, setStageReason] = useState('');
   const [isChangingStage, setIsChangingStage] = useState(false);
+
+  if (!isOpen || !lead) return null;
 
   const handleStageClick = async (newStage: LeadStage) => {
     if (newStage === lead.stage) return;

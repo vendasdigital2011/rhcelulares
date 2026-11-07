@@ -14,9 +14,9 @@ import { validateIMEI } from '../../utils/validators.js';
 
 interface DeviceStockViewProps {
   devices: Device[];
-  onAddDevice: (device: Device) => void;
-  onUpdateDevice: (imei: string, updates: Partial<Device>) => void;
-  onDeleteDevice: (imei: string) => void;
+  onAddDevice: (device: Device) => Promise<void>;
+  onUpdateDevice: (imei: string, updates: Partial<Device>) => Promise<void>;
+  onDeleteDevice: (imei: string) => Promise<void>;
 }
 
 export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
@@ -51,6 +51,7 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
   const [isShowcasePublic, setIsShowcasePublic] = useState(true);
   const [isShowcaseFeatured, setIsShowcaseFeatured] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // 4 MÉTRICAS DE TOPO CONFORME ESPECIFICAÇÃO BALCÃO OS:
   // 1. Valor investido (custo)
@@ -99,7 +100,7 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
     setFormError(null);
   };
 
-  const handleSaveDevice = (e: React.FormEvent) => {
+  const handleSaveDevice = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -119,24 +120,28 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
       return;
     }
 
-    if (editingDevice) {
-      onUpdateDevice(editingDevice.imei || cleanImei, {
-        model,
-        storage,
-        color,
-        condition,
-        batteryHealth: condition === 'certified_pre_owned' ? batteryHealth : undefined,
-        purchasePrice,
-        sellPrice,
-        supplier,
-        location,
-        notes,
-        isShowcasePublic,
-        isShowcaseFeatured,
-      });
-      setEditingDevice(null);
-    } else {
-      const newDev: Device = {
+    setIsSaving(true);
+    try {
+      if (editingDevice) {
+        await onUpdateDevice(editingDevice.imei || cleanImei, {
+          serialNumber: serialNumber.trim() || undefined,
+          internalCode: internalCode.trim() || undefined,
+          model,
+          storage,
+          color,
+          condition,
+          batteryHealth: condition === 'certified_pre_owned' ? batteryHealth : undefined,
+          purchasePrice,
+          sellPrice,
+          supplier,
+          location,
+          notes,
+          isShowcasePublic,
+          isShowcaseFeatured,
+        });
+        setEditingDevice(null);
+      } else {
+        const newDev: Device = {
         id: `dev-${Date.now()}`,
         imei: cleanImei,
         serialNumber: serialNumber.trim() || undefined,
@@ -157,11 +162,15 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
         isShowcaseFeatured,
         createdAt: new Date().toISOString().split('T')[0],
       };
-      onAddDevice(newDev);
+        await onAddDevice(newDev);
+      }
+      setShowAddModal(false);
+      resetForm();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Não foi possível salvar o aparelho.');
+    } finally {
+      setIsSaving(false);
     }
-
-    setShowAddModal(false);
-    resetForm();
   };
 
   const handleOpenEdit = (dev: Device) => {
@@ -185,10 +194,14 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
     setActionMenuOpenImei(null);
   };
 
-  const handleQuickStatusChange = (dev: Device, newStatus: DeviceStatus) => {
+  const handleQuickStatusChange = async (dev: Device, newStatus: DeviceStatus) => {
     if (!dev.imei) return;
-    onUpdateDevice(dev.imei, { status: newStatus });
-    setActionMenuOpenImei(null);
+    try {
+      await onUpdateDevice(dev.imei, { status: newStatus });
+      setActionMenuOpenImei(null);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Não foi possível alterar o status.');
+    }
   };
 
   const filteredDevices = devices.filter(d => {
@@ -1000,9 +1013,10 @@ export const DeviceStockView: React.FC<DeviceStockViewProps> = ({
                 <button
                   type="submit"
                   className="balcao-btn-primary"
+                  disabled={isSaving}
                   style={{ height: 38, padding: '0 20px' }}
                 >
-                  Salvar Aparelho
+                  {isSaving ? 'Salvando...' : 'Salvar Aparelho'}
                 </button>
               </div>
             </form>

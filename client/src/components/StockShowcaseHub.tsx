@@ -34,9 +34,9 @@ interface StockShowcaseHubProps {
   suppliers: Supplier[];
   purchases: PhonePurchase[];
   movements: InventoryMovement[];
-  onAddDevice: (device: Device) => void;
-  onUpdateDevice: (imei: string, updates: Partial<Device>) => void;
-  onDeleteDevice: (imei: string) => void;
+  onAddDevice: (device: Device) => Promise<void>;
+  onUpdateDevice: (imei: string, updates: Partial<Device>) => Promise<void>;
+  onDeleteDevice: (imei: string) => Promise<void>;
   onCreateProduct: (prod: Omit<Product, 'id' | 'createdAt'>) => void;
   onUpdateProduct: (id: string, updates: Partial<Product>) => void;
   onAdjustProductStock: (id: string, delta: number, reason: string) => void;

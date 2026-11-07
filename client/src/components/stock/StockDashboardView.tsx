@@ -205,7 +205,7 @@ export const StockDashboardView: React.FC<StockDashboardViewProps> = ({
         </div>
 
         {/* Alertas de Ruptura e Reposição */}
-        <div className="glass-panel" style={{ padding: 20, borderRadius: 14, border: totalRuptureAlerts > 0 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div className="glass-panel" style={{ padding: 20, borderRadius: 14, borderColor: totalRuptureAlerts > 0 ? 'rgba(239, 68, 68, 0.45)' : 'var(--border-default)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 600 }}>Alertas de Estoque</span>
             <div style={{ width: 28, height: 28, borderRadius: 6, background: totalRuptureAlerts > 0 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(234, 179, 8, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: totalRuptureAlerts > 0 ? '#ef4444' : '#eab308' }}>
@@ -238,7 +238,7 @@ export const StockDashboardView: React.FC<StockDashboardViewProps> = ({
               borderRadius: 12,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border-default)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -267,7 +267,7 @@ export const StockDashboardView: React.FC<StockDashboardViewProps> = ({
               borderRadius: 12,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border-default)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -296,7 +296,7 @@ export const StockDashboardView: React.FC<StockDashboardViewProps> = ({
               borderRadius: 12,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border-default)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -325,7 +325,7 @@ export const StockDashboardView: React.FC<StockDashboardViewProps> = ({
               borderRadius: 12,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border-default)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -354,7 +354,7 @@ export const StockDashboardView: React.FC<StockDashboardViewProps> = ({
               borderRadius: 12,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border-default)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -383,7 +383,7 @@ export const StockDashboardView: React.FC<StockDashboardViewProps> = ({
               borderRadius: 12,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border-default)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
