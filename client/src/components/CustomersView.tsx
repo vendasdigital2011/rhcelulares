@@ -12,7 +12,7 @@ import { validatePhoneBR } from '../utils/validators.js';
 
 interface CustomersViewProps {
   customers: Customer[];
-  onAddCustomer: (customer: Customer) => void;
+  onAddCustomer: (customer: Customer) => Promise<void>;
   onNavigateToPOS?: (customerName: string) => void;
 }
 
@@ -25,6 +25,8 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [activeMenuCustomerId, setActiveMenuCustomerId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   // Formulário de novo cliente
   const [formData, setFormData] = useState({
@@ -56,7 +58,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     window.open(`https://wa.me/${cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`}?text=${text}`, '_blank');
   };
 
-  const handleSaveCustomer = (e: React.FormEvent) => {
+  const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.phone.trim()) {
       alert('Preencha os campos obrigatórios: Nome e Telefone/WhatsApp.');
@@ -89,9 +91,17 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
       birthday: formData.birthday || undefined,
     };
 
-    onAddCustomer(newCustomer);
-    setIsNewModalOpen(false);
-    setFormData({ name: '', phone: '', cpf: '', email: '', birthday: '', notes: '' });
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      await onAddCustomer(newCustomer);
+      setIsNewModalOpen(false);
+      setFormData({ name: '', phone: '', cpf: '', email: '', birthday: '', notes: '' });
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Não foi possível salvar o cliente.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -532,7 +542,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#17181A', margin: 0 }}>Novo Cliente</h3>
                 <p style={{ fontSize: '0.75rem', color: '#667085', margin: 0 }}>Cadastro rápido de balcão.</p>
               </div>
-              <button onClick={() => setIsNewModalOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#667085' }}>
+              <button type="button" disabled={isSaving} onClick={() => setIsNewModalOpen(false)} style={{ background: 'transparent', border: 'none', cursor: isSaving ? 'not-allowed' : 'pointer', color: '#667085' }}>
                 <X size={18} />
               </button>
             </div>
@@ -596,16 +606,23 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 />
               </div>
 
+              {saveError ? (
+                <div role="alert" style={{ padding: '9px 10px', border: '1px solid #FECACA', borderRadius: 6, background: '#FEF2F2', color: '#B91C1C', fontSize: '0.75rem' }}>
+                  {saveError}
+                </div>
+              ) : null}
+
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 14, borderTop: '1px solid #E5E7EB', paddingTop: 14, marginTop: 8 }}>
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setIsNewModalOpen(false)}
                   style={{ background: 'transparent', border: 'none', color: '#667085', fontSize: '0.8125rem', cursor: 'pointer' }}
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="balcao-btn-primary">
-                  Salvar Cliente
+                <button type="submit" className="balcao-btn-primary" disabled={isSaving}>
+                  {isSaving ? 'Salvando...' : 'Salvar Cliente'}
                 </button>
               </div>
             </form>

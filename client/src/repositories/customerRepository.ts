@@ -3,6 +3,8 @@ import type { Customer, CustomerDevice } from '../types.js';
 import { INITIAL_CUSTOMERS } from '../data/erpData.js';
 
 export class CustomerRepository {
+  private static readonly UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
   private static mapFromDb(row: any): Customer {
     return {
       id: row.id,
@@ -38,19 +40,21 @@ export class CustomerRepository {
 
   static async create(customer: Customer): Promise<{ success: boolean; data?: Customer; error?: string }> {
     try {
+      const payload = {
+        ...(this.UUID_PATTERN.test(customer.id) ? { id: customer.id } : {}),
+        name: customer.name,
+        phone: customer.phone,
+        cpf: customer.cpf || null,
+        email: customer.email || null,
+        total_spent: customer.totalSpent || 0,
+        last_purchase_date: customer.lastPurchaseDate || new Date().toLocaleDateString('pt-BR'),
+        notes: customer.notes || null,
+        birthday: customer.birthday || null,
+      };
+
       const { data, error } = await supabase
         .from('customers')
-        .insert([{
-          id: customer.id,
-          name: customer.name,
-          phone: customer.phone,
-          cpf: customer.cpf || null,
-          email: customer.email || null,
-          total_spent: customer.totalSpent || 0,
-          last_purchase_date: customer.lastPurchaseDate || new Date().toLocaleDateString('pt-BR'),
-          notes: customer.notes || null,
-          birthday: customer.birthday || null,
-        }])
+        .insert([payload])
         .select()
         .single();
 
@@ -117,8 +121,8 @@ export class CustomerRepository {
           totalSpent: amount,
           lastPurchaseDate: new Date().toLocaleDateString('pt-BR'),
         };
-        await this.create(newCust);
-        return newCust;
+        const created = await this.create(newCust);
+        return created.success && created.data ? created.data : null;
       }
     } catch {
       return null;
