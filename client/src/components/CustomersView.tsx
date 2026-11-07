@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Search, 
-  Plus, 
   MessageSquare, 
   X,
   Phone,
@@ -209,11 +208,12 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
         <button
           id="open-customer-modal-btn"
           onClick={openCreateModal}
-          className="balcao-btn-primary"
-          style={{ height: 34, fontSize: '0.8125rem' }}
+          type="button"
+          aria-hidden="true"
+          tabIndex={-1}
+          style={{ display: 'none' }}
         >
-          <Plus size={15} />
-          <span>Cadastrar cliente</span>
+          Abrir cadastro de cliente
         </button>
       </div>
 
@@ -328,6 +328,24 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                           title="Abrir WhatsApp"
                         >
                           <MessageSquare size={13} />
+                        </button>
+
+                        <button
+                          onClick={() => openEditModal(cust)}
+                          style={{
+                            background: 'transparent',
+                            border: '1px solid #E5E7EB',
+                            borderRadius: 4,
+                            padding: '4px 6px',
+                            cursor: 'pointer',
+                            color: '#2563EB',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          title="Editar cliente"
+                          aria-label={`Editar cliente ${cust.name}`}
+                        >
+                          <Pencil size={13} />
                         </button>
 
                         <button
