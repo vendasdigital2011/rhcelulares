@@ -21,6 +21,10 @@ const envSchema = z.object({
   META_WABA_ID: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+  EVOLUTION_API_URL: z.string().default('https://evolutionapi.vps10855.panel.icontainer.net'),
+  EVOLUTION_API_KEY: z.string().default('FDB6C5615270-4894-9905-7471FF266CBE'),
+  EVOLUTION_INSTANCE_NAME: z.string().default('hiago'),
+  EVOLUTION_STORE_PHONE: z.string().default('5577981447719'),
 });
 
 const _env = envSchema.safeParse(process.env);

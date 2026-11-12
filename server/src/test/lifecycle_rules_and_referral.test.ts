@@ -72,3 +72,4 @@ describe('Épico 10: Indicação Lite no WhatsApp (Member-Get-Member) & Dashboar
     assert.ok(roi.salesFromReferralsCount > 0);
   });
 });
+

@@ -1,5 +1,6 @@
 import { env } from '../../config/index.js';
 import { pool } from '../../db/client.js';
+import { EvolutionService } from './evolution.service.js';
 
 export interface SendMessageParams {
   to: string;
@@ -50,7 +51,22 @@ export async function sendWhatsAppCloudMessage(params: SendMessageParams): Promi
     };
   }
 
-  // Verifica se as credenciais da Meta Cloud API estão presentes
+  // Prioridade 1: Evolution API (Se configurada)
+  if (env.EVOLUTION_API_URL && env.EVOLUTION_API_KEY) {
+    const evoResult = await EvolutionService.sendTextMessage(normalizedPhone, params.message.trim());
+    if (evoResult.success) {
+      console.log(`✅ [Evolution API] Mensagem enviada para ${normalizedPhone} (ID: ${evoResult.messageId})`);
+      return {
+        success: true,
+        messageId: evoResult.messageId,
+        status: 'sent',
+      };
+    } else {
+      console.warn(`⚠️ [Evolution API] Tentativa de envio falhou (${evoResult.error}), checando fallbacks...`);
+    }
+  }
+
+  // Prioridade 2: Meta Cloud API Oficial
   const token = env.META_ACCESS_TOKEN;
   const phoneNumberId = env.META_PHONE_NUMBER_ID;
 

@@ -8,6 +8,7 @@ import {
 import { WhatsAppAIService } from './whatsapp-ai.service.js';
 import { WhatsAppLifecycleRulesService } from './whatsapp-rules.service.js';
 import { WhatsAppReferralService } from './whatsapp-referral.service.js';
+import { EvolutionService } from './evolution.service.js';
 
 const sendMessageSchema = z.object({
   to: z.string().min(8, 'Número de telefone obrigatório'),
@@ -284,6 +285,70 @@ export const whatsappRoutes: FastifyPluginAsync = async (fastify) => {
       success: true,
       data: metrics,
     };
+  });
+
+  /**
+   * Consulta status de conexão da Evolution API
+   * GET /api/whatsapp/evolution/status
+   */
+  fastify.get('/evolution/status', async () => {
+    const state = await EvolutionService.getConnectionState();
+    return {
+      success: true,
+      data: state,
+    };
+  });
+
+  /**
+   * Obtém QR Code / Pairing Code em tempo real da Evolution API
+   * GET /api/whatsapp/evolution/qrcode
+   */
+  fastify.get('/evolution/qrcode', async (request, reply) => {
+    try {
+      const qrData = await EvolutionService.getConnectQRCode();
+      return reply.status(200).send({
+        success: true,
+        data: qrData,
+      });
+    } catch (err: any) {
+      return reply.status(502).send({
+        success: false,
+        error: err.message || 'Erro ao gerar QR Code',
+      });
+    }
+  });
+
+  /**
+   * Webhook Receptor de Mensagens e Eventos da Evolution API
+   * POST /api/whatsapp/evolution/webhook
+   */
+  fastify.post('/evolution/webhook', async (request, reply) => {
+    const body = request.body as any;
+    const event = body?.event || body?.type;
+
+    console.log(`📩 [Evolution Webhook Recebido] Evento: ${event}`);
+
+    // Quando recebe nova mensagem de cliente
+    if (event === 'messages.upsert' || event === 'MESSAGES_UPSERT') {
+      const data = body.data || body;
+      const key = data.key || {};
+      const fromMe = key.fromMe;
+      const remoteJid = key.remoteJid || '';
+
+      // Ignora mensagens enviadas pelo próprio robô/atendente
+      if (!fromMe && remoteJid && !remoteJid.includes('@g.us')) {
+        const phone = remoteJid.replace('@s.whatsapp.net', '');
+        const messageText = data.message?.conversation ||
+          data.message?.extendedTextMessage?.text ||
+          data.message?.imageMessage?.caption ||
+          '[Mídia recebida]';
+        const senderName = data.pushName || `Cliente (${phone})`;
+
+        console.log(`📱 Nova mensagem recebida de ${senderName} (${phone}): "${messageText}"`);
+      }
+    }
+
+    return reply.status(200).send({ received: true });
   });
 };
 

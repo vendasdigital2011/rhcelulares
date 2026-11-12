@@ -285,3 +285,4 @@ VALUES
   ('00000000-0000-0000-0000-000000000001', '/tradein', 'Avaliação de Usado na Troca', 'Aceitamos seu iPhone usado como parte do pagamento! Para fazermos a pré-avaliação, por favor me informe: 1. Qual o modelo? 2. Quantos GB? 3. Qual a saúde da bateria nas configurações? 4. Possui alguma marca ou detalhe estético?', 'vendas'),
   ('00000000-0000-0000-0000-000000000001', '/horario', 'Horário de Funcionamento', 'Nosso horário de atendimento é de Segunda a Sexta das 08h30 às 18h30, e aos Sábados das 08h30 às 13h00. Venha nos visitar e tomar um café conosco! ☕', 'geral')
 ON CONFLICT DO NOTHING;
+

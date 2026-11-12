@@ -16,6 +16,7 @@ import {
   BellRing,
   RefreshCw,
   Calculator,
+  QrCode,
 } from 'lucide-react';
 import type {
   WhatsAppChat,
@@ -46,6 +47,7 @@ import {
   getRoundRobinQueueStatus,
 } from '../../repositories/whatsappRepository.js';
 import { CrmTradeInCalculatorModal } from './CrmTradeInCalculatorModal.js';
+import { EvolutionConnectModal } from './EvolutionConnectModal.js';
 
 interface CrmWhatsAppChatViewProps {
   customers: Customer[];
@@ -90,6 +92,9 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
 
   // Calculadora Comercial 1-Click & Trade-in (Épico 06)
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+
+  // Conexão WhatsApp / Evolution QR Code
+  const [showConnectModal, setShowConnectModal] = useState(false);
 
   // Roleta Round-Robin & SLA (Épico 04)
   const roundRobinStatus = useMemo(() => {
@@ -359,6 +364,27 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
               Central WhatsApp
             </span>
             <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={() => setShowConnectModal(true)}
+                title="Conectar chip WhatsApp da loja (+55 77 98144-7719) via QR Code"
+                style={{
+                  backgroundColor: '#F0FDF4',
+                  color: '#16A34A',
+                  border: '1px solid #BBF7D0',
+                  borderRadius: 4,
+                  padding: '4px 8px',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <QrCode size={12} color="#16A34A" />
+                <span>QR Code</span>
+              </button>
+
               <button
                 onClick={() => setShowAutomationsModal(true)}
                 title="Automações pendentes de aprovação humana (RF06)"
@@ -1624,6 +1650,14 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* ======================================================== */}
+      {/* MODAL CONECTAR WHATSAPP / EVOLUTION API QR CODE          */}
+      {/* ======================================================== */}
+      <EvolutionConnectModal
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+      />
 
       {/* ======================================================== */}
       {/* MODAL CALCULADORA COMERCIAL 1-CLICK & TRADE-IN (ÉPICO 06) */}
