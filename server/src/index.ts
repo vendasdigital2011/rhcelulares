@@ -10,6 +10,7 @@ import { tenantRoutes } from './modules/tenants/tenant.controller.js';
 import { metaWebhookRoutes } from './modules/webhooks/meta-webhook.controller.js';
 import { erpRoutes } from './modules/erp/erp.controller.js';
 import { financialIntelligenceRoutes } from './modules/financial-intelligence/financial-intelligence.controller.js';
+import { whatsappRoutes } from './modules/whatsapp/whatsapp.controller.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -53,6 +54,7 @@ export async function buildApp() {
   await app.register(metaWebhookRoutes, { prefix: '/webhooks' });
   await app.register(erpRoutes, { prefix: '/api/erp' });
   await app.register(financialIntelligenceRoutes, { prefix: '/api/financial-intelligence' });
+  await app.register(whatsappRoutes, { prefix: '/api/whatsapp' });
 
   return app;
 }

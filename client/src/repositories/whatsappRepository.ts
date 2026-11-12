@@ -519,3 +519,4 @@ export async function getWhatsAppQuickReplies(): Promise<WhatsAppQuickReply[]> {
 
   return DEFAULT_QUICK_REPLIES;
 }
+

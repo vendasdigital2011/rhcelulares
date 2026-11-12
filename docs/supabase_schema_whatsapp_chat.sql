@@ -87,3 +87,4 @@ CREATE POLICY "Public access for whatsapp_messages" ON public.whatsapp_messages
 DROP POLICY IF EXISTS "Public access for whatsapp_quick_replies" ON public.whatsapp_quick_replies;
 CREATE POLICY "Public access for whatsapp_quick_replies" ON public.whatsapp_quick_replies
   FOR ALL TO public USING (true) WITH CHECK (true);
+
