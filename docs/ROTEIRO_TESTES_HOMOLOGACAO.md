@@ -237,3 +237,4 @@
 `[ ] APROVADO PARA OPERAÇÃO REAL` &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `[ ] BLOQUEADO / REQUER AJUSTES`
 
 **Assinatura do Testador:** _______________________________________ **Data:** _____/_____/2026
+

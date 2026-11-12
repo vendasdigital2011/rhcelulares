@@ -16,6 +16,8 @@ import {
   X,
   FileSpreadsheet,
   MessageCircle,
+  Wrench,
+  ShoppingBag,
 } from 'lucide-react';
 import type {
   Lead,
@@ -23,6 +25,11 @@ import type {
   LeadPriority,
   CommercialSummary,
   AIRecommendation,
+  ServiceOrder,
+  OSStatus,
+  Customer,
+  Sale,
+  Device,
 } from '../../types.js';
 import {
   fetchLeadsApi,
@@ -34,6 +41,18 @@ import {
 } from '../../api/erpApi.js';
 import { LeadFormModal } from './LeadFormModal.js';
 import { LeadDetailDrawer } from './LeadDetailDrawer.js';
+import { CrmAssistanceKanban } from './CrmAssistanceKanban.js';
+import { CrmCustomer360View } from './CrmCustomer360View.js';
+
+interface CrmKanbanViewProps {
+  serviceOrders?: ServiceOrder[];
+  sales?: Sale[];
+  customers?: Customer[];
+  devices?: Device[];
+  onUpdateOSStatus?: (id: string, status: OSStatus, notes?: string, operator?: string) => Promise<any>;
+  onNavigateToPOS?: (customerName: string) => void;
+  onNavigateToAssistance?: () => void;
+}
 
 const KANBAN_STAGES: Array<{ id: LeadStage; label: string; color: string; bgBadge: string }> = [
   { id: 'novo_lead', label: '1. Novo lead', color: '#3b82f6', bgBadge: 'rgba(59, 130, 246, 0.15)' },
@@ -45,7 +64,16 @@ const KANBAN_STAGES: Array<{ id: LeadStage; label: string; color: string; bgBadg
   { id: 'perdido', label: '7. Perdido', color: '#ef4444', bgBadge: 'rgba(239, 68, 68, 0.15)' },
 ];
 
-export const CrmKanbanView: React.FC = () => {
+export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
+  serviceOrders = [],
+  sales = [],
+  customers = [],
+  devices = [],
+  onUpdateOSStatus,
+  onNavigateToPOS,
+  onNavigateToAssistance,
+}) => {
+  const [activeCrmTab, setActiveCrmTab] = useState<'sales_kanban' | 'assistance_kanban' | 'customers_360'>('sales_kanban');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -211,53 +239,144 @@ export const CrmKanbanView: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button
-            onClick={() => setIsImportModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#cbd5e1',
-              padding: '9px 16px',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Upload size={15} />
-            <span>Importar leads</span>
-          </button>
+          {activeCrmTab === 'sales_kanban' && (
+            <>
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#cbd5e1',
+                  padding: '9px 16px',
+                  borderRadius: 8,
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Upload size={15} />
+                <span>Importar leads</span>
+              </button>
 
-          <button
-            onClick={() => {
-              setEditingLead(null);
-              setIsFormModalOpen(true);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#f97316',
-              border: 'none',
-              color: '#fff',
-              padding: '9px 20px',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Plus size={16} />
-            <span>Adicionar lead</span>
-          </button>
+              <button
+                onClick={() => {
+                  setEditingLead(null);
+                  setIsFormModalOpen(true);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#f97316',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '9px 20px',
+                  borderRadius: 8,
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Plus size={16} />
+                <span>Adicionar lead</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
+
+      {/* SELETOR DE SUBMÓDULOS CRM WHATSAPP 360° */}
+      <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: 12, flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setActiveCrmTab('sales_kanban')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: activeCrmTab === 'sales_kanban' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
+            color: '#FFFFFF',
+            fontSize: '0.8125rem',
+            fontWeight: activeCrmTab === 'sales_kanban' ? 700 : 500,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <ShoppingBag size={14} />
+          <span>Funil de Vendas ({leads.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveCrmTab('assistance_kanban')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: activeCrmTab === 'assistance_kanban' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
+            color: '#FFFFFF',
+            fontSize: '0.8125rem',
+            fontWeight: activeCrmTab === 'assistance_kanban' ? 700 : 500,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <Wrench size={14} />
+          <span>Kanban de Assistência ({serviceOrders.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveCrmTab('customers_360')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: activeCrmTab === 'customers_360' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
+            color: '#FFFFFF',
+            fontSize: '0.8125rem',
+            fontWeight: activeCrmTab === 'customers_360' ? 700 : 500,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <Users size={14} />
+          <span>Clientes 360° ({customers.length})</span>
+        </button>
+      </div>
+
+      {activeCrmTab === 'assistance_kanban' && (
+        <CrmAssistanceKanban
+          serviceOrders={serviceOrders}
+          onUpdateStatus={onUpdateOSStatus || (async () => {})}
+          onOpenOrderDetail={onNavigateToAssistance}
+        />
+      )}
+
+      {activeCrmTab === 'customers_360' && (
+        <CrmCustomer360View
+          customers={customers}
+          sales={sales}
+          serviceOrders={serviceOrders}
+          devices={devices}
+          onNavigateToPOS={onNavigateToPOS}
+        />
+      )}
+
+      {activeCrmTab === 'sales_kanban' && (
+        <>
 
       {/* 2. RESUMO COMERCIAL (5 CARDS BASEADOS EM DADOS REAIS) */}
       <div style={{
@@ -735,6 +854,8 @@ export const CrmKanbanView: React.FC = () => {
             );
           })}
         </div>
+      )}
+      </>
       )}
 
       {/* MODAL NOVO/EDITAR LEAD */}

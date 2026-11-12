@@ -7,11 +7,13 @@ import {
   MoreVertical,
   Pencil
 } from 'lucide-react';
-import type { Customer } from '../types.js';
+import type { Customer, Sale, ServiceOrder } from '../types.js';
 import { validatePhoneBR } from '../utils/validators.js';
 
 interface CustomersViewProps {
   customers: Customer[];
+  sales?: Sale[];
+  serviceOrders?: ServiceOrder[];
   onAddCustomer: (customer: Customer) => Promise<void>;
   onUpdateCustomer: (customer: Customer) => Promise<void>;
   onNavigateToPOS?: (customerName: string) => void;
@@ -19,6 +21,8 @@ interface CustomersViewProps {
 
 export const CustomersView: React.FC<CustomersViewProps> = ({
   customers,
+  sales = [],
+  serviceOrders = [],
   onAddCustomer,
   onUpdateCustomer,
   onNavigateToPOS,
@@ -545,6 +549,78 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* Histórico de Compras (Vendas PDV) */}
+              {sales.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A', marginBottom: 10 }}>
+                    Compras Recentes no PDV ({
+                      sales.filter(s => s.customerId === selectedCustomer.id || (s.customerPhone && selectedCustomer.phone && s.customerPhone.replace(/\D/g, '') === selectedCustomer.phone.replace(/\D/g, ''))).length
+                    })
+                  </h4>
+                  {(() => {
+                    const custSales = sales.filter(s => s.customerId === selectedCustomer.id || (s.customerPhone && selectedCustomer.phone && s.customerPhone.replace(/\D/g, '') === selectedCustomer.phone.replace(/\D/g, ''))).slice(0, 3);
+                    if (custSales.length === 0) {
+                      return (
+                        <div style={{ padding: 12, textAlign: 'center', backgroundColor: '#F9FAFB', borderRadius: 6, fontSize: '0.75rem', color: '#667085' }}>
+                          Nenhuma venda no PDV registrada.
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {custSales.map(s => (
+                          <div key={s.id} style={{ padding: 10, border: '1px solid #E5E7EB', borderRadius: 6, fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#17181A' }}>Venda #{s.saleNumber || s.id.slice(0, 6)} ({s.date})</div>
+                              <div style={{ color: '#667085', fontSize: '0.6875rem' }}>{s.paymentMethod}</div>
+                            </div>
+                            <div style={{ fontWeight: 700, color: '#16A34A' }}>
+                              R$ {(s.total ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Ordens de Serviço (Assistência Técnica) */}
+              {serviceOrders.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#17181A', marginBottom: 10 }}>
+                    Ordens de Serviço ({
+                      serviceOrders.filter(o => o.customerId === selectedCustomer.id || (o.customerPhone && selectedCustomer.phone && o.customerPhone.replace(/\D/g, '') === selectedCustomer.phone.replace(/\D/g, ''))).length
+                    })
+                  </h4>
+                  {(() => {
+                    const custOrders = serviceOrders.filter(o => o.customerId === selectedCustomer.id || (o.customerPhone && selectedCustomer.phone && o.customerPhone.replace(/\D/g, '') === selectedCustomer.phone.replace(/\D/g, ''))).slice(0, 3);
+                    if (custOrders.length === 0) {
+                      return (
+                        <div style={{ padding: 12, textAlign: 'center', backgroundColor: '#F9FAFB', borderRadius: 6, fontSize: '0.75rem', color: '#667085' }}>
+                          Nenhum chamado de assistência técnica registrado.
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {custOrders.map(o => (
+                          <div key={o.id} style={{ padding: 10, border: '1px solid #E5E7EB', borderRadius: 6, fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#17181A' }}>OS {o.osNumber} ({o.deviceModel})</div>
+                              <div style={{ color: '#2563EB', fontSize: '0.6875rem' }}>Status: {o.status}</div>
+                            </div>
+                            <div style={{ fontWeight: 700, color: '#17181A' }}>
+                              R$ {Number(o.finalValue || o.estimatedValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
 
               {selectedCustomer.notes && (
                 <div>

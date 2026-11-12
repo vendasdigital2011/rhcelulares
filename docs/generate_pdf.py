@@ -387,3 +387,4 @@ def build_pdf(filename="docs/ROTEIRO_TESTES_HOMOLOGACAO.pdf"):
 
 if __name__ == '__main__':
     build_pdf()
+

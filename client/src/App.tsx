@@ -1228,12 +1228,26 @@ export function App() {
           )}
 
           {activeTab === 'crm_customers' && (
-            <CrmKanbanView />
+            <CrmKanbanView
+              serviceOrders={serviceOrders}
+              sales={sales}
+              customers={customers}
+              devices={devices}
+              onUpdateOSStatus={handleUpdateOSStatus}
+              onNavigateToPOS={(_customerName) => {
+                setActiveTab('checkout');
+              }}
+              onNavigateToAssistance={() => {
+                setActiveTab('service_order');
+              }}
+            />
           )}
 
           {activeTab === 'customers' && (
             <CustomersView
               customers={customers}
+              sales={sales}
+              serviceOrders={serviceOrders}
               onAddCustomer={handleAddCustomer}
               onUpdateCustomer={handleUpdateCustomer}
               onNavigateToPOS={(_customerName) => {
