@@ -18,6 +18,7 @@ import {
   MessageCircle,
   Wrench,
   ShoppingBag,
+  BarChart3,
 } from 'lucide-react';
 import type {
   Lead,
@@ -30,6 +31,7 @@ import type {
   Customer,
   Sale,
   Device,
+  WhatsAppChat,
 } from '../../types.js';
 import {
   fetchLeadsApi,
@@ -39,11 +41,13 @@ import {
   fetchCommercialSummaryApi,
   fetchAIRecommendationsApi,
 } from '../../api/erpApi.js';
+import { getWhatsAppChats } from '../../repositories/whatsappRepository.js';
 import { LeadFormModal } from './LeadFormModal.js';
 import { LeadDetailDrawer } from './LeadDetailDrawer.js';
 import { CrmAssistanceKanban } from './CrmAssistanceKanban.js';
 import { CrmCustomer360View } from './CrmCustomer360View.js';
 import { CrmWhatsAppChatView } from './CrmWhatsAppChatView.js';
+import { CrmWhatsAppReportsView } from './CrmWhatsAppReportsView.js';
 
 interface CrmKanbanViewProps {
   serviceOrders?: ServiceOrder[];
@@ -74,7 +78,8 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
   onNavigateToPOS,
   onNavigateToAssistance,
 }) => {
-  const [activeCrmTab, setActiveCrmTab] = useState<'whatsapp_chat' | 'sales_kanban' | 'assistance_kanban' | 'customers_360'>('whatsapp_chat');
+  const [activeCrmTab, setActiveCrmTab] = useState<'whatsapp_chat' | 'sales_kanban' | 'assistance_kanban' | 'customers_360' | 'whatsapp_reports'>('whatsapp_chat');
+  const [chats, setChats] = useState<WhatsAppChat[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -113,6 +118,8 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
       setSummary(summ);
       const recs = await fetchAIRecommendationsApi(allLeads);
       setRecommendations(recs);
+      const whatsappChats = await getWhatsAppChats();
+      setChats(whatsappChats);
     } finally {
       setLoading(false);
     }
@@ -377,6 +384,27 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
           <Users size={14} />
           <span>Clientes 360° ({customers.length})</span>
         </button>
+
+        <button
+          onClick={() => setActiveCrmTab('whatsapp_reports')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: activeCrmTab === 'whatsapp_reports' ? '#16A34A' : 'rgba(255, 255, 255, 0.05)',
+            color: '#FFFFFF',
+            fontSize: '0.8125rem',
+            fontWeight: activeCrmTab === 'whatsapp_reports' ? 700 : 500,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <BarChart3 size={14} />
+          <span>Métricas WhatsApp 360° (RF07)</span>
+        </button>
       </div>
 
       {activeCrmTab === 'whatsapp_chat' && (
@@ -384,8 +412,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
           customers={customers}
           sales={sales}
           serviceOrders={serviceOrders}
+          devices={devices}
           onNavigateToPOS={onNavigateToPOS}
           onNavigateToAssistance={onNavigateToAssistance}
+        />
+      )}
+
+      {activeCrmTab === 'whatsapp_reports' && (
+        <CrmWhatsAppReportsView
+          chats={chats}
+          sales={sales}
+          serviceOrders={serviceOrders}
         />
       )}
 

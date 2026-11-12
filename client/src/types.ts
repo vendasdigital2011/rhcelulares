@@ -1136,4 +1136,39 @@ export interface WhatsAppQuickReply {
   category: 'vendas' | 'assistencia' | 'financeiro' | 'geral';
 }
 
+// ==========================================
+// COPILOTO IA & AUTOMAÇÕES WHATSAPP (RF05, RF06 & RF07)
+// ==========================================
+
+export interface WhatsAppCopilotSuggestion {
+  id: string;
+  title: string;
+  text: string;
+  category: 'direct_reply' | 'trade_in' | 'product_offer' | 'technical_status';
+  intentDetected: string;
+}
+
+export interface WhatsAppAutomationTask {
+  id: string;
+  triggerType: 'os_ready' | 'sale_completed' | 'budget_no_reply' | 'lead_idle' | 'dissatisfied_client';
+  title: string;
+  targetName: string;
+  targetPhone: string;
+  referenceId: string;
+  suggestedMessage: string;
+  status: 'pending' | 'approved' | 'executed' | 'dismissed';
+  createdAt: string;
+}
+
+export interface WhatsAppMetricsSummary {
+  totalChats: number;
+  openChats: number;
+  resolvedChats: number;
+  firstResponseTimeMin: number;
+  leadsConvertedCount: number;
+  conversionRatePercent: number;
+  revenueOriginated: number;
+  departmentCounts: Record<WhatsAppDepartment, number>;
+}
+
 

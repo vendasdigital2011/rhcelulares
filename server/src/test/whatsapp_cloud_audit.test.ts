@@ -78,3 +78,4 @@ test('5. Consulta de Status da Meta API (GET /api/whatsapp/status)', async () =>
 
   await app.close();
 });
+

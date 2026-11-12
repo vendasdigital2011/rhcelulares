@@ -191,3 +191,4 @@ export function getMetaConnectionStatus(): MetaConnectionStatus {
     mode: configured ? 'official_cloud_api' : 'simulated_dev',
   };
 }
+

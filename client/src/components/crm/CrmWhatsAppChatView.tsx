@@ -10,7 +10,11 @@ import {
   CheckCircle2,
   Plus,
   ArrowRightLeft,
-  X
+  X,
+  Sparkles,
+  Bot,
+  BellRing,
+  RefreshCw,
 } from 'lucide-react';
 import type {
   WhatsAppChat,
@@ -18,9 +22,12 @@ import type {
   WhatsAppQuickReply,
   WhatsAppDepartment,
   WhatsAppChatStatus,
+  WhatsAppCopilotSuggestion,
+  WhatsAppAutomationTask,
   Customer,
   Sale,
-  ServiceOrder
+  ServiceOrder,
+  Device,
 } from '../../types.js';
 import {
   getWhatsAppChats,
@@ -29,13 +36,18 @@ import {
   getOrCreateChatByPhone,
   updateWhatsAppChatStatus,
   transferWhatsAppChat,
-  getWhatsAppQuickReplies
+  getWhatsAppQuickReplies,
+  fetchAICopilotSuggestions,
+  fetchAutomationsQueue,
+  approveAutomation,
+  dismissAutomation,
 } from '../../repositories/whatsappRepository.js';
 
 interface CrmWhatsAppChatViewProps {
   customers: Customer[];
   sales: Sale[];
   serviceOrders: ServiceOrder[];
+  devices?: Device[];
   onNavigateToPOS?: (customerName: string) => void;
   onNavigateToAssistance?: () => void;
 }
@@ -44,6 +56,7 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
   customers,
   sales,
   serviceOrders,
+  devices = [],
   onNavigateToPOS,
   onNavigateToAssistance,
 }) => {
@@ -60,6 +73,17 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
 
+  // Copiloto IA (RF05)
+  const [showCopilotPanel, setShowCopilotPanel] = useState(false);
+  const [copilotLoading, setCopilotLoading] = useState(false);
+  const [copilotSuggestions, setCopilotSuggestions] = useState<WhatsAppCopilotSuggestion[]>([]);
+  const [copilotSource, setCopilotSource] = useState<string>('');
+
+  // Automações Human-in-the-loop (RF06)
+  const [automations, setAutomations] = useState<WhatsAppAutomationTask[]>([]);
+  const [showAutomationsModal, setShowAutomationsModal] = useState(false);
+  const [processingAutomationId, setProcessingAutomationId] = useState<string | null>(null);
+
   // Form nova conversa
   const [newChatName, setNewChatName] = useState('');
   const [newChatPhone, setNewChatPhone] = useState('');
@@ -71,7 +95,7 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Carrega conversas e respostas rápidas
+  // Carrega conversas, respostas rápidas e automações
   const loadChats = async () => {
     const data = await getWhatsAppChats();
     setChats(data);
@@ -80,8 +104,14 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
     }
   };
 
+  const loadAutomations = async () => {
+    const queue = await fetchAutomationsQueue();
+    setAutomations(queue);
+  };
+
   useEffect(() => {
     loadChats();
+    loadAutomations();
     getWhatsAppQuickReplies().then(setQuickReplies);
   }, []);
 
@@ -216,6 +246,72 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
     setNewChatPhone('');
   };
 
+  // Copiloto IA: Gera sugestões baseadas no estoque e histórico real
+  const handleTriggerCopilot = async () => {
+    if (!activeChat) return;
+    setCopilotLoading(true);
+    setShowCopilotPanel(true);
+
+    const availableStock = devices
+      .filter(d => ['available', 'showcase'].includes(d.status))
+      .slice(0, 5)
+      .map(d => ({
+        model: `${d.model} ${d.storage || ''}`.trim(),
+        price: d.sellPrice || 0,
+        batteryHealth: d.batteryHealth,
+        color: d.color,
+      }));
+
+    const currentOS = activeCustomerOrders.length > 0 ? {
+      osNumber: activeCustomerOrders[0].id,
+      deviceModel: activeCustomerOrders[0].deviceModel,
+      status: activeCustomerOrders[0].status,
+      value: activeCustomerOrders[0].finalValue || activeCustomerOrders[0].estimatedValue || 0,
+    } : undefined;
+
+    const lastMsg = messages[messages.length - 1]?.messageText || activeChat.lastMessageText || '';
+
+    try {
+      const res = await fetchAICopilotSuggestions({
+        customerName: activeChat.contactName,
+        lastMessageText: lastMsg,
+        recentMessages: messages.slice(-5).map(m => ({ sender: m.senderType, text: m.messageText })),
+        availableStock,
+        currentOS,
+      });
+
+      setCopilotSuggestions(res.suggestions);
+      setCopilotSource(res.source);
+    } finally {
+      setCopilotLoading(false);
+    }
+  };
+
+  const handleApplyCopilotSuggestion = (sug: WhatsAppCopilotSuggestion) => {
+    setInputText(sug.text);
+    setShowCopilotPanel(false);
+  };
+
+  // Contagem de automações pendentes (RF06)
+  const pendingAutomationsCount = useMemo(() => {
+    return automations.filter(a => a.status === 'pending').length;
+  }, [automations]);
+
+  const handleApproveTask = async (id: string) => {
+    setProcessingAutomationId(id);
+    try {
+      await approveAutomation(id, 'Hiago Vendas');
+      setAutomations(prev => prev.map(a => a.id === id ? { ...a, status: 'executed' } : a));
+    } finally {
+      setProcessingAutomationId(null);
+    }
+  };
+
+  const handleDismissTask = async (id: string) => {
+    await dismissAutomation(id);
+    setAutomations(prev => prev.map(a => a.id === id ? { ...a, status: 'dismissed' } : a));
+  };
+
   return (
     <div
       style={{
@@ -245,25 +341,62 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
             <span style={{ fontSize: '0.875rem', fontWeight: 800, color: '#111827' }}>
               Central WhatsApp
             </span>
-            <button
-              onClick={() => setShowNewChatModal(true)}
-              style={{
-                backgroundColor: '#16A34A',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: 4,
-                padding: '4px 8px',
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <Plus size={12} />
-              <span>Nova</span>
-            </button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={() => setShowAutomationsModal(true)}
+                title="Automações pendentes de aprovação humana (RF06)"
+                style={{
+                  backgroundColor: pendingAutomationsCount > 0 ? '#FEF3C7' : '#F3F4F6',
+                  color: pendingAutomationsCount > 0 ? '#B45309' : '#6B7280',
+                  border: `1px solid ${pendingAutomationsCount > 0 ? '#FCD34D' : '#E5E7EB'}`,
+                  borderRadius: 4,
+                  padding: '4px 8px',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <BellRing size={12} color={pendingAutomationsCount > 0 ? '#B45309' : '#6B7280'} />
+                <span>Automações</span>
+                {pendingAutomationsCount > 0 && (
+                  <span
+                    style={{
+                      backgroundColor: '#DC2626',
+                      color: '#FFFFFF',
+                      borderRadius: 10,
+                      padding: '1px 5px',
+                      fontSize: '0.625rem',
+                      fontWeight: 800,
+                    }}
+                  >
+                    {pendingAutomationsCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setShowNewChatModal(true)}
+                style={{
+                  backgroundColor: '#16A34A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 4,
+                  padding: '4px 8px',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <Plus size={12} />
+                <span>Nova</span>
+              </button>
+            </div>
           </div>
 
           {/* Campo de Busca */}
@@ -600,6 +733,111 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Painel do Copiloto IA (RF05 - Sugestões Inteligentes sem Alucinação) */}
+          {showCopilotPanel && (
+            <div
+              style={{
+                borderTop: '1px solid #E9D5FF',
+                backgroundColor: '#FAF5FF',
+                padding: '10px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Sparkles size={14} color="#7C3AED" />
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6B21A8' }}>
+                    Sugestões do Copiloto Comercial
+                  </span>
+                  {copilotSource && (
+                    <span
+                      style={{
+                        fontSize: '0.625rem',
+                        padding: '1px 6px',
+                        borderRadius: 10,
+                        backgroundColor: '#EDE9FE',
+                        color: '#6D28D9',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {copilotSource === 'openai' ? 'OpenAI GPT' : 'Motor Determinístico'}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={handleTriggerCopilot}
+                    title="Regerar sugestões"
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <RefreshCw size={12} color="#7C3AED" className={copilotLoading ? 'animate-spin' : ''} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCopilotPanel(false)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <X size={14} color="#6B7280" />
+                  </button>
+                </div>
+              </div>
+
+              {copilotLoading ? (
+                <div style={{ fontSize: '0.75rem', color: '#7C3AED', padding: '6px 0', fontStyle: 'italic' }}>
+                  Consultando catálogo real, histórico de atendimento e gerando respostas...
+                </div>
+              ) : copilotSuggestions.length === 0 ? (
+                <div style={{ fontSize: '0.75rem', color: '#6B7280', padding: '4px 0' }}>
+                  Nenhuma sugestão encontrada para esta conversa no momento.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 8 }}>
+                  {copilotSuggestions.map(sug => (
+                    <div
+                      key={sug.id}
+                      onClick={() => handleApplyCopilotSuggestion(sug)}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E9D5FF',
+                        borderRadius: 6,
+                        padding: '8px 10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 4,
+                        transition: 'all 0.15s ease',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#A855F7';
+                        e.currentTarget.style.backgroundColor = '#F5F3FF';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '#E9D5FF';
+                        e.currentTarget.style.backgroundColor = '#FFFFFF';
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#6B21A8' }}>
+                          {sug.title}
+                        </span>
+                        <span style={{ fontSize: '0.625rem', color: '#9333EA', fontWeight: 600 }}>
+                          Clique para usar
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.75rem', color: '#374151', margin: 0, lineHeight: 1.3 }}>
+                        {sug.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Barra de Respostas Rápidas (Pop-up se ativo) */}
           {showQuickReplies && (
             <div
@@ -650,6 +888,29 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
               gap: 8,
             }}
           >
+            <button
+              type="button"
+              onClick={handleTriggerCopilot}
+              title="Copiloto IA: Sugestões inteligentes baseadas no estoque real e contexto da conversa"
+              style={{
+                backgroundColor: showCopilotPanel ? '#F3E8FF' : '#FAF5FF',
+                border: '1px solid #D8B4FE',
+                color: '#7C3AED',
+                borderRadius: 6,
+                padding: '8px 10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Sparkles size={14} color="#7C3AED" />
+              <span>Copiloto IA</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setShowQuickReplies(!showQuickReplies)}
@@ -1015,6 +1276,217 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL FILA DE AUTOMAÇÕES OPERACIONAIS (RF06 HUMAN-IN-THE-LOOP) */}
+      {/* ======================================================== */}
+      {showAutomationsModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 8,
+              width: '100%',
+              maxWidth: 620,
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Header Modal */}
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #E5E7EB',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: '#F9FAFB',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Bot size={20} color="#16A34A" />
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#111827', margin: 0 }}>
+                    Fila de Automações Operacionais WhatsApp
+                  </h3>
+                </div>
+                <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: '4px 0 0 0' }}>
+                  Gatilhos operacionais prontos para envio. Requer validação e clique humano (Human-in-the-loop).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAutomationsModal(false)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={18} color="#6B7280" />
+              </button>
+            </div>
+
+            {/* Lista de Automações */}
+            <div style={{ padding: '16px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {automations.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 0', color: '#9CA3AF', fontSize: '0.875rem' }}>
+                  Nenhuma automação na fila no momento.
+                </div>
+              ) : (
+                automations.map(task => {
+                  const isPending = task.status === 'pending';
+                  const isExecuted = task.status === 'executed';
+                  const isProcessing = processingAutomationId === task.id;
+
+                  return (
+                    <div
+                      key={task.id}
+                      style={{
+                        border: `1px solid ${isPending ? '#E5E7EB' : isExecuted ? '#BBF7D0' : '#F3F4F6'}`,
+                        backgroundColor: isExecuted ? '#F0FDF4' : '#FFFFFF',
+                        borderRadius: 8,
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: '0.8125rem', fontWeight: 800, color: '#111827' }}>
+                              {task.title}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '0.625rem',
+                                fontWeight: 700,
+                                padding: '1px 6px',
+                                borderRadius: 4,
+                                backgroundColor: isPending ? '#FEF3C7' : isExecuted ? '#DCFCE7' : '#F3F4F6',
+                                color: isPending ? '#D97706' : isExecuted ? '#15803D' : '#6B7280',
+                              }}
+                            >
+                              {isPending ? 'Aguardando Aprovação' : isExecuted ? 'Disparado' : 'Descartado'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.6875rem', color: '#6B7280', marginTop: 2 }}>
+                            Destinatário: <strong>{task.targetName}</strong> ({task.targetPhone}) • Ref: <strong>{task.referenceId}</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Mensagem Proposta */}
+                      <div
+                        style={{
+                          backgroundColor: '#F9FAFB',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: 6,
+                          padding: '10px 12px',
+                          fontSize: '0.75rem',
+                          color: '#374151',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {task.suggestedMessage}
+                      </div>
+
+                      {/* Ações da Automação */}
+                      {isPending && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleDismissTask(task.id)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: 6,
+                              border: '1px solid #E5E7EB',
+                              background: '#FFFFFF',
+                              color: '#6B7280',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Descartar
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isProcessing}
+                            onClick={() => handleApproveTask(task.id)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: 6,
+                              border: 'none',
+                              background: '#16A34A',
+                              color: '#FFFFFF',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              cursor: isProcessing ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                            }}
+                          >
+                            <Send size={13} />
+                            <span>{isProcessing ? 'Enviando...' : 'Aprovar e Disparar WhatsApp'}</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {isExecuted && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#15803D', fontSize: '0.6875rem', fontWeight: 700 }}>
+                          <CheckCircle2 size={14} />
+                          <span>Disparado com sucesso via WhatsApp Meta Cloud</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer Modal */}
+            <div
+              style={{
+                padding: '12px 20px',
+                borderTop: '1px solid #E5E7EB',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                backgroundColor: '#F9FAFB',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowAutomationsModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 6,
+                  border: '1px solid #E5E7EB',
+                  background: '#FFFFFF',
+                  color: '#374151',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
