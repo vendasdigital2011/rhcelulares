@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   Palette,
 } from 'lucide-react';
+import { AuthService, type UserRole } from '../services/authService.js';
 
 export type ERPNavTab =
   | 'dashboard'
@@ -68,6 +69,7 @@ export type ERPNavTab =
 interface SidebarProps {
   activeTab: ERPNavTab;
   setActiveTab: (tab: ERPNavTab) => void;
+  userRole?: UserRole;
   isCashOpen?: boolean;
   cashBalance?: number;
   onToggleCash?: () => void;
@@ -91,6 +93,7 @@ interface NavGroup {
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
+  userRole = 'admin',
 }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -168,20 +171,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
-  // Filtragem rápida de itens pelo search
+  // Filtragem rápida de itens pelo search e pelas regras de RBAC
   const filteredGroups = useMemo(() => {
-    if (!searchQuery.trim()) return navGroups;
     const query = searchQuery.toLowerCase().trim();
 
     return navGroups
       .map(group => ({
         ...group,
-        children: group.children.filter(item =>
-          item.label.toLowerCase().includes(query)
-        ),
+        children: group.children.filter(item => {
+          // 1. Verificação RBAC
+          if (userRole && !AuthService.canAccessTab(userRole, item.id)) {
+            return false;
+          }
+          // 2. Busca por texto
+          if (query && !item.label.toLowerCase().includes(query)) {
+            return false;
+          }
+          return true;
+        }),
       }))
       .filter(group => group.children.length > 0);
-  }, [searchQuery, navGroups]);
+  }, [searchQuery, navGroups, userRole]);
 
   return (
     <aside

@@ -94,10 +94,13 @@ import type {
   OSQuoteServiceItem,
   OSQuotePartItem
 } from './types.js';
-import { Bell, Search, LifeBuoy, Plus, X, Sun, Moon, Laptop, Palette } from 'lucide-react';
+import { Bell, Search, LifeBuoy, Plus, X, Sun, Moon, Laptop, Palette, LogOut, Building2 } from 'lucide-react';
 import { themeService, type ThemeMode } from './services/themeService.js';
+import { AuthService, type AuthUser } from './services/authService.js';
+import { LoginView } from './components/auth/LoginView.js';
 
 export function App() {
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => AuthService.getCurrentUser());
   const [activeTab, setActiveTab] = useState<ERPNavTab>('dashboard');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -562,12 +565,22 @@ export function App() {
     setAfterSalesTriggers(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
   };
 
+  const handleLogout = () => {
+    AuthService.logout();
+    setCurrentUser(null);
+  };
+
+  if (!currentUser) {
+    return <LoginView onLoginSuccess={(u) => setCurrentUser(u)} />;
+  }
+
   return (
     <div className="app-shell" style={{ display: 'flex', minHeight: '100vh', background: 'var(--canvas-bg)', color: 'var(--text-main)' }}>
       {/* MENU LATERAL COMPLETO DO BALCÃO PHONES */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        userRole={currentUser.role}
         isCashOpen={cashRegister.isOpen}
         cashBalance={(cashRegister.initialFloat || 0) + (cashRegister.totalSales || 0)}
         onToggleCash={handleToggleCash}
@@ -904,7 +917,27 @@ export function App() {
               </div>
             )}
 
-            {/* Perfil Operador */}
+            {/* Informações da Loja Ativa (Multi-Tenant) */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--surface-hover)',
+                border: '1px solid var(--border-default)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--text-secondary)',
+              }}
+              title="Loja / Tenant Ativo"
+            >
+              <Building2 size={13} color="#2563EB" />
+              <span>{currentUser.storeName}</span>
+            </div>
+
+            {/* Perfil Operador & RBAC */}
             <div
               onClick={() => setActiveTab('profile')}
               style={{
@@ -918,29 +951,53 @@ export function App() {
               }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-              title="Meu Perfil"
+              title={`Logado como ${currentUser.name} (${currentUser.role})`}
             >
               <div
                 style={{
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  backgroundColor: 'var(--color-primary)',
+                  backgroundColor: currentUser.role === 'admin' ? '#2563EB' : currentUser.role === 'manager' ? '#D97706' : currentUser.role === 'seller' ? '#16A34A' : '#475569',
                   color: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '0.75rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
-                RH
+                {currentUser.name.slice(0, 2).toUpperCase()}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>Robson H.</span>
-                <span style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', lineHeight: 1 }}>Gerente Balcão</span>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>{currentUser.name}</span>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', lineHeight: 1 }}>
+                  {currentUser.role === 'admin' ? 'Proprietário' : currentUser.role === 'manager' ? 'Gerente' : currentUser.role === 'seller' ? 'Vendedor' : 'Técnico'}
+                </span>
               </div>
             </div>
+
+            {/* Botão de Logout */}
+            <button
+              onClick={handleLogout}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border-default)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '6px 8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                cursor: 'pointer',
+                color: 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}
+              title="Sair do Sistema / Trocar Usuário"
+            >
+              <LogOut size={13} color="#DC2626" />
+              <span style={{ color: '#DC2626' }}>Sair</span>
+            </button>
           </div>
         </header>
 
