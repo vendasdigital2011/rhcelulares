@@ -42,6 +42,8 @@ import {
   fetchAutomationsQueue,
   approveAutomation,
   dismissAutomation,
+  getChatSLAStatus,
+  getRoundRobinQueueStatus,
 } from '../../repositories/whatsappRepository.js';
 import { CrmTradeInCalculatorModal } from './CrmTradeInCalculatorModal.js';
 
@@ -88,6 +90,16 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
 
   // Calculadora Comercial 1-Click & Trade-in (Épico 06)
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+
+  // Roleta Round-Robin & SLA (Épico 04)
+  const roundRobinStatus = useMemo(() => {
+    return getRoundRobinQueueStatus(departmentFilter !== 'all' ? (departmentFilter as WhatsAppDepartment) : 'vendas');
+  }, [departmentFilter, chats]);
+
+  const activeChatSLA = useMemo(() => {
+    if (!activeChat) return null;
+    return getChatSLAStatus(activeChat);
+  }, [activeChat]);
 
   // Form nova conversa
   const [newChatName, setNewChatName] = useState('');
@@ -471,6 +483,27 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
               {statusFilter === 'open' ? 'Abertas' : 'Resolvidas'}
             </button>
           </div>
+
+          {/* Barra de Status da Roleta Round-Robin (Épico 04) */}
+          <div
+            style={{
+              padding: '6px 10px',
+              backgroundColor: '#F0FDF4',
+              borderTop: '1px solid #DCFCE7',
+              borderRadius: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.6875rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#16A34A', display: 'inline-block' }} />
+              <span style={{ fontWeight: 700, color: '#166534' }}>Roleta Ativa:</span>
+              <span style={{ color: '#15803D' }}>Próximo: <strong>{roundRobinStatus.currentNext}</strong></span>
+            </div>
+            <span style={{ fontSize: '0.625rem', color: '#15803D', fontWeight: 600 }}>SLA &lt; 2m</span>
+          </div>
         </div>
 
         {/* Lista Rolável de Chats */}
@@ -482,6 +515,7 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
           ) : (
             filteredChats.map(chat => {
               const isSelected = activeChat?.id === chat.id;
+              const sla = getChatSLAStatus(chat);
 
               return (
                 <div
@@ -509,9 +543,24 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
                     <span style={{ fontSize: '0.8125rem', fontWeight: isSelected ? 700 : 600, color: '#111827' }}>
                       {chat.contactName}
                     </span>
-                    <span style={{ fontSize: '0.6875rem', color: '#9CA3AF' }}>
-                      {chat.lastMessageAt || ''}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span
+                        style={{
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                          padding: '1px 5px',
+                          borderRadius: 3,
+                          backgroundColor: sla.bgBadge,
+                          color: sla.color,
+                          border: `1px solid ${sla.color}33`,
+                        }}
+                      >
+                        {sla.label}
+                      </span>
+                      <span style={{ fontSize: '0.6875rem', color: '#9CA3AF' }}>
+                        {chat.lastMessageAt || ''}
+                      </span>
+                    </div>
                   </div>
 
                   <div style={{ fontSize: '0.75rem', color: '#6B7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -617,6 +666,21 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
                   <span style={{ fontSize: '0.6875rem', color: '#6B7280' }}>
                     ({activeChat.phoneNumber})
                   </span>
+                  {activeChatSLA && (
+                    <span
+                      style={{
+                        fontSize: '0.625rem',
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: 10,
+                        backgroundColor: activeChatSLA.bgBadge,
+                        color: activeChatSLA.color,
+                        border: `1px solid ${activeChatSLA.color}33`,
+                      }}
+                    >
+                      ⏱️ {activeChatSLA.label}
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontSize: '0.6875rem', color: '#4B5563', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span>Atendente: <strong>{activeChat.assignedUserName || 'Não atribuído'}</strong></span>

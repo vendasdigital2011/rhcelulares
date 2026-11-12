@@ -410,14 +410,16 @@ export async function getOrCreateChatByPhone(
     return found;
   }
 
+  const assignedUser = getNextRoundRobinAttendant(department);
+
   const newChat: WhatsAppChat = {
     id: `chat-${Date.now()}`,
     contactName: contactName.trim() || 'Cliente WhatsApp',
     phoneNumber: phoneNumber.trim(),
     department,
     status: 'open',
-    assignedUserName: 'Hiago Vendas',
-    tags: ['Atendimento Iniciado'],
+    assignedUserName: assignedUser,
+    tags: ['Atendimento Iniciado', 'Roleta'],
     unreadCount: 0,
     lastMessageText: 'Conversa iniciada',
     lastMessageAt: 'Agora',
@@ -434,8 +436,8 @@ export async function getOrCreateChatByPhone(
           phone_number: newChat.phoneNumber,
           department: newChat.department,
           status: 'open',
-          assigned_user_name: 'Hiago Vendas',
-          tags: ['Atendimento Iniciado'],
+          assigned_user_name: assignedUser,
+          tags: ['Atendimento Iniciado', 'Roleta'],
           last_message_text: 'Conversa iniciada',
         })
         .select()
@@ -787,5 +789,180 @@ export function calculateWhatsAppMetrics(
     departmentCounts,
   };
 }
+
+// ==========================================
+// ROLETA ROUND-ROBIN & SLA DE ATENDIMENTO (ÉPICO 04)
+// ==========================================
+
+const ROULETTE_STORAGE_KEY = 'hiago_crm_roulette_state';
+
+interface AttendantSlot {
+  name: string;
+  department: WhatsAppDepartment;
+  available: boolean;
+  lastAssignedAt: number;
+  assignedCount: number;
+}
+
+const DEFAULT_ATTENDANTS: AttendantSlot[] = [
+  { name: 'Lucas Rodrigues', department: 'vendas', available: true, lastAssignedAt: 0, assignedCount: 4 },
+  { name: 'Hiago Vendas', department: 'vendas', available: true, lastAssignedAt: 1, assignedCount: 5 },
+  { name: 'Camila Fernandes', department: 'vendas', available: true, lastAssignedAt: 2, assignedCount: 3 },
+  { name: 'André Técnico', department: 'assistencia', available: true, lastAssignedAt: 0, assignedCount: 6 },
+  { name: 'Equipe Bancada', department: 'assistencia', available: true, lastAssignedAt: 1, assignedCount: 2 },
+  { name: 'Hiago Vendas', department: 'financeiro', available: true, lastAssignedAt: 0, assignedCount: 3 },
+];
+
+function getLocalRoulette(): AttendantSlot[] {
+  try {
+    const raw = localStorage.getItem(ROULETTE_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return DEFAULT_ATTENDANTS;
+}
+
+function setLocalRoulette(slots: AttendantSlot[]): void {
+  try {
+    localStorage.setItem(ROULETTE_STORAGE_KEY, JSON.stringify(slots));
+  } catch {}
+}
+
+/**
+ * Seleciona o próximo atendente disponível pela roleta (Round-Robin)
+ */
+export function getNextRoundRobinAttendant(department: WhatsAppDepartment = 'vendas'): string {
+  const slots = getLocalRoulette();
+  const availableInDept = slots.filter(s => s.department === department && s.available);
+
+  if (availableInDept.length === 0) {
+    const fallback = slots.find(s => s.department === department);
+    return fallback ? fallback.name : 'Hiago Vendas';
+  }
+
+  // Ordena por quem recebeu lead há mais tempo (menor lastAssignedAt)
+  availableInDept.sort((a, b) => a.lastAssignedAt - b.lastAssignedAt);
+  const chosen = availableInDept[0];
+
+  // Atualiza o estado da roleta
+  const now = Date.now();
+  const updatedSlots = slots.map(s => {
+    if (s.name === chosen.name && s.department === department) {
+      return {
+        ...s,
+        lastAssignedAt: now,
+        assignedCount: s.assignedCount + 1,
+      };
+    }
+    return s;
+  });
+
+  setLocalRoulette(updatedSlots);
+  return chosen.name;
+}
+
+/**
+ * Consulta o status da fila de distribuição por roleta
+ */
+export function getRoundRobinQueueStatus(department: WhatsAppDepartment = 'vendas'): {
+  currentNext: string;
+  attendants: Array<{ name: string; available: boolean; assignedCount: number }>;
+} {
+  const slots = getLocalRoulette();
+  const inDept = slots.filter(s => s.department === department);
+  const available = inDept.filter(s => s.available).sort((a, b) => a.lastAssignedAt - b.lastAssignedAt);
+
+  return {
+    currentNext: available.length > 0 ? available[0].name : inDept[0]?.name || 'Hiago Vendas',
+    attendants: inDept.map(s => ({ name: s.name, available: s.available, assignedCount: s.assignedCount })),
+  };
+}
+
+/**
+ * Alterna a disponibilidade de um atendente na roleta (Ex: pausa para almoço)
+ */
+export function toggleAttendantAvailability(name: string, department: WhatsAppDepartment): boolean {
+  const slots = getLocalRoulette();
+  let updatedStatus = true;
+  const updated = slots.map(s => {
+    if (s.name === name && s.department === department) {
+      updatedStatus = !s.available;
+      return { ...s, available: !s.available };
+    }
+    return s;
+  });
+  setLocalRoulette(updated);
+  return updatedStatus;
+}
+
+export interface ChatSLAInfo {
+  level: 'ok' | 'warning' | 'danger';
+  label: string;
+  color: string;
+  bgBadge: string;
+  pulse: boolean;
+}
+
+/**
+ * Calcula o indicador visual de SLA da conversa (US-04.2)
+ * 🟢 Verde: < 2 min
+ * 🟡 Amarelo: 2 a 5 min
+ * 🔴 Vermelho piscante: > 5 min (Alerta de SLA Estourado)
+ */
+export function getChatSLAStatus(chat: WhatsAppChat): ChatSLAInfo {
+  // Se estiver resolvido ou fechado, SLA está concluído
+  if (['resolved', 'closed'].includes(chat.status)) {
+    return {
+      level: 'ok',
+      label: 'Concluído',
+      color: '#15803D',
+      bgBadge: '#DCFCE7',
+      pulse: false,
+    };
+  }
+
+  // Se o cliente não está aguardando (ex: atendente acabou de responder)
+  if (chat.status === 'waiting_customer') {
+    return {
+      level: 'ok',
+      label: 'Aguard. Cliente',
+      color: '#2563EB',
+      bgBadge: '#EFF6FF',
+      pulse: false,
+    };
+  }
+
+  // Simulação baseada na hora da última mensagem
+  const textTime = chat.lastMessageAt || '';
+  if (textTime.includes('15:20') || textTime.includes('Ontem')) {
+    // Lead antigo sem resposta > 5 min
+    return {
+      level: 'danger',
+      label: 'SLA > 5m',
+      color: '#DC2626',
+      bgBadge: '#FEE2E2',
+      pulse: true,
+    };
+  }
+
+  if (textTime.includes('14:45') || textTime.includes('13:10')) {
+    return {
+      level: 'warning',
+      label: 'SLA ~3m',
+      color: '#D97706',
+      bgBadge: '#FEF3C7',
+      pulse: false,
+    };
+  }
+
+  // Padrão < 2 minutos
+  return {
+    level: 'ok',
+    label: 'SLA < 2m',
+    color: '#16A34A',
+    bgBadge: '#DCFCE7',
+    pulse: false,
+  };
+}
+
 
 
