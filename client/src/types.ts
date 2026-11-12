@@ -1086,3 +1086,54 @@ export interface FinancialIntelligenceConfig {
   minCashReserveDays: number;
 }
 
+// ==========================================
+// CENTRAL DE ATENDIMENTO WHATSAPP 360° (RF01)
+// ==========================================
+
+export type WhatsAppDepartment = 'vendas' | 'assistencia' | 'suporte' | 'financeiro';
+export type WhatsAppChatStatus = 'open' | 'waiting_customer' | 'waiting_attendant' | 'resolved' | 'closed';
+export type WhatsAppMessageDirection = 'inbound' | 'outbound';
+export type WhatsAppSenderType = 'customer' | 'attendant' | 'bot' | 'system';
+export type WhatsAppMessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
+
+export interface WhatsAppChat {
+  id: string;
+  storeId?: string;
+  customerId?: string;
+  contactName: string;
+  phoneNumber: string;
+  assignedUserId?: string;
+  assignedUserName?: string;
+  department: WhatsAppDepartment;
+  status: WhatsAppChatStatus;
+  tags: string[];
+  unreadCount: number;
+  lastMessageText?: string;
+  lastMessageAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WhatsAppMessage {
+  id: string;
+  chatId: string;
+  direction: WhatsAppMessageDirection;
+  senderType: WhatsAppSenderType;
+  senderName: string;
+  messageText: string;
+  mediaType: 'text' | 'image' | 'document' | 'audio' | 'video' | 'location';
+  mediaUrl?: string;
+  externalId?: string;
+  status: WhatsAppMessageStatus;
+  createdAt: string;
+}
+
+export interface WhatsAppQuickReply {
+  id: string;
+  shortcut: string;
+  title: string;
+  content: string;
+  category: 'vendas' | 'assistencia' | 'financeiro' | 'geral';
+}
+
+

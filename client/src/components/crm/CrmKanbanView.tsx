@@ -43,6 +43,7 @@ import { LeadFormModal } from './LeadFormModal.js';
 import { LeadDetailDrawer } from './LeadDetailDrawer.js';
 import { CrmAssistanceKanban } from './CrmAssistanceKanban.js';
 import { CrmCustomer360View } from './CrmCustomer360View.js';
+import { CrmWhatsAppChatView } from './CrmWhatsAppChatView.js';
 
 interface CrmKanbanViewProps {
   serviceOrders?: ServiceOrder[];
@@ -73,7 +74,7 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
   onNavigateToPOS,
   onNavigateToAssistance,
 }) => {
-  const [activeCrmTab, setActiveCrmTab] = useState<'sales_kanban' | 'assistance_kanban' | 'customers_360'>('sales_kanban');
+  const [activeCrmTab, setActiveCrmTab] = useState<'whatsapp_chat' | 'sales_kanban' | 'assistance_kanban' | 'customers_360'>('whatsapp_chat');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -294,6 +295,27 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
       {/* SELETOR DE SUBMÓDULOS CRM WHATSAPP 360° */}
       <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: 12, flexWrap: 'wrap' }}>
         <button
+          onClick={() => setActiveCrmTab('whatsapp_chat')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: activeCrmTab === 'whatsapp_chat' ? '#16A34A' : 'rgba(255, 255, 255, 0.05)',
+            color: '#FFFFFF',
+            fontSize: '0.8125rem',
+            fontWeight: activeCrmTab === 'whatsapp_chat' ? 700 : 500,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <MessageCircle size={14} />
+          <span>Central WhatsApp</span>
+        </button>
+
+        <button
           onClick={() => setActiveCrmTab('sales_kanban')}
           style={{
             display: 'flex',
@@ -356,6 +378,16 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
           <span>Clientes 360° ({customers.length})</span>
         </button>
       </div>
+
+      {activeCrmTab === 'whatsapp_chat' && (
+        <CrmWhatsAppChatView
+          customers={customers}
+          sales={sales}
+          serviceOrders={serviceOrders}
+          onNavigateToPOS={onNavigateToPOS}
+          onNavigateToAssistance={onNavigateToAssistance}
+        />
+      )}
 
       {activeCrmTab === 'assistance_kanban' && (
         <CrmAssistanceKanban
