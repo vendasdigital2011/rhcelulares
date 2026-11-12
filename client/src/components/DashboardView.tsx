@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AlertCircle,
   MessageCircle,
@@ -30,9 +30,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [periodFilter, setPeriodFilter] = useState<'today' | '7d' | '30d' | 'month'>('today');
 
-  // Cálculos determinísticos operacionais
-  const totalSales = sales.reduce((acc, curr) => acc + (curr.total || 0), 0);
-  const salesCount = sales.length;
+  // Receita líquida operacional: vendas estornadas nunca entram nos indicadores.
+  const completedSalesInPeriod = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfPeriod = new Date(startOfToday);
+    if (periodFilter === '7d') startOfPeriod.setDate(startOfPeriod.getDate() - 6);
+    if (periodFilter === '30d') startOfPeriod.setDate(startOfPeriod.getDate() - 29);
+    if (periodFilter === 'month') startOfPeriod.setDate(1);
+
+    return sales.filter(sale => {
+      if ((sale.status || 'completed') === 'cancelled') return false;
+      const match = sale.date?.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      const saleDate = match
+        ? new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]))
+        : new Date(sale.date);
+      return !Number.isNaN(saleDate.getTime()) && saleDate >= startOfPeriod && saleDate <= now;
+    });
+  }, [periodFilter, sales]);
+
+  const totalSales = completedSalesInPeriod.reduce((acc, curr) => acc + (curr.total || 0), 0);
+  const salesCount = completedSalesInPeriod.length;
 
   // Vendas de hoje (reais)
   const todaySalesValue = totalSales;
@@ -103,7 +121,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     revenue: number;
     margin: number;
     ticket: number;
-  }> = sales.length > 0
+  }> = completedSalesInPeriod.length > 0
     ? [
         {
           week: 'Semana Atual',

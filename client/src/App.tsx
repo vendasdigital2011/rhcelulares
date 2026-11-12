@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Sidebar, type ERPNavTab } from './components/Sidebar.js';
 import { DashboardView } from './components/DashboardView.js';
 import { CheckoutView } from './components/CheckoutView.js';
@@ -17,7 +17,6 @@ import { FinancialRepository } from './repositories/financialRepository.js';
 import { isSupabaseConfigured } from './services/supabaseClient.js';
 import { 
   INITIAL_DEVICES, 
-  INITIAL_ACCESSORIES, 
   INITIAL_SERVICE_ORDERS, 
   INITIAL_CASH, 
   INITIAL_SALES, 
@@ -77,7 +76,6 @@ import {
 } from './api/erpApi.js';
 import type { 
   Device, 
-  Accessory, 
   ServiceOrder, 
   CashRegister, 
   Sale, 
@@ -113,13 +111,12 @@ export function App() {
     return () => unsub();
   }, []);
 
-  const [devices, setDevices] = useState<Device[]>(INITIAL_DEVICES);
-  const [accessories] = useState<Accessory[]>(INITIAL_ACCESSORIES);
-  const [serviceOrders, setServiceOrders] = useState<ServiceOrder[]>(INITIAL_SERVICE_ORDERS);
-  const [sales, setSales] = useState<Sale[]>(INITIAL_SALES);
+  const [devices, setDevices] = useState<Device[]>(isSupabaseConfigured ? [] : INITIAL_DEVICES);
+  const [serviceOrders, setServiceOrders] = useState<ServiceOrder[]>(isSupabaseConfigured ? [] : INITIAL_SERVICE_ORDERS);
+  const [sales, setSales] = useState<Sale[]>(isSupabaseConfigured ? [] : INITIAL_SALES);
   const [cashRegister, setCashRegister] = useState<CashRegister>(INITIAL_CASH);
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
-  const [afterSalesTriggers, setAfterSalesTriggers] = useState<AfterSalesTrigger[]>(INITIAL_AFTER_SALES_TRIGGERS);
+  const [customers, setCustomers] = useState<Customer[]>(isSupabaseConfigured ? [] : INITIAL_CUSTOMERS);
+  const [afterSalesTriggers, setAfterSalesTriggers] = useState<AfterSalesTrigger[]>(isSupabaseConfigured ? [] : INITIAL_AFTER_SALES_TRIGGERS);
 
   // Estados do Módulo de Estoque e Vitrine
   const [products, setProducts] = useState<Product[]>([]);
@@ -127,6 +124,19 @@ export function App() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [purchases, setPurchases] = useState<PhonePurchase[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
+
+  const accessories = useMemo(() => products
+    .filter(product => product.status === 'active')
+    .map(product => ({
+      id: product.id,
+      name: product.name,
+      category: (['Capa', 'Película', 'Carregador', 'Fone'].includes(product.category)
+        ? product.category
+        : 'Outros') as 'Capa' | 'Película' | 'Carregador' | 'Fone' | 'Outros',
+      stock: product.currentStock,
+      costPrice: product.costPrice,
+      sellPrice: product.sellPrice,
+    })), [products]);
 
   // Estados do Módulo de Assistência Técnica (Dados Reais)
   const [technicalServices, setTechnicalServices] = useState<TechnicalService[]>([]);
@@ -151,22 +161,7 @@ export function App() {
 
       // 2. Carrega todas as entidades do ERP, Estoque e Assistência Técnica
       try {
-        const [
-          loadedDevices, 
-          loadedSales, 
-          loadedOS, 
-          loadedCash,
-          loadedCustomers,
-          loadedTriggers,
-          loadedProducts,
-          loadedParts,
-          loadedSuppliers,
-          loadedPurchases,
-          loadedMovements,
-          loadedServices,
-          loadedWarranties,
-          loadedClaims
-        ] = await Promise.all([
+        const results = await Promise.allSettled([
           fetchDevices(),
           fetchSales(),
           fetchServiceOrders(),
@@ -182,22 +177,22 @@ export function App() {
           fetchWarranties(),
           fetchWarrantyClaims()
         ]);
-        if (loadedDevices) setDevices(loadedDevices);
-        if (loadedSales) setSales(loadedSales);
-        if (loadedOS) setServiceOrders(loadedOS);
-        if (loadedCash) setCashRegister(loadedCash);
-        if (loadedCustomers) setCustomers(loadedCustomers);
-        if (loadedTriggers) setAfterSalesTriggers(loadedTriggers);
-        if (loadedProducts) setProducts(loadedProducts);
-        if (loadedParts) setParts(loadedParts);
-        if (loadedSuppliers) setSuppliers(loadedSuppliers);
-        if (loadedPurchases) setPurchases(loadedPurchases);
-        if (loadedMovements) setMovements(loadedMovements);
-        if (loadedServices) setTechnicalServices(loadedServices);
-        if (loadedWarranties) setWarranties(loadedWarranties);
-        if (loadedClaims) setWarrantyClaims(loadedClaims);
+        const setters = [
+          setDevices, setSales, setServiceOrders, setCashRegister, setCustomers,
+          setAfterSalesTriggers, setProducts, setParts, setSuppliers, setPurchases,
+          setMovements, setTechnicalServices, setWarranties, setWarrantyClaims,
+        ] as Array<(value: any) => void>;
+        const failures: string[] = [];
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') setters[index](result.value);
+          else failures.push(result.reason instanceof Error ? result.reason.message : String(result.reason));
+        });
+        if (failures.length > 0) {
+          setDbHealth(current => ({ ...current, error: failures.join(' | ') }));
+          console.error('Falhas ao carregar módulos persistidos:', failures);
+        }
       } catch (err) {
-        console.warn('Usando dados mockados de inicialização:', err);
+        console.error('Falha inesperada ao carregar dados persistidos:', err);
       }
     }
     loadData();
@@ -264,13 +259,13 @@ export function App() {
     };
 
     // Salva no banco e dispara sincronização em cadeia
-    await createSaleApi(newSalePayload);
+    const persistedSale = await createSaleApi(newSalePayload);
     try {
-      await FinancialRepository.syncFromSale(newSalePayload);
+      await FinancialRepository.syncFromSale(persistedSale);
     } catch (e) {
       console.warn('Erro ao sincronizar venda com financeiro:', e);
     }
-    setSales(prev => [newSalePayload, ...prev]);
+    setSales(prev => [persistedSale, ...prev]);
 
     // Recarrega estoque, caixa, clientes e pós-venda sincronizados
     try {
@@ -297,17 +292,23 @@ export function App() {
   // Cancelar / Estornar Venda com Reversão Multi-Módulo
   const handleCancelSale = async (sale: Sale, reason: string) => {
     await cancelSaleApi(sale, reason);
-    setSales(prev => prev.map(s => s.id === sale.id ? { ...s, status: 'cancelled', cancellationReason: reason } : s));
 
-    // Recarrega estoque e caixa refletindo a devolução
-    const [updatedDevs, updatedCash, updatedCusts] = await Promise.all([
+    // A interface só é atualizada com o estado confirmado pelo banco.
+    const updatedSales = await fetchSales();
+    setSales(updatedSales);
+
+    const [devicesResult, cashResult, customersResult, productsResult, movementsResult] = await Promise.allSettled([
       fetchDevices(),
       fetchCashRegister(),
       fetchCustomers(),
+      fetchProducts(),
+      fetchInventoryMovements(),
     ]);
-    if (updatedDevs) setDevices(updatedDevs);
-    if (updatedCash) setCashRegister(updatedCash);
-    if (updatedCusts) setCustomers(updatedCusts);
+    if (devicesResult.status === 'fulfilled') setDevices(devicesResult.value);
+    if (cashResult.status === 'fulfilled') setCashRegister(cashResult.value);
+    if (customersResult.status === 'fulfilled') setCustomers(customersResult.value);
+    if (productsResult.status === 'fulfilled') setProducts(productsResult.value);
+    if (movementsResult.status === 'fulfilled') setMovements(movementsResult.value);
   };
 
   // Handlers de Estoque de Aparelhos (Celulares)
@@ -343,10 +344,17 @@ export function App() {
 
   // Handlers de Produtos
   const handleCreateProduct = async (prod: Omit<Product, 'id' | 'createdAt'>) => {
-    await createProductApi(prod);
-    const [updatedProds, updatedMoves] = await Promise.all([fetchProducts(), fetchInventoryMovements()]);
-    if (updatedProds) setProducts(updatedProds);
-    if (updatedMoves) setMovements(updatedMoves);
+    const persistedProduct = await createProductApi(prod);
+    const updatedProds = await fetchProducts();
+    if (!updatedProds.some(product => product.id === persistedProduct.id)) {
+      throw new Error('O produto foi criado, mas não apareceu na confirmação de leitura do banco.');
+    }
+    setProducts(updatedProds);
+    try {
+      setMovements(await fetchInventoryMovements());
+    } catch (error) {
+      console.warn('Produto confirmado, mas o histórico de estoque não pôde ser atualizado:', error);
+    }
   };
 
   const handleUpdateProduct = async (id: string, updates: Partial<Product>) => {

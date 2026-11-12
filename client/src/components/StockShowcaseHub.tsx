@@ -37,10 +37,10 @@ interface StockShowcaseHubProps {
   onAddDevice: (device: Device) => Promise<void>;
   onUpdateDevice: (imei: string, updates: Partial<Device>) => Promise<void>;
   onDeleteDevice: (imei: string) => Promise<void>;
-  onCreateProduct: (prod: Omit<Product, 'id' | 'createdAt'>) => void;
-  onUpdateProduct: (id: string, updates: Partial<Product>) => void;
-  onAdjustProductStock: (id: string, delta: number, reason: string) => void;
-  onDeleteProduct: (id: string) => void;
+  onCreateProduct: (prod: Omit<Product, 'id' | 'createdAt'>) => Promise<void>;
+  onUpdateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  onAdjustProductStock: (id: string, delta: number, reason: string) => Promise<void>;
+  onDeleteProduct: (id: string) => Promise<void>;
   onCreatePart: (part: Omit<Part, 'id' | 'createdAt'>) => void;
   onUpdatePart: (id: string, updates: Partial<Part>) => void;
   onAdjustPartStock: (id: string, delta: number, reason: string) => void;

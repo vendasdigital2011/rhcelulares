@@ -30,11 +30,7 @@ export class AfterSalesRepository {
         return INITIAL_AFTER_SALES_TRIGGERS;
       }
 
-      if (!data || data.length === 0) {
-        return INITIAL_AFTER_SALES_TRIGGERS;
-      }
-
-      return data.map(this.mapFromDb);
+      return (data || []).map(this.mapFromDb);
     } catch {
       return INITIAL_AFTER_SALES_TRIGGERS;
     }
@@ -103,35 +99,25 @@ export class AfterSalesRepository {
       },
     ];
 
-    const createdTriggers: AfterSalesTrigger[] = [];
+    const payload = triggersToCreate.map(trigger => ({
+      customer_name: trigger.customerName,
+      customer_phone: trigger.customerPhone,
+      device_model: trigger.deviceModel,
+      type: trigger.type,
+      title: trigger.title,
+      description: trigger.description,
+      suggested_message: trigger.suggestedMessage,
+      status: trigger.status,
+      sale_id: sale.id,
+      scheduled_date: trigger.date,
+    }));
 
-    for (const t of triggersToCreate) {
-      const newTrigger: AfterSalesTrigger = {
-        ...t,
-        id: `ast-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      };
-      createdTriggers.push(newTrigger);
+    const { data, error } = await supabase
+      .from('after_sales_tasks')
+      .insert(payload)
+      .select('*');
 
-      // Tenta gravar no banco se tabela existir
-      try {
-        await supabase.from('after_sales_tasks').insert([{
-          id: newTrigger.id,
-          customer_name: newTrigger.customerName,
-          customer_phone: newTrigger.customerPhone,
-          device_model: newTrigger.deviceModel,
-          type: newTrigger.type,
-          title: newTrigger.title,
-          description: newTrigger.description,
-          suggested_message: newTrigger.suggestedMessage,
-          status: newTrigger.status,
-          sale_id: sale.id,
-          scheduled_date: newTrigger.date,
-        }]);
-      } catch {
-        // Fallback gracioso
-      }
-    }
-
-    return createdTriggers;
+    if (error) throw new Error(`Falha ao gerar pós-venda: ${error.message}`);
+    return (data || []).map(this.mapFromDb);
   }
 }

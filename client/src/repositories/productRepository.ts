@@ -30,28 +30,19 @@ export class ProductRepository {
   }
 
   static async getAll(): Promise<Product[]> {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('name', { ascending: true });
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('name', { ascending: true });
 
-      if (error || !data || data.length === 0) {
-        return this.localProducts;
-      }
+    if (error) throw new Error(`Falha ao carregar produtos: ${error.message}`);
 
-      this.localProducts = data.map(this.mapFromDb);
-      return this.localProducts;
-    } catch {
-      return this.localProducts;
-    }
+    this.localProducts = (data || []).map(this.mapFromDb);
+    return this.localProducts;
   }
 
   static async create(product: Omit<Product, 'id' | 'createdAt'>): Promise<{ success: boolean; data?: Product; error?: string }> {
     try {
-      const isUUID = (str?: string) => Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
-      const generatedId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `prod-${Date.now()}`;
-
       const payload: any = {
         name: product.name,
         sku: product.sku,
@@ -69,32 +60,22 @@ export class ProductRepository {
         location: product.location || null,
         status: product.status || 'active',
       };
-      if (isUUID(generatedId)) {
-        payload.id = generatedId;
-      }
+      const { data, error } = await supabase.rpc('create_product_transaction', {
+        p_product: payload,
+      });
 
-      const { data, error } = await supabase
-        .from('products')
-        .insert([payload])
-        .select('*')
-        .maybeSingle();
+      if (error) return { success: false, error: error.message };
+      if (!data?.id) return { success: false, error: 'O banco não confirmou o cadastro do produto.' };
 
-      const newProd: Product = data ? this.mapFromDb(data) : {
-        ...product,
-        id: generatedId,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
+      const newProd: Product = this.mapFromDb(data);
 
       this.localProducts.unshift(newProd);
-      return { success: !error, data: newProd };
-    } catch {
-      const fallback: Product = {
-        ...product,
-        id: `prod-${Date.now()}`,
-        createdAt: new Date().toISOString().split('T')[0],
+      return { success: true, data: newProd };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Falha inesperada ao cadastrar o produto.',
       };
-      this.localProducts.unshift(fallback);
-      return { success: true, data: fallback };
     }
   }
 
@@ -115,7 +96,15 @@ export class ProductRepository {
       if (updates.location !== undefined) payload.location = updates.location;
       if (updates.status !== undefined) payload.status = updates.status;
 
-      await supabase.from('products').update(payload).eq('id', id);
+      const { data, error } = await supabase
+        .from('products')
+        .update(payload)
+        .eq('id', id)
+        .select('id')
+        .maybeSingle();
+
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('Produto não encontrado ou sem permissão para edição.');
 
       const idx = this.localProducts.findIndex(p => p.id === id);
       if (idx !== -1) {
@@ -123,57 +112,44 @@ export class ProductRepository {
       }
       return true;
     } catch {
-      const idx = this.localProducts.findIndex(p => p.id === id);
-      if (idx !== -1) {
-        this.localProducts[idx] = { ...this.localProducts[idx], ...updates };
-      }
-      return true;
+      return false;
     }
   }
 
   static async adjustStock(id: string, deltaQuantity: number, reason: string, operatorName: string = 'Hiago'): Promise<{ success: boolean; newStock?: number }> {
     try {
+      const { data, error } = await supabase.rpc('adjust_product_stock', {
+        p_product_id: id,
+        p_delta: deltaQuantity,
+        p_reason: reason,
+        p_operator: operatorName,
+      });
+      if (error) throw new Error(error.message);
+      const newStock = Number((data as { new_stock?: number } | null)?.new_stock);
+      if (!Number.isFinite(newStock)) throw new Error('O banco não confirmou o novo saldo do estoque.');
+
       const prod = this.localProducts.find(p => p.id === id);
-      if (!prod) return { success: false };
-
-      const prevStock = prod.currentStock;
-      const newStock = Math.max(0, prevStock + deltaQuantity);
-
-      await this.update(id, { currentStock: newStock });
-
-      // Registra movimentação no histórico
-      await supabase.from('inventory_movements').insert([{
-        item_type: 'product',
-        item_id: id,
-        item_name: prod.name,
-        movement_type: deltaQuantity >= 0 ? 'adjustment' : 'outflow_sale',
-        quantity: Math.abs(deltaQuantity),
-        previous_stock: prevStock,
-        new_stock: newStock,
-        unit_cost: prod.costPrice,
-        reason,
-        operator_name: operatorName,
-      }]);
-
+      if (prod) prod.currentStock = newStock;
       return { success: true, newStock };
     } catch {
-      const prod = this.localProducts.find(p => p.id === id);
-      if (prod) {
-        prod.currentStock = Math.max(0, prod.currentStock + deltaQuantity);
-        return { success: true, newStock: prod.currentStock };
-      }
       return { success: false };
     }
   }
 
   static async delete(id: string): Promise<boolean> {
     try {
-      await supabase.from('products').delete().eq('id', id);
+      const { data, error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id)
+        .select('id')
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('Produto não encontrado ou sem permissão para exclusão.');
       this.localProducts = this.localProducts.filter(p => p.id !== id);
       return true;
     } catch {
-      this.localProducts = this.localProducts.filter(p => p.id !== id);
-      return true;
+      return false;
     }
   }
 }

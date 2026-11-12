@@ -67,12 +67,7 @@ export async function reserveDeviceForCheckoutApi(imei: string, sellerName: stri
 // 2. VENDAS (PDV)
 export async function fetchSales(): Promise<Sale[]> {
   if (USE_SUPABASE) {
-    try {
-      const sales = await SaleRepository.getAll();
-      if (sales) return sales;
-    } catch (err) {
-      console.warn('Falha no SaleRepository, caindo para fallback:', err);
-    }
+    return await SaleRepository.getAll();
   }
   return INITIAL_SALES;
 }
@@ -88,7 +83,9 @@ export async function createSaleApi(sale: any): Promise<Sale> {
 
 export async function cancelSaleApi(sale: Sale, reason: string, cancelledBy?: string): Promise<{ success: boolean; message: string }> {
   if (USE_SUPABASE) {
-    return await SaleRepository.cancelSale(sale, reason, cancelledBy);
+    const result = await SaleRepository.cancelSale(sale, reason, cancelledBy);
+    if (!result.success) throw new Error(result.message);
+    return result;
   }
   return { success: true, message: `Venda ${sale.saleNumber} cancelada localmente` };
 }
@@ -329,22 +326,30 @@ export async function fetchProducts(): Promise<import('../types.js').Product[]> 
 
 export async function createProductApi(product: Omit<import('../types.js').Product, 'id' | 'createdAt'>) {
   const { ProductRepository } = await import('../repositories/productRepository.js');
-  return await ProductRepository.create(product);
+  const result = await ProductRepository.create(product);
+  if (!result.success || !result.data) {
+    throw new Error(result.error || 'Não foi possível cadastrar o produto.');
+  }
+  return result.data;
 }
 
 export async function updateProductApi(id: string, updates: Partial<import('../types.js').Product>) {
   const { ProductRepository } = await import('../repositories/productRepository.js');
-  return await ProductRepository.update(id, updates);
+  const updated = await ProductRepository.update(id, updates);
+  if (!updated) throw new Error('O banco não confirmou a edição do produto.');
 }
 
 export async function adjustProductStockApi(id: string, deltaQuantity: number, reason: string, operatorName?: string) {
   const { ProductRepository } = await import('../repositories/productRepository.js');
-  return await ProductRepository.adjustStock(id, deltaQuantity, reason, operatorName);
+  const result = await ProductRepository.adjustStock(id, deltaQuantity, reason, operatorName);
+  if (!result.success) throw new Error('O banco não confirmou o ajuste de estoque.');
+  return result;
 }
 
 export async function deleteProductApi(id: string) {
   const { ProductRepository } = await import('../repositories/productRepository.js');
-  return await ProductRepository.delete(id);
+  const deleted = await ProductRepository.delete(id);
+  if (!deleted) throw new Error('O banco não confirmou a exclusão do produto.');
 }
 
 // 9. PEÇAS DE REPARO & BANCADA

@@ -1,6 +1,5 @@
 import { supabase } from '../services/supabaseClient.js';
 import type { Sale } from '../types.js';
-import { INITIAL_SALES } from '../data/erpData.js';
 import { DeviceRepository } from './deviceRepository.js';
 import { CustomerRepository } from './customerRepository.js';
 import { AfterSalesRepository } from './afterSalesRepository.js';
@@ -51,14 +50,11 @@ export class SaleRepository {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.warn('Erro ao consultar Supabase (sales), usando fallback:', error.message);
-        return INITIAL_SALES;
-      }
+      if (error) throw new Error(`Falha ao carregar vendas: ${error.message}`);
 
       return (data || []).map(this.mapFromDb);
-    } catch {
-      return INITIAL_SALES;
+    } catch (error) {
+      throw error instanceof Error ? error : new Error('Falha inesperada ao carregar vendas.');
     }
   }
 
@@ -104,6 +100,7 @@ export class SaleRepository {
         const itemsPayload = sale.items.map(item => ({
           sale_id: persistedSaleId,
           item_type: item.type,
+          product_id: item.type === 'accessory' && isUUID(item.id) ? item.id : null,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -180,9 +177,10 @@ export class SaleRepository {
       if (!updatedCustomer) throw new Error('Não foi possível atualizar o histórico do cliente.');
 
       // 7. Gera automaticamente réguas e tarefas de Pós-Venda
-      await AfterSalesRepository.generateForSale(sale);
+      const persistedSale: Sale = { ...sale, id: persistedSaleId, status: 'completed' };
+      await AfterSalesRepository.generateForSale(persistedSale);
 
-      return { success: true, data: { ...sale, id: persistedSaleId, status: 'completed' } };
+      return { success: true, data: persistedSale };
     } catch (err: any) {
       console.warn('Exceção ao registrar venda:', err);
       return { success: false, error: err?.message || 'Falha inesperada ao registrar venda.' };
@@ -202,60 +200,36 @@ export class SaleRepository {
     cancelledBy: string = 'Hiago'
   ): Promise<{ success: boolean; message: string }> {
     try {
-      // 1. Atualiza venda
-      try {
-        await supabase
-          .from('sales')
-          .update({
-            status: 'cancelled',
-            cancellation_reason: reason,
-            cancelled_at: new Date().toISOString(),
-            cancelled_by: cancelledBy,
-          })
-          .eq('id', sale.id);
-      } catch {
-        // Se a coluna não existir ainda, prossegue com os efeitos
+      const normalizedReason = reason.trim();
+      if (normalizedReason.length < 5) {
+        return { success: false, message: 'Informe um motivo de estorno com pelo menos 5 caracteres.' };
+      }
+      if (!sale.id) return { success: false, message: 'Venda sem identificador persistido.' };
+
+      const { error: rpcError } = await supabase.rpc('cancel_sale_transaction', {
+        p_sale_id: sale.id,
+        p_reason: normalizedReason,
+        p_cancelled_by: cancelledBy,
+      });
+      if (rpcError) throw new Error(rpcError.message);
+
+      const { data: persistedSale, error: verificationError } = await supabase
+        .from('sales')
+        .select('id, status, cancellation_reason')
+        .eq('id', sale.id)
+        .maybeSingle();
+
+      if (verificationError) throw new Error(`Falha ao confirmar o estorno: ${verificationError.message}`);
+      if (!persistedSale || persistedSale.status !== 'cancelled') {
+        throw new Error('O banco não confirmou o estorno da venda.');
       }
 
-      // 2. Devolve os aparelhos ao estoque
-      for (const item of sale.items) {
-        if (item.type === 'device' && item.imei) {
-          await DeviceRepository.updateStatus(item.imei, 'available');
-        }
-      }
-
-      // 3. Registra estorno no caixa
-      try {
-        const { data: openRegister } = await supabase
-          .from('cash_registers')
-          .select('id')
-          .eq('status', 'open')
-          .limit(1)
-          .maybeSingle();
-
-        await supabase.from('cash_transactions').insert([{
-          register_id: openRegister?.id || null,
-          type: 'outflow',
-          category: 'estorno',
-          description: `Estorno Venda ${sale.saleNumber} (${reason})`,
-          amount: sale.total,
-          payment_method: sale.paymentMethod,
-          sale_id: sale.id,
-        }]);
-      } catch {
-        // Fallback
-      }
-
-      // 4. Abate do LTV do cliente
-      await CustomerRepository.revertPurchase(
-        sale.customerName,
-        sale.customerPhone || '',
-        sale.total
-      );
-
-      return { success: true, message: `Venda ${sale.saleNumber} cancelada com sucesso. Estoque e caixa estornados.` };
+      return { success: true, message: `Venda ${sale.saleNumber} estornada e confirmada no banco.` };
     } catch (err: any) {
-      return { success: false, message: err.message || 'Erro ao cancelar venda' };
+      const migrationHint = String(err?.message || '').includes('cancel_sale_transaction')
+        ? ' Aplique a migração docs/supabase_integridade_operacional.sql no Supabase.'
+        : '';
+      return { success: false, message: `${err?.message || 'Erro ao cancelar venda'}${migrationHint}` };
     }
   }
 }

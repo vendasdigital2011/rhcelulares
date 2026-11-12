@@ -40,8 +40,8 @@ export class FinancialIntelligenceRepository {
     period: PeriodFilter = 'this_month',
     sales: Sale[] = [],
     serviceOrders: ServiceOrder[] = [],
-    _devices: Device[] = [],
-    _products: Product[] = []
+    devices: Device[] = [],
+    products: Product[] = []
   ): Promise<FinancialConsolidatedData> {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
@@ -89,22 +89,35 @@ export class FinancialIntelligenceRepository {
     let grossRevenueFromSales = 0;
     let cmvDevices = 0;
     let cmvAccessories = 0;
-    const totalSalesCount = sales.length;
+    let deviceRevenue = 0;
+    let accessoryRevenue = 0;
+    let deviceVolume = 0;
+    let accessoryVolume = 0;
+    const completedSales = sales.filter(sale => (sale.status || 'completed') !== 'cancelled');
+    const totalSalesCount = completedSales.length;
 
-    sales.forEach(sale => {
+    completedSales.forEach(sale => {
       grossRevenueFromSales += (sale.total || 0);
       if (sale.items && Array.isArray(sale.items)) {
+        const itemGross = sale.items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+        const saleAllocation = itemGross > 0 ? (sale.total || 0) / itemGross : 0;
         sale.items.forEach(item => {
           const qty = item.quantity || 1;
-          const cost = (item as any).costPrice || (item.price * 0.72);
+          const productCost = products.find(product => product.id === item.id || product.name === item.name)?.costPrice;
+          const deviceCost = devices.find(device => item.imei && device.imei === item.imei)?.purchasePrice;
+          const cost = (item as any).costPrice ?? productCost ?? deviceCost ?? 0;
           if (item.type === 'device' || item.name.toLowerCase().includes('iphone')) {
             cmvDevices += (cost * qty);
+            deviceRevenue += item.price * qty * saleAllocation;
+            deviceVolume += qty;
           } else {
             cmvAccessories += (cost * qty);
+            accessoryRevenue += item.price * qty * saleAllocation;
+            accessoryVolume += qty;
           }
         });
       } else {
-        cmvDevices += ((sale.total || 0) * 0.73);
+        deviceRevenue += sale.total || 0;
       }
     });
 
@@ -120,14 +133,6 @@ export class FinancialIntelligenceRepository {
       cmvParts += (os.subtotalParts || 0);
     });
 
-    // Se não houver vendas cadastradas no momento, usa as transações de entrada do financeiro como referência
-    if (grossRevenueFromSales === 0 && realizedInflows > 0) {
-      grossRevenueFromSales = realizedInflows * 0.85;
-      grossRevenueFromOS = realizedInflows * 0.15;
-      cmvDevices = grossRevenueFromSales * 0.73;
-      cmvParts = grossRevenueFromOS * 0.35;
-    }
-
     const grossRevenue = grossRevenueFromSales + grossRevenueFromOS;
     const cardFeesAndDiscounts = grossRevenueFromSales * 0.032;
     const netRevenue = Math.max(0, grossRevenue - cardFeesAndDiscounts);
@@ -138,17 +143,19 @@ export class FinancialIntelligenceRepository {
 
     const operationalExpenses = transactions
       .filter(t => t.type === 'outflow' && !t.category.toLowerCase().includes('fornecedores de aparelhos'))
-      .reduce((acc, t) => acc + t.amount, 0) || (grossRevenue * 0.12);
+      .reduce((acc, t) => acc + t.amount, 0);
 
     const operationalResult = grossProfit - operationalExpenses;
     const netResult = operationalResult;
     const netMarginPercent = netRevenue > 0 ? (netResult / netRevenue) * 100 : 0;
 
-    const ticketMediumSales = totalSalesCount > 0 ? grossRevenueFromSales / totalSalesCount : (grossRevenueFromSales > 0 ? 3200 : 0);
-    const ticketMediumOS = totalOSCount > 0 ? grossRevenueFromOS / totalOSCount : (grossRevenueFromOS > 0 ? 380 : 0);
+    const ticketMediumSales = totalSalesCount > 0 ? grossRevenueFromSales / totalSalesCount : 0;
+    const ticketMediumOS = totalOSCount > 0 ? grossRevenueFromOS / totalOSCount : 0;
 
     const dre: DREMetrics = {
-      period: period === 'this_month' ? 'Mês Vigente (Outubro/2026)' : 'Últimos 30 dias',
+      period: period === 'this_month'
+        ? `Mês vigente (${today.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })})`
+        : 'Período selecionado',
       grossRevenue,
       cardFeesAndDiscounts,
       netRevenue,
@@ -164,9 +171,9 @@ export class FinancialIntelligenceRepository {
       netMarginPercent,
       ticketMediumSales,
       ticketMediumOS,
-      totalSalesCount: totalSalesCount || 8,
-      totalOSCount: totalOSCount || 5,
-      dataQuality: 'complete',
+      totalSalesCount,
+      totalOSCount,
+      dataQuality: products.length > 0 && devices.length > 0 ? 'complete' : 'partial',
       notes: [
         'CMV apurado a partir dos custos de aquisição cadastrados no estoque.',
         'Taxas de intermediação de cartão provisionadas com alíquota média ponderada de 3.2%.',
@@ -175,9 +182,9 @@ export class FinancialIntelligenceRepository {
     };
 
     // 6. Rentabilidade por Categoria
-    const catIphoneRev = grossRevenueFromSales * 0.88;
+    const catIphoneRev = deviceRevenue;
     const catIphoneCost = cmvDevices;
-    const catAccRev = grossRevenueFromSales * 0.12;
+    const catAccRev = accessoryRevenue;
     const catAccCost = cmvAccessories;
     const catOsRev = grossRevenueFromOS;
     const catOsCost = cmvParts;
@@ -188,33 +195,33 @@ export class FinancialIntelligenceRepository {
         revenue: catIphoneRev,
         cost: catIphoneCost,
         grossProfit: catIphoneRev - catIphoneCost,
-        marginPercent: catIphoneRev > 0 ? ((catIphoneRev - catIphoneCost) / catIphoneRev) * 100 : 26.5,
-        volume: totalSalesCount || 7,
-        shareOfTotalRevenuePercent: grossRevenue > 0 ? (catIphoneRev / grossRevenue) * 100 : 78,
+        marginPercent: catIphoneRev > 0 ? ((catIphoneRev - catIphoneCost) / catIphoneRev) * 100 : 0,
+        volume: deviceVolume,
+        shareOfTotalRevenuePercent: grossRevenue > 0 ? (catIphoneRev / grossRevenue) * 100 : 0,
       },
       {
         category: 'Acessórios & Proteção',
         revenue: catAccRev,
         cost: catAccCost,
         grossProfit: catAccRev - catAccCost,
-        marginPercent: catAccRev > 0 ? ((catAccRev - catAccCost) / catAccRev) * 100 : 62.0,
-        volume: (totalSalesCount || 7) * 2,
-        shareOfTotalRevenuePercent: grossRevenue > 0 ? (catAccRev / grossRevenue) * 100 : 10,
+        marginPercent: catAccRev > 0 ? ((catAccRev - catAccCost) / catAccRev) * 100 : 0,
+        volume: accessoryVolume,
+        shareOfTotalRevenuePercent: grossRevenue > 0 ? (catAccRev / grossRevenue) * 100 : 0,
       },
       {
         category: 'Assistência Técnica & Reparos',
         revenue: catOsRev,
         cost: catOsCost,
         grossProfit: catOsRev - catOsCost,
-        marginPercent: catOsRev > 0 ? ((catOsRev - catOsCost) / catOsRev) * 100 : 71.5,
-        volume: totalOSCount || 4,
-        shareOfTotalRevenuePercent: grossRevenue > 0 ? (catOsRev / grossRevenue) * 100 : 12,
+        marginPercent: catOsRev > 0 ? ((catOsRev - catOsCost) / catOsRev) * 100 : 0,
+        volume: totalOSCount,
+        shareOfTotalRevenuePercent: grossRevenue > 0 ? (catOsRev / grossRevenue) * 100 : 0,
       },
     ];
 
     // 7. Projeções de Cenários
-    const avgDailyDirectIncome = grossRevenueFromSales > 0 ? (grossRevenueFromSales * 0.45) / 30 : 720;
-    const avgDailyFixedExpense = operationalExpenses > 0 ? operationalExpenses / 30 : 280;
+    const avgDailyDirectIncome = grossRevenueFromSales > 0 ? grossRevenueFromSales / 30 : 0;
+    const avgDailyFixedExpense = operationalExpenses > 0 ? operationalExpenses / 30 : 0;
 
     const buildHorizonScenarios = (days: 7 | 30 | 60 | 90) => {
       const horizonEnd = new Date(today);

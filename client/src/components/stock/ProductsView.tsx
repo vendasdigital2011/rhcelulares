@@ -12,10 +12,10 @@ import type { Product } from '../../types.js';
 
 interface ProductsViewProps {
   products: Product[];
-  onCreateProduct: (prod: Omit<Product, 'id' | 'createdAt'>) => void;
-  onUpdateProduct: (id: string, updates: Partial<Product>) => void;
-  onAdjustStock: (id: string, delta: number, reason: string) => void;
-  onDeleteProduct: (id: string) => void;
+  onCreateProduct: (prod: Omit<Product, 'id' | 'createdAt'>) => Promise<void>;
+  onUpdateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  onAdjustStock: (id: string, delta: number, reason: string) => Promise<void>;
+  onDeleteProduct: (id: string) => Promise<void>;
 }
 
 export const ProductsView: React.FC<ProductsViewProps> = ({
@@ -30,6 +30,9 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [operationError, setOperationError] = useState<string | null>(null);
 
   // Estados do formulário de produto
   const [name, setName] = useState('');
@@ -64,12 +67,15 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
     setEditingProduct(null);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !sku.trim()) return;
+    if (!name.trim() || !sku.trim() || isSaving) return;
 
-    if (editingProduct) {
-      onUpdateProduct(editingProduct.id, {
+    setIsSaving(true);
+    setFormError(null);
+    try {
+      if (editingProduct) {
+        await onUpdateProduct(editingProduct.id, {
         name,
         sku,
         barcode: barcode.trim() || undefined,
@@ -80,9 +86,9 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
         sellPrice: Number(sellPrice),
         minStock: Number(minStock),
         location: location.trim() || undefined,
-      });
-    } else {
-      onCreateProduct({
+        });
+      } else {
+        await onCreateProduct({
         name,
         sku,
         barcode: barcode.trim() || undefined,
@@ -97,11 +103,16 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
         reservedStock: 0,
         location: location.trim() || undefined,
         status: 'active',
-      });
-    }
+        });
+      }
 
-    setShowAddModal(false);
-    resetForm();
+      setShowAddModal(false);
+      resetForm();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Não foi possível salvar o produto.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleOpenEdit = (prod: Product) => {
@@ -120,13 +131,21 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
     setShowAddModal(true);
   };
 
-  const handleConfirmAdjust = (e: React.FormEvent) => {
+  const handleConfirmAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adjustingProduct) return;
+    if (!adjustingProduct || isSaving) return;
 
     const delta = adjustType === 'add' ? Math.abs(adjustDelta) : -Math.abs(adjustDelta);
-    onAdjustStock(adjustingProduct.id, delta, adjustReason);
-    setAdjustingProduct(null);
+    setIsSaving(true);
+    setOperationError(null);
+    try {
+      await onAdjustStock(adjustingProduct.id, delta, adjustReason);
+      setAdjustingProduct(null);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Não foi possível ajustar o estoque.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const filteredProducts = products.filter(p => {
@@ -143,6 +162,11 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
 
   return (
     <div style={{ padding: '24px 32px', maxWidth: 1360, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {operationError && !adjustingProduct && (
+        <div role="alert" style={{ background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#fecaca', borderRadius: 8, padding: '10px 12px', fontSize: '0.78rem' }}>
+          {operationError}
+        </div>
+      )}
       {/* CABEÇALHO */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
@@ -353,9 +377,14 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                         </button>
 
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm(`Deseja desativar o produto ${p.name}?`)) {
-                              onDeleteProduct(p.id);
+                              try {
+                                setOperationError(null);
+                                await onDeleteProduct(p.id);
+                              } catch (error) {
+                                setOperationError(error instanceof Error ? error.message : 'Não foi possível excluir o produto.');
+                              }
                             }
                           }}
                           title="Excluir Produto"
@@ -419,6 +448,11 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
             </div>
 
             <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {formError && (
+                <div role="alert" style={{ background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#fecaca', borderRadius: 8, padding: '10px 12px', fontSize: '0.78rem' }}>
+                  {formError}
+                </div>
+              )}
               <div>
                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#cbd5e1' }}>Nome do Produto *</label>
                 <input
@@ -539,9 +573,10 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: '#fff', padding: '9px 24px', borderRadius: 8, fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer' }}
+                  disabled={isSaving}
+                  style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: '#fff', padding: '9px 24px', borderRadius: 8, fontSize: '0.8rem', fontWeight: 800, cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.7 : 1 }}
                 >
-                  {editingProduct ? 'Salvar Alterações' : 'Cadastrar Produto'}
+                  {isSaving ? 'Salvando...' : editingProduct ? 'Salvar Alterações' : 'Cadastrar Produto'}
                 </button>
               </div>
             </form>
@@ -590,6 +625,11 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
             </div>
 
             <form onSubmit={handleConfirmAdjust} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {operationError && (
+                <div role="alert" style={{ background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#fecaca', borderRadius: 8, padding: '10px 12px', fontSize: '0.78rem' }}>
+                  {operationError}
+                </div>
+              )}
               <div>
                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#cbd5e1' }}>Operação</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
