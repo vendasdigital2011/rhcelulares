@@ -15,6 +15,7 @@ import {
   Bot,
   BellRing,
   RefreshCw,
+  Calculator,
 } from 'lucide-react';
 import type {
   WhatsAppChat,
@@ -42,6 +43,7 @@ import {
   approveAutomation,
   dismissAutomation,
 } from '../../repositories/whatsappRepository.js';
+import { CrmTradeInCalculatorModal } from './CrmTradeInCalculatorModal.js';
 
 interface CrmWhatsAppChatViewProps {
   customers: Customer[];
@@ -83,6 +85,9 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
   const [automations, setAutomations] = useState<WhatsAppAutomationTask[]>([]);
   const [showAutomationsModal, setShowAutomationsModal] = useState(false);
   const [processingAutomationId, setProcessingAutomationId] = useState<string | null>(null);
+
+  // Calculadora Comercial 1-Click & Trade-in (Épico 06)
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false);
 
   // Form nova conversa
   const [newChatName, setNewChatName] = useState('');
@@ -624,6 +629,27 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
             {/* Ações do Atendimento */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <button
+                onClick={() => setShowCalculatorModal(true)}
+                title="Calculadora Comercial: Simular parcelamento de 1x a 21x com abatimento de troca e taxas de maquininha"
+                style={{
+                  backgroundColor: '#F0FDF4',
+                  border: '1px solid #86EFAC',
+                  color: '#15803D',
+                  borderRadius: 6,
+                  padding: '6px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <Calculator size={13} color="#15803D" />
+                <span>Simular Troca</span>
+              </button>
+
+              <button
                 onClick={() => setShowTransferModal(true)}
                 title="Transferir atendimento para outro atendente ou departamento"
                 style={{
@@ -933,6 +959,29 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
               <span>Macros</span>
             </button>
 
+            <button
+              type="button"
+              onClick={() => setShowCalculatorModal(true)}
+              title="Calculadora Comercial 1-Click: Simulação de parcelamento de 1x a 21x com trade-in"
+              style={{
+                backgroundColor: '#ECFDF5',
+                border: '1px solid #A7F3D0',
+                color: '#059669',
+                borderRadius: 6,
+                padding: '8px 10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Calculator size={14} color="#059669" />
+              <span>Calculadora</span>
+            </button>
+
             <input
               type="text"
               placeholder="Digite sua mensagem (pressione Enter para enviar)..."
@@ -1028,6 +1077,28 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
 
         {/* Ações Rápidas ERP */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <button
+            onClick={() => setShowCalculatorModal(true)}
+            style={{
+              backgroundColor: '#16A34A',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              boxShadow: '0 2px 4px rgba(22, 163, 74, 0.2)',
+            }}
+          >
+            <Calculator size={14} />
+            <span>Simular Troca & Parcelamento</span>
+          </button>
+
           {onNavigateToPOS && (
             <button
               onClick={() => onNavigateToPOS(activeChat?.contactName || '')}
@@ -1488,6 +1559,22 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL CALCULADORA COMERCIAL 1-CLICK & TRADE-IN (ÉPICO 06) */}
+      {/* ======================================================== */}
+      {showCalculatorModal && activeChat && (
+        <CrmTradeInCalculatorModal
+          isOpen={showCalculatorModal}
+          onClose={() => setShowCalculatorModal(false)}
+          customerName={activeChat.contactName}
+          customerPhone={activeChat.phoneNumber}
+          devices={devices}
+          onInsertProposalText={(text) => {
+            setInputText(text);
+          }}
+        />
       )}
     </div>
   );
