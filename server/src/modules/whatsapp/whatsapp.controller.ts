@@ -6,6 +6,8 @@ import {
   normalizePhoneForWhatsApp
 } from './whatsapp.service.js';
 import { WhatsAppAIService } from './whatsapp-ai.service.js';
+import { WhatsAppLifecycleRulesService } from './whatsapp-rules.service.js';
+import { WhatsAppReferralService } from './whatsapp-referral.service.js';
 
 const sendMessageSchema = z.object({
   to: z.string().min(8, 'Número de telefone obrigatório'),
@@ -155,7 +157,6 @@ export const whatsappRoutes: FastifyPluginAsync = async (fastify) => {
 
   /**
    * Descarta uma automação
-   * POST /api/whatsapp/automations/:id/dismiss
    */
   fastify.post('/automations/:id/dismiss', async (request, reply) => {
     const { id } = request.params as { id: string };
@@ -163,6 +164,126 @@ export const whatsappRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.status(200).send({
       success,
     });
+  });
+
+  /**
+   * Réguas de Ciclo de Vida Automáticas (D+0, D+15, D+180, D+360 - Épico 09)
+   * GET /api/whatsapp/rules
+   */
+  fastify.get('/rules', async () => {
+    const rules = WhatsAppLifecycleRulesService.getRules();
+    return {
+      success: true,
+      data: rules,
+    };
+  });
+
+  /**
+   * Alterna status da régua (Ativa / Pausada)
+   * POST /api/whatsapp/rules/:ruleId/toggle
+   */
+  fastify.post('/rules/:ruleId/toggle', async (request, reply) => {
+    const { ruleId } = request.params as { ruleId: string };
+    const updated = WhatsAppLifecycleRulesService.toggleRule(ruleId);
+    if (!updated) {
+      return reply.status(404).send({ success: false, error: 'Régua não encontrada' });
+    }
+    return reply.status(200).send({ success: true, data: updated });
+  });
+
+  /**
+   * Atualiza o template da mensagem da régua
+   * POST /api/whatsapp/rules/:ruleId/template
+   */
+  fastify.post('/rules/:ruleId/template', async (request, reply) => {
+    const { ruleId } = request.params as { ruleId: string };
+    const body = request.body as { templateMessage: string };
+    if (!body || !body.templateMessage) {
+      return reply.status(400).send({ success: false, error: 'templateMessage é obrigatório' });
+    }
+    const updated = WhatsAppLifecycleRulesService.updateTemplate(ruleId, body.templateMessage);
+    if (!updated) {
+      return reply.status(404).send({ success: false, error: 'Régua não encontrada' });
+    }
+    return reply.status(200).send({ success: true, data: updated });
+  });
+
+  /**
+   * Dispara a régua em lote para os clientes elegíveis via Meta Cloud API Oficial
+   * POST /api/whatsapp/rules/:ruleId/trigger-batch
+   */
+  fastify.post('/rules/:ruleId/trigger-batch', async (request, reply) => {
+    const { ruleId } = request.params as { ruleId: string };
+    const body = request.body as { operator?: string } | undefined;
+    const operator = body?.operator || 'Hiago Vendas';
+
+    try {
+      const result = await WhatsAppLifecycleRulesService.triggerBatch(ruleId, operator);
+      return reply.status(200).send({ success: true, data: result });
+    } catch (err: any) {
+      return reply.status(400).send({ success: false, error: err.message || 'Erro ao disparar lote' });
+    }
+  });
+
+  /**
+   * Programa de Indicação Viral & Embaixadores (Épico 10)
+   * GET /api/whatsapp/referrals
+   */
+  fastify.get('/referrals', async () => {
+    const ambassadors = WhatsAppReferralService.getAmbassadors();
+    return {
+      success: true,
+      data: ambassadors,
+    };
+  });
+
+  /**
+   * Gera código e link exclusivo de indicação
+   * POST /api/whatsapp/referrals/generate
+   */
+  fastify.post('/referrals/generate', async (request, reply) => {
+    const body = request.body as { customerName: string; customerPhone: string; deviceBought: string };
+    if (!body.customerName || !body.customerPhone || !body.deviceBought) {
+      return reply.status(400).send({
+        success: false,
+        error: 'customerName, customerPhone e deviceBought são obrigatórios',
+      });
+    }
+
+    const created = WhatsAppReferralService.generateReferral(body.customerName, body.customerPhone, body.deviceBought);
+    return reply.status(201).send({
+      success: true,
+      data: created,
+    });
+  });
+
+  /**
+   * Envia convite de embaixador no WhatsApp do cliente
+   * POST /api/whatsapp/referrals/:id/share
+   */
+  fastify.post('/referrals/:id/share', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const body = request.body as { operator?: string } | undefined;
+    const operator = body?.operator || 'Hiago Vendas';
+
+    const result = await WhatsAppReferralService.sendReferralInvite(id, operator);
+    if (!result.success) {
+      return reply.status(400).send({ success: false, error: result.error });
+    }
+
+    return reply.status(200).send({ success: true, data: result });
+  });
+
+  /**
+   * Dashboard Executivo de ROI (Épico 10)
+   * GET /api/whatsapp/roi-metrics
+   */
+  fastify.get('/roi-metrics', async () => {
+    const metrics = WhatsAppReferralService.getExecutiveRoiMetrics();
+    return {
+      success: true,
+      data: metrics,
+    };
   });
 };
 

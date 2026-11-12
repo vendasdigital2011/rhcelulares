@@ -39,10 +39,25 @@ export const AfterSalesView: React.FC<AfterSalesViewProps> = ({
   const sentCount = triggers.filter(t => t.status === 'sent').length;
   const convertedCount = triggers.filter(t => t.status === 'converted').length;
 
-  const handleSendWhatsApp = (trigger: AfterSalesTrigger) => {
+  const handleSendWhatsApp = async (trigger: AfterSalesTrigger) => {
     const cleanPhone = trigger.customerPhone.replace(/\D/g, '');
     const encoded = encodeURIComponent(trigger.suggestedMessage);
     window.open(`https://wa.me/${cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`}?text=${encoded}`, '_blank');
+
+    // Registra envio oficial via Meta Cloud API / Backend
+    try {
+      await fetch('/api/whatsapp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: trigger.customerPhone,
+          message: trigger.suggestedMessage,
+          senderName: 'Hiago Vendas',
+        }),
+      });
+    } catch {
+      // Ignora erro no client se estiver offline
+    }
 
     setTriggers(prev => prev.map(t => t.id === trigger.id ? { ...t, status: 'sent' } : t));
     if (onTriggerAction) onTriggerAction(trigger.id, 'sent');

@@ -19,6 +19,8 @@ import {
   Wrench,
   ShoppingBag,
   BarChart3,
+  Zap,
+  Gift,
 } from 'lucide-react';
 import type {
   Lead,
@@ -48,6 +50,8 @@ import { CrmAssistanceKanban } from './CrmAssistanceKanban.js';
 import { CrmCustomer360View } from './CrmCustomer360View.js';
 import { CrmWhatsAppChatView } from './CrmWhatsAppChatView.js';
 import { CrmWhatsAppReportsView } from './CrmWhatsAppReportsView.js';
+import { CrmAutomationRulesView } from './CrmAutomationRulesView.js';
+import { CrmReferralRoiView } from './CrmReferralRoiView.js';
 
 interface CrmKanbanViewProps {
   serviceOrders?: ServiceOrder[];
@@ -78,7 +82,7 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
   onNavigateToPOS,
   onNavigateToAssistance,
 }) => {
-  const [activeCrmTab, setActiveCrmTab] = useState<'whatsapp_chat' | 'sales_kanban' | 'assistance_kanban' | 'customers_360' | 'whatsapp_reports'>('whatsapp_chat');
+  const [activeCrmTab, setActiveCrmTab] = useState<'whatsapp_chat' | 'sales_kanban' | 'assistance_kanban' | 'customers_360' | 'whatsapp_reports' | 'automation_rules' | 'referral_roi'>('whatsapp_chat');
   const [chats, setChats] = useState<WhatsAppChat[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -405,6 +409,48 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
           <BarChart3 size={14} />
           <span>Métricas WhatsApp 360° (RF07)</span>
         </button>
+
+        <button
+          onClick={() => setActiveCrmTab('automation_rules')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: activeCrmTab === 'automation_rules' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
+            color: '#FFFFFF',
+            fontSize: '0.8125rem',
+            fontWeight: activeCrmTab === 'automation_rules' ? 700 : 500,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <Zap size={14} />
+          <span>Réguas D0-D360 (Épico 09)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveCrmTab('referral_roi')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: activeCrmTab === 'referral_roi' ? '#10B981' : 'rgba(255, 255, 255, 0.05)',
+            color: '#FFFFFF',
+            fontSize: '0.8125rem',
+            fontWeight: activeCrmTab === 'referral_roi' ? 700 : 500,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <Gift size={14} />
+          <span>Indicações & ROI (Épico 10)</span>
+        </button>
       </div>
 
       {activeCrmTab === 'whatsapp_chat' && (
@@ -423,6 +469,20 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
           chats={chats}
           sales={sales}
           serviceOrders={serviceOrders}
+        />
+      )}
+
+      {activeCrmTab === 'automation_rules' && (
+        <CrmAutomationRulesView
+          sales={sales}
+          customers={customers}
+        />
+      )}
+
+      {activeCrmTab === 'referral_roi' && (
+        <CrmReferralRoiView
+          sales={sales}
+          customers={customers}
         />
       )}
 
