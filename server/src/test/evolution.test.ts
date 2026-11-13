@@ -25,3 +25,4 @@ describe('Integração Nativa com Evolution API (WhatsApp QR Code)', () => {
     }
   });
 });
+

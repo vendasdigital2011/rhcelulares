@@ -197,4 +197,110 @@ export class EvolutionService {
       return false;
     }
   }
+
+  /**
+   * Persiste a mensagem recebida de cliente no banco Supabase em tempo real
+   */
+  public static async persistIncomingMessage(params: {
+    phone: string;
+    senderName: string;
+    messageText: string;
+    externalId?: string;
+  }): Promise<{ chatId: string; messageId: string } | null> {
+    const supabaseUrl = 'https://bytmvqvydxealupmvlme.supabase.co';
+    const supabaseKey = 'sb_publishable_xnG6KZJgB4jiRhMgyxSUFA_NbSPfsjX';
+    const cleanPhone = normalizePhoneForWhatsApp(params.phone);
+
+    try {
+      // 1. Busca conversa existente pelo telefone
+      const findRes = await fetch(`${supabaseUrl}/rest/v1/whatsapp_chats?phone_number=eq.${cleanPhone}&select=id,unread_count`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+      });
+
+      const existingChats = await findRes.json().catch(() => []) as any[];
+      let chatId = '';
+
+      if (existingChats && existingChats.length > 0) {
+        chatId = existingChats[0].id;
+        const currentUnread = existingChats[0].unread_count || 0;
+
+        // Atualiza chat existente
+        await fetch(`${supabaseUrl}/rest/v1/whatsapp_chats?id=eq.${chatId}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            last_message_text: params.messageText,
+            last_message_at: new Date().toISOString(),
+            unread_count: currentUnread + 1,
+            status: 'waiting_attendant',
+            updated_at: new Date().toISOString(),
+          }),
+        });
+      } else {
+        // Cria nova conversa no Inbox
+        const createRes = await fetch(`${supabaseUrl}/rest/v1/whatsapp_chats`, {
+          method: 'POST',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify({
+            contact_name: params.senderName,
+            phone_number: cleanPhone,
+            department: 'vendas',
+            status: 'waiting_attendant',
+            assigned_user_name: 'Lucas Vendedor',
+            last_message_text: params.messageText,
+            last_message_at: new Date().toISOString(),
+            unread_count: 1,
+            tags: ['Novo Lead WhatsApp'],
+          }),
+        });
+
+        const createdData = await createRes.json() as any[];
+        if (createdData && createdData.length > 0) {
+          chatId = createdData[0].id;
+        }
+      }
+
+      if (!chatId) return null;
+
+      // 2. Insere a mensagem no histórico do chat
+      const msgRes = await fetch(`${supabaseUrl}/rest/v1/whatsapp_messages`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          direction: 'inbound',
+          sender_type: 'customer',
+          sender_name: params.senderName,
+          message_text: params.messageText,
+          external_id: params.externalId,
+          status: 'delivered',
+        }),
+      });
+
+      const msgData = await msgRes.json() as any[];
+      const messageId = msgData?.[0]?.id || `msg-${Date.now()}`;
+
+      return { chatId, messageId };
+    } catch (err) {
+      console.error('Falha ao persistir mensagem da Evolution no Supabase:', err);
+      return null;
+    }
+  }
 }

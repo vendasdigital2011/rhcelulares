@@ -345,6 +345,14 @@ export const whatsappRoutes: FastifyPluginAsync = async (fastify) => {
         const senderName = data.pushName || `Cliente (${phone})`;
 
         console.log(`📱 Nova mensagem recebida de ${senderName} (${phone}): "${messageText}"`);
+
+        // Grava no Supabase e atualiza o Inbox do CRM
+        await EvolutionService.persistIncomingMessage({
+          phone,
+          senderName,
+          messageText,
+          externalId: key.id,
+        });
       }
     }
 
