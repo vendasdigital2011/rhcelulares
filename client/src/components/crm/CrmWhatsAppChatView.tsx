@@ -48,6 +48,7 @@ import {
 } from '../../repositories/whatsappRepository.js';
 import { CrmTradeInCalculatorModal } from './CrmTradeInCalculatorModal.js';
 import { EvolutionConnectModal } from './EvolutionConnectModal.js';
+import { CrmCompleteSaleModal } from './CrmCompleteSaleModal.js';
 
 interface CrmWhatsAppChatViewProps {
   customers: Customer[];
@@ -95,6 +96,9 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
 
   // Conexão WhatsApp / Evolution QR Code
   const [showConnectModal, setShowConnectModal] = useState(false);
+
+  // Conclusão de Venda 1-Click (Épico 07)
+  const [showCompleteSaleModal, setShowCompleteSaleModal] = useState(false);
 
   // Roleta Round-Robin & SLA (Épico 04)
   const roundRobinStatus = useMemo(() => {
@@ -1212,6 +1216,28 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
             </button>
           )}
 
+          <button
+            onClick={() => setShowCompleteSaleModal(true)}
+            style={{
+              backgroundColor: '#10B981',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              boxShadow: '0 2px 4px rgba(16, 185, 129, 0.25)',
+            }}
+          >
+            <CheckCircle2 size={14} />
+            <span>Concluir Venda (1-Click)</span>
+          </button>
+
           {onNavigateToAssistance && (
             <button
               onClick={onNavigateToAssistance}
@@ -1671,6 +1697,30 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
           devices={devices}
           onInsertProposalText={(text) => {
             setInputText(text);
+          }}
+        />
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL CONCLUSÃO DE VENDA & GARANTIA D+0 (ÉPICO 07)       */}
+      {/* ======================================================== */}
+      {showCompleteSaleModal && (
+        <CrmCompleteSaleModal
+          isOpen={showCompleteSaleModal}
+          onClose={() => setShowCompleteSaleModal(false)}
+          customerName={activeChat?.contactName || ''}
+          customerPhone={activeChat?.phoneNumber || ''}
+          devices={devices}
+          sellerName={activeChat?.assignedUserName || 'Robson Oliveira'}
+          onSaleCompleted={(sale) => {
+            setShowCompleteSaleModal(false);
+            if (activeChat) {
+              sendWhatsAppMessage(
+                activeChat.id,
+                `✅ Parabéns pela compra do seu novo iPhone! Pedido #${sale.saleNumber} registrado com garantia legal de 90 dias ativa! 📱✨`,
+                'Hiago Vendas'
+              ).catch(() => {});
+            }
           }}
         />
       )}

@@ -32,6 +32,7 @@ interface LeadDetailDrawerProps {
   onUpdateLead: (updated: Lead) => void;
   onEditLead: (lead: Lead) => void;
   onDeleteLead: (leadId: string) => void;
+  onCompleteSale?: (lead: Lead) => void;
 }
 
 const STAGES: Array<{ id: LeadStage; label: string; color: string }> = [
@@ -51,6 +52,7 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
   onUpdateLead,
   onEditLead,
   onDeleteLead,
+  onCompleteSale,
 }) => {
   // Nova Atividade
   const [activityType, setActivityType] = useState<LeadActivityType>('observacao');
@@ -71,6 +73,10 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
 
   const handleStageClick = async (newStage: LeadStage) => {
     if (newStage === lead.stage) return;
+    if (newStage === 'convertido' && onCompleteSale) {
+      onCompleteSale(lead);
+      return;
+    }
     if (newStage === 'perdido' || newStage === 'convertido') {
       setTargetStage(newStage);
       setStageReason('');
@@ -288,6 +294,30 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {onCompleteSale && (
+              <button
+                onClick={() => onCompleteSale(lead)}
+                title="Concluir venda do iPhone, abater estoque e emitir garantia D+0"
+                style={{
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 2px 6px rgba(16, 185, 129, 0.3)',
+                }}
+              >
+                <CheckCircle2 size={13} />
+                <span>Concluir Venda</span>
+              </button>
+            )}
+
             <button
               onClick={() => onEditLead(lead)}
               title="Editar dados cadastrais"

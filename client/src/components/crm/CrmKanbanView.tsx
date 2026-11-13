@@ -51,6 +51,7 @@ import { CrmWhatsAppReportsView } from './CrmWhatsAppReportsView.js';
 import { CrmAutomationRulesView } from './CrmAutomationRulesView.js';
 import { CrmReferralRoiView } from './CrmReferralRoiView.js';
 import { CrmCsvImportModal } from './CrmCsvImportModal.js';
+import { CrmCompleteSaleModal } from './CrmCompleteSaleModal.js';
 
 interface CrmKanbanViewProps {
   serviceOrders?: ServiceOrder[];
@@ -96,6 +97,7 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [completeSaleLead, setCompleteSaleLead] = useState<Lead | null>(null);
 
   // IA Comercial
   const [aiExpanded, setAiExpanded] = useState(false);
@@ -187,6 +189,13 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
 
   const handleMoveStageQuick = async (leadId: string, newStage: LeadStage, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (newStage === 'convertido') {
+      const targetLead = leads.find(l => l.id === leadId);
+      if (targetLead) {
+        setCompleteSaleLead(targetLead);
+        return;
+      }
+    }
     try {
       const updated = await moveLeadStageApi(leadId, newStage, 'Robson Oliveira');
       setLeads(prev => prev.map(l => (l.id === updated.id ? updated : l)));
@@ -1011,6 +1020,7 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
           setIsFormModalOpen(true);
         }}
         onDeleteLead={handleDeleteLead}
+        onCompleteSale={l => setCompleteSaleLead(l)}
       />
 
       {/* MODAL IMPORTAÇÃO DE LEADS E BASE HISTÓRICA CSV (ÉPICO 08) */}
@@ -1019,6 +1029,35 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
         onClose={() => setIsImportModalOpen(false)}
         onImportComplete={() => {
           loadData();
+        }}
+      />
+
+      {/* MODAL CONCLUSÃO DE VENDA & GARANTIA D+0 (ÉPICO 07) */}
+      <CrmCompleteSaleModal
+        isOpen={!!completeSaleLead}
+        onClose={() => setCompleteSaleLead(null)}
+        customerName={completeSaleLead?.contactName || ''}
+        customerPhone={completeSaleLead?.phone || ''}
+        leadId={completeSaleLead?.id}
+        devices={devices}
+        sellerName="Robson Oliveira"
+        onSaleCompleted={async (sale) => {
+          if (completeSaleLead) {
+            try {
+              const updated = await moveLeadStageApi(
+                completeSaleLead.id,
+                'convertido',
+                'Robson Oliveira',
+                `Venda #${sale.saleNumber} concluída com sucesso.`
+              );
+              setLeads(prev => prev.map(l => (l.id === updated.id ? updated : l)));
+              if (selectedLead?.id === updated.id) setSelectedLead(updated);
+            } catch (err) {
+              console.error('Erro ao atualizar etapa do lead:', err);
+            }
+          }
+          setCompleteSaleLead(null);
+          await loadData();
         }}
       />
     </div>
