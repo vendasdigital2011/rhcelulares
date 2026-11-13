@@ -344,8 +344,8 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
         display: 'grid',
         gridTemplateColumns: '320px 1fr 340px',
         gap: 12,
-        height: 'calc(100vh - 170px)',
-        minHeight: 580,
+        height: 'calc(100vh - 215px)',
+        minHeight: 520,
       }}
     >
       {/* ======================================================== */}

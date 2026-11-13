@@ -132,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'cash', label: 'Fluxo de caixa', icon: Wallet },
         { id: 'customers', label: 'Clientes', icon: Users },
         { id: 'after_sales', label: 'Pós-venda', icon: Sparkles },
-        { id: 'crm_customers', label: 'Prospecção (WhatsApp)', icon: Target },
+        { id: 'crm_customers', label: 'CRM WhatsApp 360°', icon: Target },
       ],
     },
     {

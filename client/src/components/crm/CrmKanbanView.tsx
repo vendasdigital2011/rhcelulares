@@ -232,8 +232,8 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: 20,
-      padding: '24px 32px',
+      gap: 14,
+      padding: '16px 24px',
       maxWidth: 1600,
       margin: '0 auto',
       minHeight: '100vh',
@@ -247,14 +247,14 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
         gap: 16,
       }}>
         <div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f97316', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            CRM DE CLIENTES & PROSPECÇÃO
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#EA580C', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            CRM WHATSAPP 360° & ACELERAÇÃO COMERCIAL
           </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: 4 }}>
-            CRM de Clientes
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#111827', marginTop: 4 }}>
+            Central Comercial & WhatsApp
           </h1>
-          <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: 2 }}>
-            Gerencie sua prospecção e acompanhe oportunidades comerciais.
+          <p style={{ fontSize: '0.85rem', color: '#4B5563', marginTop: 2 }}>
+            Atendimento multicanal, funil de prospecção, ordens de serviço e inteligência com Google Gemini.
           </p>
         </div>
 
@@ -267,19 +267,20 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#cbd5e1',
+                  background: '#FFFFFF',
+                  border: '1px solid #D1D5DB',
+                  color: '#374151',
                   padding: '9px 16px',
                   borderRadius: 8,
                   fontSize: '0.82rem',
                   fontWeight: 700,
                   cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                   transition: 'all 0.15s ease',
                 }}
               >
-                <Upload size={15} />
-                <span>Importar leads</span>
+                <Upload size={15} color="#4B5563" />
+                <span>Importar Base CSV</span>
               </button>
 
               <button
@@ -291,7 +292,7 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  background: '#f97316',
+                  background: '#EA580C',
                   border: 'none',
                   color: '#fff',
                   padding: '9px 20px',
@@ -299,7 +300,7 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
                   fontSize: '0.82rem',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
+                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -312,7 +313,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
       </div>
 
       {/* SELETOR DE SUBMÓDULOS CRM WHATSAPP 360° */}
-      <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: 12, flexWrap: 'wrap' }}>
+      <div style={{
+        display: 'flex',
+        gap: 8,
+        backgroundColor: '#FFFFFF',
+        padding: '8px 12px',
+        borderRadius: 10,
+        border: '1px solid #E5E7EB',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+      }}>
         <button
           onClick={() => setActiveCrmTab('whatsapp_chat')}
           style={{
@@ -321,16 +332,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
             gap: 8,
             padding: '8px 16px',
             borderRadius: 6,
-            border: 'none',
-            backgroundColor: activeCrmTab === 'whatsapp_chat' ? '#16A34A' : 'rgba(255, 255, 255, 0.05)',
-            color: '#FFFFFF',
+            border: activeCrmTab === 'whatsapp_chat' ? '1px solid #15803D' : '1px solid #E5E7EB',
+            backgroundColor: activeCrmTab === 'whatsapp_chat' ? '#16A34A' : '#F8FAFC',
+            color: activeCrmTab === 'whatsapp_chat' ? '#FFFFFF' : '#334155',
             fontSize: '0.8125rem',
-            fontWeight: activeCrmTab === 'whatsapp_chat' ? 700 : 500,
+            fontWeight: activeCrmTab === 'whatsapp_chat' ? 700 : 600,
             cursor: 'pointer',
+            boxShadow: activeCrmTab === 'whatsapp_chat' ? '0 2px 4px rgba(22, 163, 74, 0.25)' : 'none',
             transition: 'all 0.15s ease',
           }}
         >
-          <MessageCircle size={14} />
+          <MessageCircle size={15} color={activeCrmTab === 'whatsapp_chat' ? '#FFFFFF' : '#16A34A'} />
           <span>Central WhatsApp</span>
         </button>
 
@@ -342,16 +354,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
             gap: 8,
             padding: '8px 16px',
             borderRadius: 6,
-            border: 'none',
-            backgroundColor: activeCrmTab === 'sales_kanban' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
-            color: '#FFFFFF',
+            border: activeCrmTab === 'sales_kanban' ? '1px solid #C2410C' : '1px solid #E5E7EB',
+            backgroundColor: activeCrmTab === 'sales_kanban' ? '#EA580C' : '#F8FAFC',
+            color: activeCrmTab === 'sales_kanban' ? '#FFFFFF' : '#334155',
             fontSize: '0.8125rem',
-            fontWeight: activeCrmTab === 'sales_kanban' ? 700 : 500,
+            fontWeight: activeCrmTab === 'sales_kanban' ? 700 : 600,
             cursor: 'pointer',
+            boxShadow: activeCrmTab === 'sales_kanban' ? '0 2px 4px rgba(234, 88, 12, 0.25)' : 'none',
             transition: 'all 0.15s ease',
           }}
         >
-          <ShoppingBag size={14} />
+          <ShoppingBag size={15} color={activeCrmTab === 'sales_kanban' ? '#FFFFFF' : '#EA580C'} />
           <span>Funil de Vendas ({leads.length})</span>
         </button>
 
@@ -363,16 +376,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
             gap: 8,
             padding: '8px 16px',
             borderRadius: 6,
-            border: 'none',
-            backgroundColor: activeCrmTab === 'assistance_kanban' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
-            color: '#FFFFFF',
+            border: activeCrmTab === 'assistance_kanban' ? '1px solid #1D4ED8' : '1px solid #E5E7EB',
+            backgroundColor: activeCrmTab === 'assistance_kanban' ? '#2563EB' : '#F8FAFC',
+            color: activeCrmTab === 'assistance_kanban' ? '#FFFFFF' : '#334155',
             fontSize: '0.8125rem',
-            fontWeight: activeCrmTab === 'assistance_kanban' ? 700 : 500,
+            fontWeight: activeCrmTab === 'assistance_kanban' ? 700 : 600,
             cursor: 'pointer',
+            boxShadow: activeCrmTab === 'assistance_kanban' ? '0 2px 4px rgba(37, 99, 235, 0.25)' : 'none',
             transition: 'all 0.15s ease',
           }}
         >
-          <Wrench size={14} />
+          <Wrench size={15} color={activeCrmTab === 'assistance_kanban' ? '#FFFFFF' : '#2563EB'} />
           <span>Kanban de Assistência ({serviceOrders.length})</span>
         </button>
 
@@ -384,16 +398,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
             gap: 8,
             padding: '8px 16px',
             borderRadius: 6,
-            border: 'none',
-            backgroundColor: activeCrmTab === 'customers_360' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
-            color: '#FFFFFF',
+            border: activeCrmTab === 'customers_360' ? '1px solid #6D28D9' : '1px solid #E5E7EB',
+            backgroundColor: activeCrmTab === 'customers_360' ? '#7C3AED' : '#F8FAFC',
+            color: activeCrmTab === 'customers_360' ? '#FFFFFF' : '#334155',
             fontSize: '0.8125rem',
-            fontWeight: activeCrmTab === 'customers_360' ? 700 : 500,
+            fontWeight: activeCrmTab === 'customers_360' ? 700 : 600,
             cursor: 'pointer',
+            boxShadow: activeCrmTab === 'customers_360' ? '0 2px 4px rgba(124, 58, 237, 0.25)' : 'none',
             transition: 'all 0.15s ease',
           }}
         >
-          <Users size={14} />
+          <Users size={15} color={activeCrmTab === 'customers_360' ? '#FFFFFF' : '#7C3AED'} />
           <span>Clientes 360° ({customers.length})</span>
         </button>
 
@@ -405,17 +420,18 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
             gap: 8,
             padding: '8px 16px',
             borderRadius: 6,
-            border: 'none',
-            backgroundColor: activeCrmTab === 'whatsapp_reports' ? '#16A34A' : 'rgba(255, 255, 255, 0.05)',
-            color: '#FFFFFF',
+            border: activeCrmTab === 'whatsapp_reports' ? '1px solid #0F766E' : '1px solid #E5E7EB',
+            backgroundColor: activeCrmTab === 'whatsapp_reports' ? '#0D9488' : '#F8FAFC',
+            color: activeCrmTab === 'whatsapp_reports' ? '#FFFFFF' : '#334155',
             fontSize: '0.8125rem',
-            fontWeight: activeCrmTab === 'whatsapp_reports' ? 700 : 500,
+            fontWeight: activeCrmTab === 'whatsapp_reports' ? 700 : 600,
             cursor: 'pointer',
+            boxShadow: activeCrmTab === 'whatsapp_reports' ? '0 2px 4px rgba(13, 148, 136, 0.25)' : 'none',
             transition: 'all 0.15s ease',
           }}
         >
-          <BarChart3 size={14} />
-          <span>Métricas WhatsApp 360° (RF07)</span>
+          <BarChart3 size={15} color={activeCrmTab === 'whatsapp_reports' ? '#FFFFFF' : '#0D9488'} />
+          <span>Métricas WhatsApp 360°</span>
         </button>
 
         <button
@@ -426,16 +442,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
             gap: 8,
             padding: '8px 16px',
             borderRadius: 6,
-            border: 'none',
-            backgroundColor: activeCrmTab === 'automation_rules' ? '#f97316' : 'rgba(255, 255, 255, 0.05)',
-            color: '#FFFFFF',
+            border: activeCrmTab === 'automation_rules' ? '1px solid #B45309' : '1px solid #E5E7EB',
+            backgroundColor: activeCrmTab === 'automation_rules' ? '#D97706' : '#F8FAFC',
+            color: activeCrmTab === 'automation_rules' ? '#FFFFFF' : '#334155',
             fontSize: '0.8125rem',
-            fontWeight: activeCrmTab === 'automation_rules' ? 700 : 500,
+            fontWeight: activeCrmTab === 'automation_rules' ? 700 : 600,
             cursor: 'pointer',
+            boxShadow: activeCrmTab === 'automation_rules' ? '0 2px 4px rgba(217, 119, 6, 0.25)' : 'none',
             transition: 'all 0.15s ease',
           }}
         >
-          <Zap size={14} />
+          <Zap size={15} color={activeCrmTab === 'automation_rules' ? '#FFFFFF' : '#D97706'} />
           <span>Réguas D0-D360 (Épico 09)</span>
         </button>
 
@@ -447,16 +464,17 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
             gap: 8,
             padding: '8px 16px',
             borderRadius: 6,
-            border: 'none',
-            backgroundColor: activeCrmTab === 'referral_roi' ? '#10B981' : 'rgba(255, 255, 255, 0.05)',
-            color: '#FFFFFF',
+            border: activeCrmTab === 'referral_roi' ? '1px solid #059669' : '1px solid #E5E7EB',
+            backgroundColor: activeCrmTab === 'referral_roi' ? '#10B981' : '#F8FAFC',
+            color: activeCrmTab === 'referral_roi' ? '#FFFFFF' : '#334155',
             fontSize: '0.8125rem',
-            fontWeight: activeCrmTab === 'referral_roi' ? 700 : 500,
+            fontWeight: activeCrmTab === 'referral_roi' ? 700 : 600,
             cursor: 'pointer',
+            boxShadow: activeCrmTab === 'referral_roi' ? '0 2px 4px rgba(16, 185, 129, 0.25)' : 'none',
             transition: 'all 0.15s ease',
           }}
         >
-          <Gift size={14} />
+          <Gift size={15} color={activeCrmTab === 'referral_roi' ? '#FFFFFF' : '#10B981'} />
           <span>Indicações & ROI (Épico 10)</span>
         </button>
       </div>
