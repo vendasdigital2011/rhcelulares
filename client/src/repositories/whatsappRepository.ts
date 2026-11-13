@@ -665,7 +665,7 @@ export async function fetchAICopilotSuggestions(params: {
 }): Promise<{
   intent: string;
   suggestions: WhatsAppCopilotSuggestion[];
-  source: 'openai' | 'deterministic_engine';
+  source: 'gemini' | 'openai' | 'deterministic_engine' | string;
 }> {
   try {
     const res = await fetch('/api/whatsapp/ai/suggest', {

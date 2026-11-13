@@ -882,7 +882,7 @@ export const CrmWhatsAppChatView: React.FC<CrmWhatsAppChatViewProps> = ({
                         fontWeight: 700,
                       }}
                     >
-                      {copilotSource === 'openai' ? 'OpenAI GPT' : 'Motor Determinístico'}
+                      {copilotSource === 'gemini' ? 'Google Gemini' : copilotSource === 'openai' ? 'OpenAI GPT' : 'Motor Determinístico'}
                     </span>
                   )}
                 </div>

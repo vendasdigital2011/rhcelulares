@@ -150,3 +150,4 @@ describe('Épico 07: Ficha de Ciclo de Vida do Aparelho & Conclusão de Venda (<
     }, /Aparelho indisponível/);
   });
 });
+

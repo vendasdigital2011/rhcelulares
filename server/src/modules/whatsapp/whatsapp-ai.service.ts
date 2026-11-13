@@ -87,12 +87,28 @@ export class WhatsAppAIService {
   public static async generateSuggestions(params: CopilotRequest): Promise<{
     intent: string;
     suggestions: CopilotSuggestion[];
-    source: 'openai' | 'deterministic_engine';
+    source: 'gemini' | 'openai' | 'deterministic_engine';
   }> {
     const { customerName, lastMessageText, availableStock = [], currentOS } = params;
     const cleanMsg = (lastMessageText || '').toLowerCase();
 
-    // 1. Tenta OpenAI se a chave estiver configurada
+    // 1. Tenta Google Gemini se a chave estiver configurada
+    if (env.GEMINI_API_KEY && env.GEMINI_API_KEY.trim() !== '') {
+      try {
+        const geminiResult = await this.callGeminiCopilot(params);
+        if (geminiResult && geminiResult.suggestions.length > 0) {
+          return {
+            intent: geminiResult.intent,
+            suggestions: geminiResult.suggestions,
+            source: 'gemini',
+          };
+        }
+      } catch (err: any) {
+        console.warn('⚠️ Falha na chamada do Google Gemini para WhatsApp Copilot, acionando fallback:', err.message);
+      }
+    }
+
+    // 2. Tenta OpenAI se a chave estiver configurada
     if (env.OPENAI_API_KEY && env.OPENAI_API_KEY.trim() !== '') {
       try {
         const aiResult = await this.callOpenAICopilot(params);
@@ -108,7 +124,7 @@ export class WhatsAppAIService {
       }
     }
 
-    // 2. Motor Determinístico de Regras de Negócio (RF05: Sem alucinações de preço ou estoque)
+    // 3. Motor Determinístico de Regras de Negócio (RF05: Sem alucinações de preço ou estoque)
     let intent = 'general_inquiry';
     const suggestions: CopilotSuggestion[] = [];
 
@@ -210,6 +226,89 @@ export class WhatsAppAIService {
       intent,
       suggestions,
       source: 'deterministic_engine',
+    };
+  }
+
+  /**
+   * Chamada à API oficial do Google Gemini para geração de sugestões contextuais
+   */
+  private static async callGeminiCopilot(params: CopilotRequest): Promise<{
+    intent: string;
+    suggestions: CopilotSuggestion[];
+  }> {
+    const stockSummary = (params.availableStock || [])
+      .slice(0, 5)
+      .map(s => `- ${s.model} por R$ ${s.price} (Bateria: ${s.batteryHealth || 'N/D'}%)`)
+      .join('\n');
+
+    const osSummary = params.currentOS
+      ? `OS: ${params.currentOS.osNumber}, Aparelho: ${params.currentOS.deviceModel}, Status: ${params.currentOS.status}, Valor: R$ ${params.currentOS.value}`
+      : 'Nenhuma OS ativa';
+
+    const recentChat = (params.recentMessages || [])
+      .slice(-4)
+      .map(m => `${m.senderName || m.sender || 'Mensagem'}: ${m.text}`)
+      .join('\n');
+
+    const prompt = `
+Você é o Copiloto Comercial e de Atendimento da loja Hiago iPhones no WhatsApp.
+O cliente ${params.customerName} enviou a seguinte mensagem:
+"${params.lastMessageText}"
+
+HISTÓRICO RECENTE:
+${recentChat || 'Sem histórico prévio.'}
+
+ESTOQUE REAL DISPONÍVEL NA LOJA (REGRA ABSOLUTA: NUNCA invente aparelhos ou preços que não constam aqui):
+${stockSummary || 'Estoque não informado.'}
+
+DADOS DA ASSISTÊNCIA TÉCNICA (OS):
+${osSummary}
+
+INSTRUÇÕES:
+Gere exatamente 3 sugestões de mensagens curtas, profissionais, envolventes e comerciais para o vendedor da Hiago iPhones revisar e enviar com 1 clique no WhatsApp.
+Retorne APENAS um objeto JSON com as chaves "intent" e "suggestions", onde cada sugestão tem "id" (ex: "sug-1"), "title" (título curto descritivo), "text" (texto pronto da mensagem com emojis) e "category" ("direct_reply" | "trade_in" | "product_offer" | "technical_status").
+`;
+
+    const modelName = env.GEMINI_MODEL || 'gemini-1.5-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${env.GEMINI_API_KEY}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.3,
+          responseMimeType: 'application/json',
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Google Gemini retornou erro HTTP ${response.status}: ${errText.slice(0, 100)}`);
+    }
+
+    const data = await response.json() as any;
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+    const parsed = JSON.parse(cleanJson);
+
+    return {
+      intent: parsed.intent || 'geral',
+      suggestions: (parsed.suggestions || []).map((s: any, idx: number) => ({
+        id: s.id || `gemini-sug-${idx + 1}`,
+        title: s.title || `Sugestão ${idx + 1}`,
+        text: s.text || '',
+        category: s.category || 'direct_reply',
+        intentDetected: parsed.intent || 'geral',
+      })),
     };
   }
 
