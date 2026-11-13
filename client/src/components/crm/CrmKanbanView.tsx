@@ -13,8 +13,6 @@ import {
   ChevronUp,
   ArrowRight,
   RefreshCw,
-  X,
-  FileSpreadsheet,
   MessageCircle,
   Wrench,
   ShoppingBag,
@@ -52,6 +50,7 @@ import { CrmWhatsAppChatView } from './CrmWhatsAppChatView.js';
 import { CrmWhatsAppReportsView } from './CrmWhatsAppReportsView.js';
 import { CrmAutomationRulesView } from './CrmAutomationRulesView.js';
 import { CrmReferralRoiView } from './CrmReferralRoiView.js';
+import { CrmCsvImportModal } from './CrmCsvImportModal.js';
 
 interface CrmKanbanViewProps {
   serviceOrders?: ServiceOrder[];
@@ -1014,86 +1013,14 @@ export const CrmKanbanView: React.FC<CrmKanbanViewProps> = ({
         onDeleteLead={handleDeleteLead}
       />
 
-      {/* MODAL IMPORTAÇÃO DE LEADS */}
-      {isImportModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(5, 8, 16, 0.8)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1300,
-          padding: 16,
-        }}>
-          <div style={{
-            background: '#0d1322',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: 14,
-            padding: 24,
-            maxWidth: 520,
-            width: '100%',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <FileSpreadsheet size={20} color="#10b981" />
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f8fafc' }}>
-                  Importação de Leads em Lote
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsImportModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 10, lineHeight: 1.5 }}>
-              Prepare uma planilha CSV ou Excel com as colunas: <strong>Nome, Empresa, Telefone, E-mail, Interesse e Origem</strong>.
-            </p>
-
-            <div style={{
-              margin: '18px 0',
-              padding: 24,
-              border: '2px dashed rgba(255, 255, 255, 0.15)',
-              borderRadius: 10,
-              textAlign: 'center',
-              background: 'rgba(255, 255, 255, 0.02)',
-            }}>
-              <Upload size={32} color="#f97316" style={{ margin: '0 auto 10px' }} />
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>
-                Arraste seu arquivo CSV ou clique para selecionar
-              </div>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 4 }}>
-                Suporta formato .CSV com codificação UTF-8
-              </div>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={() => {
-                  alert('Arquivo CSV recebido para validação de layout. Os registros serão validados contra duplicidades de telefone.');
-                  setIsImportModalOpen(false);
-                }}
-                style={{ marginTop: 12, fontSize: '0.75rem', color: '#cbd5e1' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button
-                onClick={() => setIsImportModalOpen(false)}
-                style={{ background: 'rgba(255, 255, 255, 0.05)', border: 'none', color: '#cbd5e1', padding: '8px 16px', borderRadius: 8, fontSize: '0.78rem', cursor: 'pointer' }}
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODAL IMPORTAÇÃO DE LEADS E BASE HISTÓRICA CSV (ÉPICO 08) */}
+      <CrmCsvImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportComplete={() => {
+          loadData();
+        }}
+      />
     </div>
   );
 };
